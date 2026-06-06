@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interval DP - DP Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: center; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Interval DP (Range DP)</h1>
+        <p>Solve problems on contiguous intervals [i, j] by trying all possible split points k. Build solutions for larger intervals from smaller ones.</p>
+
+        <h2>Core Concept</h2>
+        <div class="visual">
+<pre>
+Interval DP pattern:
+  dp[i][j] = optimal answer for the subproblem on interval [i, j]
+
+For every split point k where i &le; k &lt; j:
+  dp[i][j] = optimize over  dp[i][k] + dp[k+1][j] + merge_cost(i, k, j)
+
+Fill order: by increasing interval LENGTH (len = j - i + 1)
+  len=1: dp[i][i] = base case
+  len=2: dp[i][i+1] = ...
+  len=3: dp[i][i+2] = try k=i, k=i+1
+  ...
+  len=n: dp[0][n-1] = final answer
+
+       [0 ─────────────── n-1]        ← final answer
+      /          |            \
+  [0──k]    [0──k]  [k+1──n-1]   ... try all k
+</pre>
+        </div>
+
+        <h2>Problem 1: Matrix Chain Multiplication</h2>
+        <p>Given matrices A1, A2, ..., An with dimensions p[0]&times;p[1], p[1]&times;p[2], ..., p[n-1]&times;p[n], find the minimum number of scalar multiplications to compute the product A1*A2*...*An.</p>
+
+        <div class="visual">
+<pre>
+Example: dimensions p = [10, 30, 5, 60]
+  A1: 10x30,  A2: 30x5,  A3: 5x60
+
+  Option 1: (A1*A2)*A3
+    A1*A2: 10*30*5 = 1500 ops → result is 10x5
+    (A1*A2)*A3: 10*5*60 = 3000 ops
+    Total: 4500
+
+  Option 2: A1*(A2*A3)
+    A2*A3: 30*5*60 = 9000 ops → result is 30x60
+    A1*(A2*A3): 10*30*60 = 18000 ops
+    Total: 27000
+
+  Optimal: Option 1 with 4500 multiplications
+  Parenthesization matters enormously!
+</pre>
+        </div>
+
+        <h2>State & Transition (MCM)</h2>
+        <div class="step-box">
+            <strong>State:</strong> dp[i][j] = minimum cost to multiply matrices i through j<br><br>
+            <strong>Transition:</strong> Split at k (multiply [i..k] and [k+1..j], then combine):<br>
+            <code>dp[i][j] = min over k in [i, j-1] of dp[i][k] + dp[k+1][j] + p[i-1]*p[k]*p[j]</code><br><br>
+            <strong>Base Case:</strong> dp[i][i] = 0 (single matrix, no multiplication needed)<br><br>
+            <strong>Answer:</strong> dp[1][n]
+        </div>
+
+        <h2>Visual: Filling by Interval Length</h2>
+        <div class="visual">
+<pre>
+p = [10, 30, 5, 60],  Matrices: M1(10x30), M2(30x5), M3(5x60)
+
+dp table (1-indexed):
+         j=1    j=2    j=3
+  i=1  [  0   1500   4500 ]    ← dp[1][3] = answer
+  i=2  [  -     0    9000 ]
+  i=3  [  -     -      0  ]
+
+Fill order:
+  Length 1: dp[1][1]=0, dp[2][2]=0, dp[3][3]=0
+  Length 2: dp[1][2] = p[0]*p[1]*p[2] = 10*30*5 = 1500
+            dp[2][3] = p[1]*p[2]*p[3] = 30*5*60 = 9000
+  Length 3: dp[1][3] = min(
+              k=1: dp[1][1] + dp[2][3] + p[0]*p[1]*p[3] = 0+9000+18000 = 27000
+              k=2: dp[1][2] + dp[3][3] + p[0]*p[2]*p[3] = 1500+0+3000 = 4500 ✓
+            ) = 4500
+</pre>
+        </div>
+
+        <h2>Code: Matrix Chain Multiplication</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="comment">// Matrix Chain Multiplication</span>
+<span class="comment">// Time: O(n^3), Space: O(n^2)</span>
+<span class="keyword">int</span> matrixChain(vector&lt;<span class="keyword">int</span>&gt;&amp; p) {
+    <span class="keyword">int</span> n = p.size() - <span class="number">1</span>; <span class="comment">// number of matrices</span>
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; dp(n + <span class="number">1</span>, vector&lt;<span class="keyword">int</span>&gt;(n + <span class="number">1</span>, <span class="number">0</span>));
+
+    <span class="comment">// Fill by increasing interval length</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt;= n; len++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n - len + <span class="number">1</span>; i++) {
+            <span class="keyword">int</span> j = i + len - <span class="number">1</span>;
+            dp[i][j] = INT_MAX;
+
+            <span class="comment">// Try all split points</span>
+            <span class="keyword">for</span> (<span class="keyword">int</span> k = i; k &lt; j; k++) {
+                <span class="keyword">int</span> cost = dp[i][k] + dp[k+<span class="number">1</span>][j]
+                           + p[i-<span class="number">1</span>] * p[k] * p[j];
+                dp[i][j] = min(dp[i][j], cost);
+            }
+        }
+    }
+    <span class="keyword">return</span> dp[<span class="number">1</span>][n];
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="comment">// Matrix Chain Multiplication</span>
+<span class="comment">// Time: O(n^3), Space: O(n^2)</span>
+<span class="keyword">static int</span> matrixChain(<span class="keyword">int</span>[] p) {
+    <span class="keyword">int</span> n = p.length - <span class="number">1</span>;
+    <span class="keyword">int</span>[][] dp = <span class="keyword">new int</span>[n + <span class="number">1</span>][n + <span class="number">1</span>];
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt;= n; len++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n - len + <span class="number">1</span>; i++) {
+            <span class="keyword">int</span> j = i + len - <span class="number">1</span>;
+            dp[i][j] = Integer.MAX_VALUE;
+
+            <span class="keyword">for</span> (<span class="keyword">int</span> k = i; k &lt; j; k++) {
+                <span class="keyword">int</span> cost = dp[i][k] + dp[k+<span class="number">1</span>][j]
+                           + p[i-<span class="number">1</span>] * p[k] * p[j];
+                dp[i][j] = Math.min(dp[i][j], cost);
+            }
+        }
+    }
+    <span class="keyword">return</span> dp[<span class="number">1</span>][n];
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="comment"># Matrix Chain Multiplication</span>
+<span class="comment"># Time: O(n^3), Space: O(n^2)</span>
+<span class="keyword">def</span> matrix_chain(p):
+    n = len(p) - <span class="number">1</span>  <span class="comment"># number of matrices</span>
+    dp = [[<span class="number">0</span>] * (n + <span class="number">1</span>) <span class="keyword">for</span> _ <span class="keyword">in</span> range(n + <span class="number">1</span>)]
+
+    <span class="comment"># Fill by increasing interval length</span>
+    <span class="keyword">for</span> length <span class="keyword">in</span> range(<span class="number">2</span>, n + <span class="number">1</span>):
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, n - length + <span class="number">2</span>):
+            j = i + length - <span class="number">1</span>
+            dp[i][j] = float(<span class="string">'inf'</span>)
+
+            <span class="keyword">for</span> k <span class="keyword">in</span> range(i, j):
+                cost = (dp[i][k] + dp[k+<span class="number">1</span>][j]
+                        + p[i-<span class="number">1</span>] * p[k] * p[j])
+                dp[i][j] = min(dp[i][j], cost)
+
+    <span class="keyword">return</span> dp[<span class="number">1</span>][n]
+</pre>
+            </div>
+        </div>
+
+        <h2>Problem 2: Burst Balloons</h2>
+        <p>Given n balloons with values nums[0..n-1]. Bursting balloon i gives nums[i-1] * nums[i] * nums[i+1] coins. Find the maximum coins you can collect by bursting all balloons. (Boundary values are 1.)</p>
+
+        <div class="visual">
+<pre>
+Example: nums = [3, 1, 5, 8]  (with boundary 1s: [1, 3, 1, 5, 8, 1])
+
+Key Insight: Think of which balloon to burst LAST in interval [i,j].
+If balloon k is burst last in [i,j]:
+  - All balloons in [i,k-1] and [k+1,j] are already gone
+  - When k is burst, its neighbors are the boundaries: nums[i-1] and nums[j+1]
+  - Cost = nums[i-1] * nums[k] * nums[j+1]
+
+dp[i][j] = max coins from bursting all balloons in (i, j) exclusive
+         = max over k in (i,j) of:
+           dp[i][k] + dp[k][j] + nums[i]*nums[k]*nums[j]
+
+Answer: dp[0][n+1] where nums is padded with 1s
+</pre>
+        </div>
+
+        <h2>Code: Burst Balloons</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="comment">// Burst Balloons - which balloon to burst LAST</span>
+<span class="comment">// Time: O(n^3), Space: O(n^2)</span>
+<span class="keyword">int</span> maxCoins(vector&lt;<span class="keyword">int</span>&gt;&amp; nums) {
+    <span class="keyword">int</span> n = nums.size();
+    <span class="comment">// Pad with boundary 1s</span>
+    vector&lt;<span class="keyword">int</span>&gt; a(<span class="number">1</span>, <span class="number">1</span>);
+    a.insert(a.end(), nums.begin(), nums.end());
+    a.push_back(<span class="number">1</span>);  <span class="comment">// a = [1, nums..., 1]</span>
+
+    <span class="keyword">int</span> m = a.size(); <span class="comment">// n + 2</span>
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; dp(m, vector&lt;<span class="keyword">int</span>&gt;(m, <span class="number">0</span>));
+
+    <span class="comment">// len is the gap between i and j (exclusive endpoints)</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt; m; len++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i + len &lt; m; i++) {
+            <span class="keyword">int</span> j = i + len;
+            <span class="comment">// k is the last balloon to burst in (i, j)</span>
+            <span class="keyword">for</span> (<span class="keyword">int</span> k = i + <span class="number">1</span>; k &lt; j; k++) {
+                dp[i][j] = max(dp[i][j],
+                    dp[i][k] + dp[k][j] + a[i] * a[k] * a[j]);
+            }
+        }
+    }
+    <span class="keyword">return</span> dp[<span class="number">0</span>][m - <span class="number">1</span>];
+}
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="comment">// Burst Balloons - which balloon to burst LAST</span>
+<span class="comment">// Time: O(n^3), Space: O(n^2)</span>
+<span class="keyword">static int</span> maxCoins(<span class="keyword">int</span>[] nums) {
+    <span class="keyword">int</span> n = nums.length;
+    <span class="keyword">int</span>[] a = <span class="keyword">new int</span>[n + <span class="number">2</span>];
+    a[<span class="number">0</span>] = a[n + <span class="number">1</span>] = <span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) a[i + <span class="number">1</span>] = nums[i];
+
+    <span class="keyword">int</span> m = n + <span class="number">2</span>;
+    <span class="keyword">int</span>[][] dp = <span class="keyword">new int</span>[m][m];
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt; m; len++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i + len &lt; m; i++) {
+            <span class="keyword">int</span> j = i + len;
+            <span class="keyword">for</span> (<span class="keyword">int</span> k = i + <span class="number">1</span>; k &lt; j; k++) {
+                dp[i][j] = Math.max(dp[i][j],
+                    dp[i][k] + dp[k][j] + a[i] * a[k] * a[j]);
+            }
+        }
+    }
+    <span class="keyword">return</span> dp[<span class="number">0</span>][m - <span class="number">1</span>];
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="comment"># Burst Balloons - which balloon to burst LAST</span>
+<span class="comment"># Time: O(n^3), Space: O(n^2)</span>
+<span class="keyword">def</span> max_coins(nums):
+    a = [<span class="number">1</span>] + nums + [<span class="number">1</span>]  <span class="comment"># pad with boundary 1s</span>
+    m = len(a)
+    dp = [[<span class="number">0</span>] * m <span class="keyword">for</span> _ <span class="keyword">in</span> range(m)]
+
+    <span class="keyword">for</span> length <span class="keyword">in</span> range(<span class="number">2</span>, m):
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(m - length):
+            j = i + length
+            <span class="keyword">for</span> k <span class="keyword">in</span> range(i + <span class="number">1</span>, j):
+                dp[i][j] = max(dp[i][j],
+                    dp[i][k] + dp[k][j] + a[i] * a[k] * a[j])
+
+    <span class="keyword">return</span> dp[<span class="number">0</span>][m - <span class="number">1</span>]
+</pre>
+            </div>
+        </div>
+
+        <h2>Walkthrough: Burst Balloons</h2>
+        <div class="step-box">
+            <strong>Setup:</strong> nums = [3, 1, 5, 8], padded a = [1, 3, 1, 5, 8, 1]<br>
+            dp[i][j] = max coins by bursting all balloons strictly between index i and j in array a.
+        </div>
+        <div class="step-box">
+            <strong>Length 2 (gap of 2, one balloon between i and j):</strong><br>
+            dp[0][2]: burst k=1 (val 3): 1*3*1 = 3<br>
+            dp[1][3]: burst k=2 (val 1): 3*1*5 = 15<br>
+            dp[2][4]: burst k=3 (val 5): 1*5*8 = 40<br>
+            dp[3][5]: burst k=4 (val 8): 5*8*1 = 40
+        </div>
+        <div class="step-box">
+            <strong>Length 3 (two balloons between i and j):</strong><br>
+            dp[0][3]: max(k=1: dp[0][1]+dp[1][3]+1*3*5=0+15+15=30,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;k=2: dp[0][2]+dp[2][3]+1*1*5=3+0+5=8) = 30<br>
+            dp[1][4]: max(k=2: 0+40+3*1*8=64, k=3: 15+0+3*5*8=135) = 135<br>
+            dp[2][5]: max(k=3: 0+40+1*5*1=45, k=4: 40+0+1*8*1=48) = 48
+        </div>
+        <div class="step-box">
+            <strong>Continue until dp[0][5] = 167 (the answer).</strong>
+        </div>
+
+        <h2>Visual: How Intervals Expand</h2>
+        <div class="visual">
+<pre>
+Filling the dp table diagonally:
+
+    j→  0   1   2   3   4
+i=0   [ 0 | . | . | . | ANS ]
+i=1   [   | 0 | . | . | .   ]
+i=2   [   |   | 0 | . | .   ]
+i=3   [   |   |   | 0 | .   ]
+i=4   [   |   |   |   | 0   ]
+
+Fill order (by diagonal):
+  1st: main diagonal (len=1): dp[i][i] = 0
+  2nd: len=2 diagonal: dp[0][1], dp[1][2], dp[2][3], dp[3][4]
+  3rd: len=3 diagonal: dp[0][2], dp[1][3], dp[2][4]
+  4th: len=4 diagonal: dp[0][3], dp[1][4]
+  5th: len=5 (answer): dp[0][4]
+
+Each cell dp[i][j] depends on cells in the same row (left)
+and same column (below) → already computed!
+</pre>
+        </div>
+
+        <h2>Complexity</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Time:</strong> O(n^3) - three nested loops (length, start, split point)</li>
+                <li><strong>Space:</strong> O(n^2) - the 2D dp table</li>
+                <li><strong>Practical limit:</strong> n up to ~500 for O(n^3)</li>
+                <li><strong>Key pattern:</strong> Always fill by increasing interval length to ensure subproblems are solved first</li>
+            </ul>
+        </div>
+
+        <h2>Common Applications</h2>
+        <table>
+            <tr><th>Problem</th><th>What is dp[i][j]?</th><th>Split Logic</th></tr>
+            <tr><td>Matrix Chain</td><td>Min multiplications for matrices i..j</td><td>Split product at k</td></tr>
+            <tr><td>Burst Balloons</td><td>Max coins from interval (i,j)</td><td>Last balloon to burst</td></tr>
+            <tr><td>Optimal BST</td><td>Min search cost for keys i..j</td><td>Choose root k</td></tr>
+            <tr><td>Palindrome Partition</td><td>Min cuts to make all parts palindromes</td><td>Find valid palindrome prefix</td></tr>
+            <tr><td>Stone Merge</td><td>Min cost to merge stones i..j</td><td>Split pile at k</td></tr>
+            <tr><td>Polygon Triangulation</td><td>Min cost triangulation</td><td>Third vertex of triangle</td></tr>
+        </table>
+
+        <h2>Template: General Interval DP</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="comment">// General Interval DP Template</span>
+<span class="keyword">int</span> n = ...;
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; dp(n, vector&lt;<span class="keyword">int</span>&gt;(n, <span class="number">0</span>));
+
+<span class="comment">// Base case: intervals of length 1</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+    dp[i][i] = base_value(i);
+
+<span class="comment">// Fill by increasing length</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt;= n; len++) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i + len - <span class="number">1</span> &lt; n; i++) {
+        <span class="keyword">int</span> j = i + len - <span class="number">1</span>;
+        dp[i][j] = WORST_VALUE; <span class="comment">// INT_MAX or 0</span>
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> k = i; k &lt; j; k++) {
+            dp[i][j] = optimize(dp[i][j],
+                dp[i][k] + dp[k+<span class="number">1</span>][j] + merge_cost(i, k, j));
+        }
+    }
+}
+<span class="comment">// Answer: dp[0][n-1]</span>
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="comment">// General Interval DP Template</span>
+<span class="keyword">int</span> n = ...;
+<span class="keyword">int</span>[][] dp = <span class="keyword">new int</span>[n][n];
+
+<span class="comment">// Base case: intervals of length 1</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+    dp[i][i] = baseValue(i);
+
+<span class="comment">// Fill by increasing length</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt;= n; len++) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i + len - <span class="number">1</span> &lt; n; i++) {
+        <span class="keyword">int</span> j = i + len - <span class="number">1</span>;
+        dp[i][j] = WORST_VALUE;
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> k = i; k &lt; j; k++) {
+            dp[i][j] = optimize(dp[i][j],
+                dp[i][k] + dp[k+<span class="number">1</span>][j] + mergeCost(i, k, j));
+        }
+    }
+}
+<span class="comment">// Answer: dp[0][n-1]</span>
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="comment"># General Interval DP Template</span>
+n = ...
+dp = [[<span class="number">0</span>] * n <span class="keyword">for</span> _ <span class="keyword">in</span> range(n)]
+
+<span class="comment"># Base case: intervals of length 1</span>
+<span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+    dp[i][i] = base_value(i)
+
+<span class="comment"># Fill by increasing length</span>
+<span class="keyword">for</span> length <span class="keyword">in</span> range(<span class="number">2</span>, n + <span class="number">1</span>):
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(n - length + <span class="number">1</span>):
+        j = i + length - <span class="number">1</span>
+        dp[i][j] = WORST_VALUE  <span class="comment"># float('inf') or 0</span>
+
+        <span class="keyword">for</span> k <span class="keyword">in</span> range(i, j):
+            dp[i][j] = optimize(dp[i][j],
+                dp[i][k] + dp[k+<span class="number">1</span>][j] + merge_cost(i, k, j))
+
+<span class="comment"># Answer: dp[0][n-1]</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Key Insights</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Fill order is crucial:</strong> Must process smaller intervals before larger ones</li>
+                <li><strong>"Last operation" trick:</strong> In Burst Balloons, think about which element is processed LAST (not first) in the interval</li>
+                <li><strong>Inclusive vs exclusive:</strong> Some problems use open intervals (i,j) vs closed [i,j]. Be careful with indexing.</li>
+                <li><strong>Prefix sums:</strong> If merge cost involves a range sum, precompute prefix sums for O(1) range queries</li>
+                <li><strong>Knuth optimization:</strong> Some interval DPs can be sped up to O(n^2) if the optimal split point is monotone</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
