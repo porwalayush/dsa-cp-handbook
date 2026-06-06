@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Paths & Min Path Sum - DP Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        /* Grid viz */
+        .grid-viz { display: grid; gap: 4px; margin: 16px auto; max-width: 400px; }
+        .grid-cell {
+            aspect-ratio: 1; border: 2px solid #e2e8f0; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace; transition: all 0.3s ease; background: white;
+        }
+        .grid-cell .cost { font-size: 0.75em; color: #94a3b8; }
+        .grid-cell .dp-val { font-size: 0.85em; font-weight: 600; color: #475569; }
+        .grid-cell.start { background: #10b981; border-color: #059669; }
+        .grid-cell.start .dp-val { color: white; }
+        .grid-cell.end { background: #6366f1; border-color: #4f46e5; }
+        .grid-cell.end .dp-val { color: white; }
+        .grid-cell.path { background: #fef3c7; border-color: #f59e0b; }
+        .grid-cell.filled { background: #eef2ff; border-color: #c7d2fe; }
+        .grid-cell.current { background: #6366f1; border-color: #4f46e5; }
+        .grid-cell.current .dp-val { color: white; }
+        .grid-cell.current .cost { color: #c7d2fe; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Index</a>
+        <h1>Grid Paths & Min Path Sum</h1>
+        <p>Navigate a grid from top-left to bottom-right. Count unique paths or find the minimum cost path. A <strong>visual introduction to 2D DP</strong>.</p>
+
+        <h2>Problem 1: Unique Paths</h2>
+        <p>In an m×n grid, you can only move right or down. Count the number of unique paths from (0,0) to (m-1,n-1).</p>
+
+        <div class="step-box">
+            <strong>State:</strong> dp[i][j] = number of ways to reach cell (i,j)<br><br>
+            <strong>Transition:</strong> dp[i][j] = dp[i-1][j] + dp[i][j-1] (from above + from left)<br><br>
+            <strong>Base:</strong> dp[0][j] = dp[i][0] = 1 (only one way to reach any cell in first row/column)
+        </div>
+
+        <h2>Problem 2: Min Path Sum</h2>
+        <p>Each cell has a cost. Find path from top-left to bottom-right with minimum total cost.</p>
+
+        <h2>Interactive: Grid DP Filling</h2>
+        <div class="visual">
+            <div style="margin-bottom:12px;">
+                <button class="viz-btn" onclick="animateGrid('paths')">Unique Paths</button>
+                <button class="viz-btn" onclick="animateGrid('minpath')">Min Path Sum</button>
+                <button class="viz-btn" onclick="resetGrid()">Reset</button>
+            </div>
+            <div class="grid-viz" id="gridViz" style="grid-template-columns: repeat(4, 1fr);"></div>
+            <div id="gridLog" style="margin-top:12px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:24px;"></div>
+        </div>
+
+        <h2>Code: Unique Paths</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="comment">// Unique Paths: O(m*n) time, O(m*n) space</span>
+<span class="keyword">int</span> uniquePaths(<span class="keyword">int</span> m, <span class="keyword">int</span> n) {
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; dp(m, vector&lt;<span class="keyword">int</span>&gt;(n, <span class="number">1</span>));
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; n; j++) {
+            dp[i][j] = dp[i-<span class="number">1</span>][j] + dp[i][j-<span class="number">1</span>];
+        }
+    }
+    <span class="keyword">return</span> dp[m-<span class="number">1</span>][n-<span class="number">1</span>];
+}
+
+<span class="comment">// Space optimized: O(n)</span>
+<span class="keyword">int</span> uniquePathsOpt(<span class="keyword">int</span> m, <span class="keyword">int</span> n) {
+    vector&lt;<span class="keyword">int</span>&gt; dp(n, <span class="number">1</span>);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++)
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; n; j++)
+            dp[j] += dp[j-<span class="number">1</span>];
+    <span class="keyword">return</span> dp[n-<span class="number">1</span>];
+}
+
+<span class="comment">// Min Path Sum: O(m*n) time, O(1) extra space (modify grid)</span>
+<span class="keyword">int</span> minPathSum(vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; grid) {
+    <span class="keyword">int</span> m = grid.size(), n = grid[<span class="number">0</span>].size();
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++) grid[i][<span class="number">0</span>] += grid[i-<span class="number">1</span>][<span class="number">0</span>];
+    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; n; j++) grid[<span class="number">0</span>][j] += grid[<span class="number">0</span>][j-<span class="number">1</span>];
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++)
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; n; j++)
+            grid[i][j] += min(grid[i-<span class="number">1</span>][j], grid[i][j-<span class="number">1</span>]);
+
+    <span class="keyword">return</span> grid[m-<span class="number">1</span>][n-<span class="number">1</span>];
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="comment">// Unique Paths: O(m*n) time</span>
+<span class="keyword">static int</span> uniquePaths(<span class="keyword">int</span> m, <span class="keyword">int</span> n) {
+    <span class="keyword">int</span>[][] dp = <span class="keyword">new int</span>[m][n];
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; m; i++) dp[i][<span class="number">0</span>] = <span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; n; j++) dp[<span class="number">0</span>][j] = <span class="number">1</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++)
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; n; j++)
+            dp[i][j] = dp[i-<span class="number">1</span>][j] + dp[i][j-<span class="number">1</span>];
+
+    <span class="keyword">return</span> dp[m-<span class="number">1</span>][n-<span class="number">1</span>];
+}
+
+<span class="comment">// Min Path Sum: O(m*n) time</span>
+<span class="keyword">static int</span> minPathSum(<span class="keyword">int</span>[][] grid) {
+    <span class="keyword">int</span> m = grid.length, n = grid[<span class="number">0</span>].length;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++) grid[i][<span class="number">0</span>] += grid[i-<span class="number">1</span>][<span class="number">0</span>];
+    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; n; j++) grid[<span class="number">0</span>][j] += grid[<span class="number">0</span>][j-<span class="number">1</span>];
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++)
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; n; j++)
+            grid[i][j] += Math.min(grid[i-<span class="number">1</span>][j], grid[i][j-<span class="number">1</span>]);
+
+    <span class="keyword">return</span> grid[m-<span class="number">1</span>][n-<span class="number">1</span>];
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="comment"># Unique Paths: O(m*n) time, O(n) space</span>
+<span class="keyword">def</span> unique_paths(m, n):
+    dp = [<span class="number">1</span>] * n
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, m):
+        <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">1</span>, n):
+            dp[j] += dp[j-<span class="number">1</span>]
+    <span class="keyword">return</span> dp[n-<span class="number">1</span>]
+
+<span class="comment"># Min Path Sum: O(m*n) time, O(1) extra</span>
+<span class="keyword">def</span> min_path_sum(grid):
+    m, n = len(grid), len(grid[<span class="number">0</span>])
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, m):
+        grid[i][<span class="number">0</span>] += grid[i-<span class="number">1</span>][<span class="number">0</span>]
+    <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">1</span>, n):
+        grid[<span class="number">0</span>][j] += grid[<span class="number">0</span>][j-<span class="number">1</span>]
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, m):
+        <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">1</span>, n):
+            grid[i][j] += min(grid[i-<span class="number">1</span>][j], grid[i][j-<span class="number">1</span>])
+
+    <span class="keyword">return</span> grid[m-<span class="number">1</span>][n-<span class="number">1</span>]
+
+<span class="comment"># With obstacles</span>
+<span class="keyword">def</span> unique_paths_obstacles(grid):
+    m, n = len(grid), len(grid[<span class="number">0</span>])
+    dp = [[<span class="number">0</span>] * n <span class="keyword">for</span> _ <span class="keyword">in</span> range(m)]
+    dp[<span class="number">0</span>][<span class="number">0</span>] = <span class="number">1</span> <span class="keyword">if</span> grid[<span class="number">0</span>][<span class="number">0</span>] == <span class="number">0</span> <span class="keyword">else</span> <span class="number">0</span>
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(m):
+        <span class="keyword">for</span> j <span class="keyword">in</span> range(n):
+            <span class="keyword">if</span> grid[i][j] == <span class="number">1</span>:
+                dp[i][j] = <span class="number">0</span>
+            <span class="keyword">else</span>:
+                <span class="keyword">if</span> i > <span class="number">0</span>: dp[i][j] += dp[i-<span class="number">1</span>][j]
+                <span class="keyword">if</span> j > <span class="number">0</span>: dp[i][j] += dp[i][j-<span class="number">1</span>]
+    <span class="keyword">return</span> dp[m-<span class="number">1</span>][n-<span class="number">1</span>]
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Unique Paths:</strong> O(m*n) time, O(n) space optimized</li>
+                <li><strong>Min Path Sum:</strong> O(m*n) time, O(1) extra if modifying grid in-place</li>
+                <li><strong>With Obstacles:</strong> Same complexity, just set dp=0 at obstacle cells</li>
+                <li><strong>Math formula:</strong> C(m+n-2, m-1) for unique paths without obstacles</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const costs = [[1,3,1,2],[1,5,1,3],[4,2,1,1],[2,1,3,1]];
+        let gridInterval = null;
+
+        function renderGridViz(dp, ci, cj, mode, pathCells) {
+            const viz = document.getElementById('gridViz');
+            let html = '';
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    let cls = '';
+                    if (pathCells && pathCells.some(p => p[0]===i && p[1]===j)) cls = 'path';
+                    else if (i===ci && j===cj) cls = 'current';
+                    else if (i===0 && j===0) cls = 'start';
+                    else if (i===3 && j===3) cls = 'end';
+                    else if (dp[i][j] > 0) cls = 'filled';
+                    let costLabel = mode === 'minpath' ? `<span class="cost">c=${costs[i][j]}</span>` : '';
+                    html += `<div class="grid-cell ${cls}">${costLabel}<span class="dp-val">${dp[i][j] || (mode==='paths'?'':'')}</span></div>`;
+                }
+            }
+            viz.innerHTML = html;
+        }
+
+        function animateGrid(mode) {
+            if (gridInterval) clearInterval(gridInterval);
+            const log = document.getElementById('gridLog');
+            let dp = Array.from({length:4}, ()=>Array(4).fill(0));
+
+            if (mode === 'paths') {
+                for (let i=0;i<4;i++) dp[i][0]=1;
+                for (let j=0;j<4;j++) dp[0][j]=1;
+            } else {
+                dp[0][0] = costs[0][0];
+                for (let i=1;i<4;i++) dp[i][0] = dp[i-1][0]+costs[i][0];
+                for (let j=1;j<4;j++) dp[0][j] = dp[0][j-1]+costs[0][j];
+            }
+
+            renderGridViz(dp, -1, -1, mode);
+            let i=1,j=1;
+
+            gridInterval = setInterval(() => {
+                if (i>=4) {
+                    clearInterval(gridInterval);
+                    log.innerHTML = `<span style="color:#10b981;">Answer: dp[3][3] = ${dp[3][3]}</span>`;
+                    renderGridViz(dp, -1, -1, mode);
+                    return;
+                }
+                if (mode === 'paths') {
+                    dp[i][j] = dp[i-1][j] + dp[i][j-1];
+                    log.textContent = `dp[${i}][${j}] = dp[${i-1}][${j}] + dp[${i}][${j-1}] = ${dp[i-1][j]} + ${dp[i][j-1]} = ${dp[i][j]}`;
+                } else {
+                    dp[i][j] = costs[i][j] + Math.min(dp[i-1][j], dp[i][j-1]);
+                    log.textContent = `dp[${i}][${j}] = cost(${costs[i][j]}) + min(up=${dp[i-1][j]}, left=${dp[i][j-1]}) = ${dp[i][j]}`;
+                }
+                renderGridViz(dp, i, j, mode);
+                j++;
+                if (j>=4) { j=1; i++; }
+            }, 400);
+        }
+
+        function resetGrid() {
+            if (gridInterval) clearInterval(gridInterval);
+            let dp = Array.from({length:4},()=>Array(4).fill(0));
+            renderGridViz(dp,-1,-1,'paths');
+            document.getElementById('gridLog').textContent = 'Choose Unique Paths or Min Path Sum to animate';
+        }
+
+        resetGrid();
+    </script>
+</body>
+</html>
