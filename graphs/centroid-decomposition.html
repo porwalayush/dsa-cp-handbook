@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centroid Decomposition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Graph Topics</a>
+
+        <h1>Centroid Decomposition</h1>
+        <p>Centroid Decomposition is a divide-and-conquer technique on trees. It recursively finds the centroid (a node whose removal splits the tree into subtrees each of size at most n/2), processes paths through it, then recurses on the remaining subtrees. The resulting "centroid tree" has height O(log n).</p>
+
+        <h2>What is a Centroid?</h2>
+        <p>A <strong>centroid</strong> of a tree is a node whose removal results in no remaining subtree having more than n/2 nodes. Every tree has at least one centroid (and at most two).</p>
+
+        <h2>Visual Walkthrough</h2>
+        <div class="visual">
+            <pre>
+    Original Tree (7 nodes):
+
+          1
+         / \
+        2   3
+       / \   \
+      4   5   6
+      |
+      7
+
+    Finding centroid:
+    Subtree sizes from node 1: [7, 4, 2, 1, 1, 1, 1]
+    Node 1: max subtree after removal = max(4, 2) = 4 > 7/2=3.5
+    Node 2: max subtree after removal = max(3, 2, 1) = 3 <= 3.5
+    Centroid = 2!
+
+    Decomposition Process:
+    ─────────────────────
+    Step 1: Centroid of full tree = 2
+            Process all paths through 2
+            Remove node 2, get subtrees: {4,7}, {5}, {1,3,6}
+
+    Step 2: Centroid of {4,7} = 4
+            Centroid of {5} = 5
+            Centroid of {1,3,6} = 1 (or 3)
+
+    Step 3: Continue recursively...
+
+    Centroid Tree:
+              2
+           /  |  \
+          4   5   1
+          |       |
+          7       3
+                  |
+                  6
+
+    Height of centroid tree: O(log n)
+    Every path in original tree passes through
+    some ancestor in centroid tree!
+            </pre>
+        </div>
+
+        <h2>Algorithm Steps</h2>
+        <div class="step-box">
+            <strong>Step 1:</strong> Compute subtree sizes using DFS.
+        </div>
+        <div class="step-box">
+            <strong>Step 2:</strong> Find the centroid: a node where max(subtree sizes after removal) is at most n/2.
+        </div>
+        <div class="step-box">
+            <strong>Step 3:</strong> Process all paths that pass through the centroid (problem-specific computation).
+        </div>
+        <div class="step-box">
+            <strong>Step 4:</strong> Mark centroid as removed. Recurse on each remaining subtree.
+        </div>
+
+        <h2>Why O(log n) Height?</h2>
+        <p>Each time we pick a centroid, the remaining subtrees have at most n/2 nodes. So the depth of recursion is at most log2(n). This means every node appears in at most O(log n) levels of the decomposition, giving us O(n log n) total work.</p>
+
+        <h2>Implementation</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'centroid-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'centroid-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'centroid-python')">Python</button>
+            </div>
+            <div class="code-content active" id="centroid-cpp">
+                <pre><span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">const int</span> MAXN = <span class="number">100005</span>;
+vector&lt;<span class="keyword">int</span>&gt; adj[MAXN];
+<span class="keyword">int</span> subtree_size[MAXN];
+<span class="keyword">bool</span> removed[MAXN];
+<span class="keyword">int</span> centroid_parent[MAXN]; <span class="comment">// parent in centroid tree</span>
+<span class="keyword">int</span> n;
+
+<span class="comment">// Compute subtree sizes</span>
+<span class="keyword">int</span> getSize(<span class="keyword">int</span> v, <span class="keyword">int</span> p) {
+    subtree_size[v] = <span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[v]) {
+        <span class="keyword">if</span> (u != p &amp;&amp; !removed[u])
+            subtree_size[v] += getSize(u, v);
+    }
+    <span class="keyword">return</span> subtree_size[v];
+}
+
+<span class="comment">// Find centroid of tree rooted at v</span>
+<span class="keyword">int</span> getCentroid(<span class="keyword">int</span> v, <span class="keyword">int</span> p, <span class="keyword">int</span> tree_size) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[v]) {
+        <span class="keyword">if</span> (u != p &amp;&amp; !removed[u] &amp;&amp; subtree_size[u] &gt; tree_size / <span class="number">2</span>)
+            <span class="keyword">return</span> getCentroid(u, v, tree_size);
+    }
+    <span class="keyword">return</span> v;
+}
+
+<span class="comment">// Build centroid decomposition</span>
+<span class="keyword">void</span> decompose(<span class="keyword">int</span> v, <span class="keyword">int</span> p) {
+    <span class="keyword">int</span> sz = getSize(v, -<span class="number">1</span>);
+    <span class="keyword">int</span> centroid = getCentroid(v, -<span class="number">1</span>, sz);
+
+    removed[centroid] = <span class="keyword">true</span>;
+    centroid_parent[centroid] = p;
+
+    <span class="comment">// Process paths through centroid here (problem-specific)</span>
+    <span class="comment">// ...</span>
+
+    <span class="comment">// Recurse on remaining subtrees</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[centroid]) {
+        <span class="keyword">if</span> (!removed[u])
+            decompose(u, centroid);
+    }
+}
+
+<span class="comment">// Example: Count paths of length exactly k</span>
+<span class="keyword">int</span> ans = <span class="number">0</span>;
+<span class="keyword">int</span> k;
+vector&lt;<span class="keyword">int</span>&gt; paths; <span class="comment">// distances from centroid</span>
+
+<span class="keyword">void</span> getDists(<span class="keyword">int</span> v, <span class="keyword">int</span> p, <span class="keyword">int</span> dist) {
+    paths.push_back(dist);
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[v]) {
+        <span class="keyword">if</span> (u != p &amp;&amp; !removed[u])
+            getDists(u, v, dist + <span class="number">1</span>);
+    }
+}
+
+<span class="keyword">void</span> solve(<span class="keyword">int</span> v) {
+    <span class="keyword">int</span> sz = getSize(v, -<span class="number">1</span>);
+    <span class="keyword">int</span> centroid = getCentroid(v, -<span class="number">1</span>, sz);
+    removed[centroid] = <span class="keyword">true</span>;
+
+    <span class="comment">// Count paths through centroid of length k</span>
+    vector&lt;<span class="keyword">int</span>&gt; all_dists;
+    all_dists.push_back(<span class="number">0</span>); <span class="comment">// centroid itself</span>
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[centroid]) {
+        <span class="keyword">if</span> (removed[u]) <span class="keyword">continue</span>;
+        paths.clear();
+        getDists(u, centroid, <span class="number">1</span>);
+
+        <span class="comment">// Check pairs between current subtree and previous</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> d : paths) {
+            <span class="keyword">int</span> need = k - d;
+            <span class="keyword">if</span> (need &gt;= <span class="number">0</span>) {
+                ans += count(all_dists.begin(), all_dists.end(), need);
+            }
+        }
+        <span class="keyword">for</span> (<span class="keyword">int</span> d : paths)
+            all_dists.push_back(d);
+    }
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[centroid]) {
+        <span class="keyword">if</span> (!removed[u])
+            solve(u);
+    }
+}
+
+<span class="keyword">int</span> main() {
+    n = <span class="number">7</span>; k = <span class="number">3</span>;
+    adj[<span class="number">1</span>] = {<span class="number">2</span>, <span class="number">3</span>}; adj[<span class="number">2</span>] = {<span class="number">1</span>, <span class="number">4</span>, <span class="number">5</span>};
+    adj[<span class="number">3</span>] = {<span class="number">1</span>, <span class="number">6</span>}; adj[<span class="number">4</span>] = {<span class="number">2</span>, <span class="number">7</span>};
+    adj[<span class="number">5</span>] = {<span class="number">2</span>}; adj[<span class="number">6</span>] = {<span class="number">3</span>}; adj[<span class="number">7</span>] = {<span class="number">4</span>};
+
+    solve(<span class="number">1</span>);
+    cout &lt;&lt; ans &lt;&lt; endl; <span class="comment">// paths of length 3</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+            </div>
+            <div class="code-content" id="centroid-java">
+                <pre><span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> CentroidDecomposition {
+    <span class="keyword">static</span> List&lt;List&lt;Integer&gt;&gt; adj;
+    <span class="keyword">static</span> <span class="keyword">int</span>[] subtreeSize, centroidParent;
+    <span class="keyword">static</span> <span class="keyword">boolean</span>[] removed;
+    <span class="keyword">static</span> <span class="keyword">int</span> n;
+
+    <span class="keyword">static int</span> getSize(<span class="keyword">int</span> v, <span class="keyword">int</span> p) {
+        subtreeSize[v] = <span class="number">1</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> u : adj.get(v)) {
+            <span class="keyword">if</span> (u != p &amp;&amp; !removed[u])
+                subtreeSize[v] += getSize(u, v);
+        }
+        <span class="keyword">return</span> subtreeSize[v];
+    }
+
+    <span class="keyword">static int</span> getCentroid(<span class="keyword">int</span> v, <span class="keyword">int</span> p, <span class="keyword">int</span> treeSize) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> u : adj.get(v)) {
+            <span class="keyword">if</span> (u != p &amp;&amp; !removed[u] &amp;&amp; subtreeSize[u] &gt; treeSize / <span class="number">2</span>)
+                <span class="keyword">return</span> getCentroid(u, v, treeSize);
+        }
+        <span class="keyword">return</span> v;
+    }
+
+    <span class="keyword">static void</span> decompose(<span class="keyword">int</span> v, <span class="keyword">int</span> p) {
+        <span class="keyword">int</span> sz = getSize(v, -<span class="number">1</span>);
+        <span class="keyword">int</span> centroid = getCentroid(v, -<span class="number">1</span>, sz);
+
+        removed[centroid] = <span class="keyword">true</span>;
+        centroidParent[centroid] = p;
+
+        <span class="comment">// Process paths through centroid (problem-specific)</span>
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> u : adj.get(centroid)) {
+            <span class="keyword">if</span> (!removed[u])
+                decompose(u, centroid);
+        }
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        n = <span class="number">8</span>; <span class="comment">// 1-indexed</span>
+        adj = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) adj.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+        subtreeSize = <span class="keyword">new</span> <span class="keyword">int</span>[n];
+        centroidParent = <span class="keyword">new</span> <span class="keyword">int</span>[n];
+        removed = <span class="keyword">new</span> <span class="keyword">boolean</span>[n];
+
+        <span class="comment">// Build tree (1-indexed)</span>
+        <span class="keyword">int</span>[][] edges = {{<span class="number">1</span>,<span class="number">2</span>},{<span class="number">1</span>,<span class="number">3</span>},{<span class="number">2</span>,<span class="number">4</span>},{<span class="number">2</span>,<span class="number">5</span>},{<span class="number">3</span>,<span class="number">6</span>},{<span class="number">4</span>,<span class="number">7</span>}};
+        <span class="keyword">for</span> (<span class="keyword">int</span>[] e : edges) {
+            adj.get(e[<span class="number">0</span>]).add(e[<span class="number">1</span>]);
+            adj.get(e[<span class="number">1</span>]).add(e[<span class="number">0</span>]);
+        }
+
+        decompose(<span class="number">1</span>, -<span class="number">1</span>);
+
+        <span class="comment">// Print centroid tree parent relationships</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; n; i++)
+            System.out.println(i + <span class="string">" -> parent: "</span> + centroidParent[i]);
+    }
+}</pre>
+            </div>
+            <div class="code-content" id="centroid-python">
+                <pre><span class="keyword">import</span> sys
+sys.setrecursionlimit(<span class="number">200000</span>)
+
+<span class="keyword">class</span> CentroidDecomposition:
+    <span class="keyword">def</span> __init__(self, n, adj):
+        self.n = n
+        self.adj = adj
+        self.subtree_size = [<span class="number">0</span>] * (n + <span class="number">1</span>)
+        self.removed = [<span class="keyword">False</span>] * (n + <span class="number">1</span>)
+        self.centroid_parent = [-<span class="number">1</span>] * (n + <span class="number">1</span>)
+
+    <span class="keyword">def</span> get_size(self, v, p):
+        self.subtree_size[v] = <span class="number">1</span>
+        <span class="keyword">for</span> u <span class="keyword">in</span> self.adj[v]:
+            <span class="keyword">if</span> u != p <span class="keyword">and not</span> self.removed[u]:
+                self.subtree_size[v] += self.get_size(u, v)
+        <span class="keyword">return</span> self.subtree_size[v]
+
+    <span class="keyword">def</span> get_centroid(self, v, p, tree_size):
+        <span class="keyword">for</span> u <span class="keyword">in</span> self.adj[v]:
+            <span class="keyword">if</span> u != p <span class="keyword">and not</span> self.removed[u]:
+                <span class="keyword">if</span> self.subtree_size[u] &gt; tree_size // <span class="number">2</span>:
+                    <span class="keyword">return</span> self.get_centroid(u, v, tree_size)
+        <span class="keyword">return</span> v
+
+    <span class="keyword">def</span> decompose(self, v, parent=-<span class="number">1</span>):
+        sz = self.get_size(v, -<span class="number">1</span>)
+        centroid = self.get_centroid(v, -<span class="number">1</span>, sz)
+
+        self.removed[centroid] = <span class="keyword">True</span>
+        self.centroid_parent[centroid] = parent
+
+        <span class="comment"># Process paths through centroid (problem-specific)</span>
+        self.process(centroid)
+
+        <span class="comment"># Recurse on remaining subtrees</span>
+        <span class="keyword">for</span> u <span class="keyword">in</span> self.adj[centroid]:
+            <span class="keyword">if not</span> self.removed[u]:
+                self.decompose(u, centroid)
+
+    <span class="keyword">def</span> process(self, centroid):
+        <span class="comment">"""Override for problem-specific logic"""</span>
+        <span class="keyword">pass</span>
+
+<span class="comment"># Example: Count paths of length exactly k</span>
+<span class="keyword">class</span> PathCounter(CentroidDecomposition):
+    <span class="keyword">def</span> __init__(self, n, adj, k):
+        super().__init__(n, adj)
+        self.k = k
+        self.answer = <span class="number">0</span>
+
+    <span class="keyword">def</span> get_dists(self, v, p, dist, dists):
+        dists.append(dist)
+        <span class="keyword">for</span> u <span class="keyword">in</span> self.adj[v]:
+            <span class="keyword">if</span> u != p <span class="keyword">and not</span> self.removed[u]:
+                self.get_dists(u, v, dist + <span class="number">1</span>, dists)
+
+    <span class="keyword">def</span> process(self, centroid):
+        all_dists = [<span class="number">0</span>]  <span class="comment"># centroid itself at distance 0</span>
+        <span class="keyword">for</span> u <span class="keyword">in</span> self.adj[centroid]:
+            <span class="keyword">if</span> self.removed[u]:
+                <span class="keyword">continue</span>
+            dists = []
+            self.get_dists(u, centroid, <span class="number">1</span>, dists)
+            <span class="comment"># Count pairs from this subtree + previous subtrees</span>
+            <span class="keyword">for</span> d <span class="keyword">in</span> dists:
+                need = self.k - d
+                <span class="keyword">if</span> need &gt;= <span class="number">0</span>:
+                    self.answer += all_dists.count(need)
+            all_dists.extend(dists)
+
+<span class="comment"># Example usage</span>
+n = <span class="number">7</span>
+adj = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> range(n + <span class="number">1</span>)]
+edges = [(<span class="number">1</span>,<span class="number">2</span>),(<span class="number">1</span>,<span class="number">3</span>),(<span class="number">2</span>,<span class="number">4</span>),(<span class="number">2</span>,<span class="number">5</span>),(<span class="number">3</span>,<span class="number">6</span>),(<span class="number">4</span>,<span class="number">7</span>)]
+<span class="keyword">for</span> u, v <span class="keyword">in</span> edges:
+    adj[u].append(v)
+    adj[v].append(u)
+
+counter = PathCounter(n, adj, k=<span class="number">3</span>)
+counter.decompose(<span class="number">1</span>)
+print(f<span class="string">"Paths of length 3: {counter.answer}"</span>)</pre>
+            </div>
+        </div>
+
+        <h2>Applications</h2>
+        <ul>
+            <li><strong>Count/find paths of specific length:</strong> For each centroid, compute distances to all nodes in its subtree and find pairs that sum to target.</li>
+            <li><strong>Distance queries with updates:</strong> Maintain distances to centroid ancestors; update/query in O(log n).</li>
+            <li><strong>Closest marked node:</strong> For each centroid ancestor, maintain minimum distance to a marked node.</li>
+            <li><strong>Path with specific property:</strong> Paths passing through centroid can be composed from two half-paths.</li>
+            <li><strong>xor/sum on paths:</strong> Decompose path queries through centroid hierarchy.</li>
+        </ul>
+
+        <h2>Complexity Analysis</h2>
+        <ul>
+            <li><strong>Decomposition time:</strong> O(n log n). Each node participates in O(log n) levels.</li>
+            <li><strong>Centroid tree height:</strong> O(log n). Guaranteed because each subtree has at most n/2 nodes.</li>
+            <li><strong>Space:</strong> O(n) for the decomposition structure itself.</li>
+            <li><strong>Per-query (distance queries):</strong> O(log n) by traversing centroid ancestors.</li>
+        </ul>
+
+        <div class="note">
+            <strong>Key insight:</strong> Any path in the original tree passes through exactly one node in the centroid tree that is an ancestor of both endpoints. This means we can decompose any path problem into O(log n) subproblems, one per level of the centroid tree.
+        </div>
+
+        <h2>Key Takeaways</h2>
+        <ol>
+            <li>Centroid decomposition is divide-and-conquer on trees.</li>
+            <li>The centroid tree has O(log n) height, enabling efficient path queries.</li>
+            <li>Every path passes through some centroid ancestor of its endpoints.</li>
+            <li>Common pattern: for each centroid, aggregate information from different subtrees to count/compute paths through it.</li>
+            <li>Works well when combined with other data structures (BIT, segment tree) for online queries.</li>
+        </ol>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

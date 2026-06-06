@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floyd-Warshall Algorithm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare > div {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        @media (max-width: 600px) {
+            .compare { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+        table, .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td,
+        .comparison-table th, .comparison-table td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th, .comparison-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover, .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 20px auto;
+            display: block;
+            background: white;
+        }
+        .decision-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-box h3 { color: #0f172a; margin-bottom: 16px; font-size: 1.2em; }
+        .flow-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Graph Topics</a>
+
+        <h1>Floyd-Warshall Algorithm</h1>
+        <p>Floyd-Warshall computes the <strong>shortest path between ALL pairs of vertices</strong> in a weighted graph. Unlike Dijkstra and Bellman-Ford (which find shortest paths from a single source), Floyd-Warshall answers: "What is the shortest distance from EVERY vertex to EVERY other vertex?"</p>
+
+        <h2>Core Idea (Dynamic Programming)</h2>
+        <p>The key insight is beautifully simple:</p>
+        <p>For each intermediate vertex <strong>k</strong>, check if going from <strong>i</strong> to <strong>j</strong> through <strong>k</strong> is shorter than the current best path from i to j.</p>
+
+        <div class="visual">
+            <pre>
+    The DP recurrence:
+
+    dist[i][j] = min( dist[i][j],  dist[i][k] + dist[k][j] )
+                      ----------    -------------------------
+                      direct path    path through vertex k
+
+
+    In words:
+    "Is it shorter to go i -> j directly,
+     or to go i -> k -> j?"
+
+    We try EVERY possible intermediate vertex k (0 to V-1).
+            </pre>
+        </div>
+
+        <h2>Visual Walkthrough</h2>
+        <div class="visual">
+            <pre>
+    Graph (directed, weighted):
+
+        (0)---3---&gt;(1)
+         |          |
+         7          1
+         |          |
+         v          v
+        (2)&lt;--2---(3)
+
+    Edge list: 0-&gt;1(3), 0-&gt;2(7), 1-&gt;3(1), 3-&gt;2(2)
+
+    Initial distance matrix (INF = no direct edge):
+
+         To:  0     1     2     3
+    From:
+      0  [   0     3     7    INF  ]
+      1  [  INF    0    INF    1   ]
+      2  [  INF   INF    0    INF  ]
+      3  [  INF   INF    2     0   ]
+
+    --- k = 0 (consider paths through vertex 0) ---
+    Check all (i,j) pairs: can going through 0 help?
+    dist[1][2] = min(INF, dist[1][0] + dist[0][2]) = min(INF, INF+7) = INF
+    dist[3][2] = min(2, dist[3][0] + dist[0][2]) = min(2, INF+7) = 2
+    No improvements through vertex 0.
+
+         To:  0     1     2     3
+    From:
+      0  [   0     3     7    INF  ]
+      1  [  INF    0    INF    1   ]
+      2  [  INF   INF    0    INF  ]
+      3  [  INF   INF    2     0   ]
+
+    --- k = 1 (consider paths through vertex 1) ---
+    dist[0][3] = min(INF, dist[0][1] + dist[1][3]) = min(INF, 3+1) = 4  UPDATED!
+
+         To:  0     1     2     3
+    From:
+      0  [   0     3     7     4   ]   &lt;-- 0-&gt;3 updated!
+      1  [  INF    0    INF    1   ]
+      2  [  INF   INF    0    INF  ]
+      3  [  INF   INF    2     0   ]
+
+    --- k = 2 (consider paths through vertex 2) ---
+    No improvements (vertex 2 has no outgoing edges in our matrix).
+
+    --- k = 3 (consider paths through vertex 3) ---
+    dist[0][2] = min(7, dist[0][3] + dist[3][2]) = min(7, 4+2) = 6  UPDATED!
+    dist[1][2] = min(INF, dist[1][3] + dist[3][2]) = min(INF, 1+2) = 3  UPDATED!
+
+    FINAL distance matrix:
+
+         To:  0     1     2     3
+    From:
+      0  [   0     3     6     4   ]
+      1  [  INF    0     3     1   ]
+      2  [  INF   INF    0    INF  ]
+      3  [  INF   INF    2     0   ]
+
+    Now we know the shortest path between EVERY pair!
+    e.g., 0 -&gt; 2: shortest = 6 (path: 0-&gt;1-&gt;3-&gt;2)
+            </pre>
+        </div>
+
+        <h2>Algorithm Steps</h2>
+        <ol>
+            <li>Create a V x V matrix. Initialize dist[i][j] = weight of edge i-&gt;j (or INF if no edge). Set dist[i][i] = 0.</li>
+            <li>For each intermediate vertex k (0 to V-1):</li>
+            <li style="list-style: none; padding-left: 20px;">For each pair (i, j): dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])</li>
+            <li>After all k values, dist[i][j] holds the shortest path from i to j.</li>
+            <li>(Optional) Detect negative cycles: if any dist[i][i] &lt; 0, there is a negative cycle.</li>
+        </ol>
+
+        <div class="note">
+            <strong>Why does k go in the outer loop?</strong> The order matters! When we consider intermediate vertex k, we need all paths using vertices {0, 1, ..., k-1} to already be computed. Putting k in the outermost loop guarantees this property.
+        </div>
+
+        <h2>Implementation</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'fw-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'fw-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'fw-python')">Python</button>
+            </div>
+            <div class="code-content active" id="fw-java">
+                <pre><span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> FloydWarshall {
+    <span class="keyword">static final int</span> INF = <span class="number">100000000</span>; <span class="comment">// Use large number (not MAX_VALUE to avoid overflow)</span>
+
+    <span class="keyword">static void</span> floydWarshall(<span class="keyword">int</span>[][] dist, <span class="keyword">int</span> V) {
+        <span class="comment">// k = intermediate vertex</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; V; k++) {
+            <span class="comment">// i = source vertex</span>
+            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+                <span class="comment">// j = destination vertex</span>
+                <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; V; j++) {
+                    <span class="comment">// Is path through k shorter?</span>
+                    <span class="keyword">if</span> (dist[i][k] + dist[k][j] &lt; dist[i][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                    }
+                }
+            }
+        }
+
+        <span class="comment">// Check for negative cycles</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (dist[i][i] &lt; <span class="number">0</span>) {
+                System.out.println(<span class="string">"Negative cycle detected!"</span>);
+                <span class="keyword">return</span>;
+            }
+        }
+
+        <span class="comment">// Print the distance matrix</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; V; j++) {
+                <span class="keyword">if</span> (dist[i][j] == INF) System.out.print(<span class="string">"INF "</span>);
+                <span class="keyword">else</span> System.out.print(dist[i][j] + <span class="string">" "</span>);
+            }
+            System.out.println();
+        }
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span> V = <span class="number">4</span>;
+        <span class="keyword">int</span>[][] dist = {
+            {<span class="number">0</span>,   <span class="number">3</span>,   <span class="number">7</span>,   INF},
+            {INF, <span class="number">0</span>,   INF, <span class="number">1</span>},
+            {INF, INF, <span class="number">0</span>,   INF},
+            {INF, INF, <span class="number">2</span>,   <span class="number">0</span>}
+        };
+
+        floydWarshall(dist, V);
+        <span class="comment">// Output:
+        // 0 3 6 4
+        // INF 0 3 1
+        // INF INF 0 INF
+        // INF INF 2 0</span>
+    }
+}</pre>
+            </div>
+            <div class="code-content" id="fw-cpp">
+                <pre><span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">const int</span> INF = <span class="number">1e8</span>; <span class="comment">// Large number (avoid INT_MAX to prevent overflow)</span>
+
+<span class="keyword">void</span> floydWarshall(vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; dist, <span class="keyword">int</span> V) {
+    <span class="comment">// k = intermediate vertex (MUST be outer loop)</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; V; k++) {
+        <span class="comment">// i = source vertex</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="comment">// j = destination vertex</span>
+            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; V; j++) {
+                <span class="comment">// Is path through k shorter?</span>
+                <span class="keyword">if</span> (dist[i][k] + dist[k][j] &lt; dist[i][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                }
+            }
+        }
+    }
+
+    <span class="comment">// Check for negative cycles</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+        <span class="keyword">if</span> (dist[i][i] &lt; <span class="number">0</span>) {
+            cout &lt;&lt; <span class="string">"Negative cycle detected!"</span> &lt;&lt; endl;
+            <span class="keyword">return</span>;
+        }
+    }
+
+    <span class="comment">// Print the distance matrix</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; V; j++) {
+            <span class="keyword">if</span> (dist[i][j] == INF) cout &lt;&lt; <span class="string">"INF "</span>;
+            <span class="keyword">else</span> cout &lt;&lt; dist[i][j] &lt;&lt; <span class="string">" "</span>;
+        }
+        cout &lt;&lt; endl;
+    }
+}
+
+<span class="keyword">int</span> main() {
+    <span class="keyword">int</span> V = <span class="number">4</span>;
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; dist = {
+        {<span class="number">0</span>,   <span class="number">3</span>,   <span class="number">7</span>,   INF},
+        {INF, <span class="number">0</span>,   INF, <span class="number">1</span>},
+        {INF, INF, <span class="number">0</span>,   INF},
+        {INF, INF, <span class="number">2</span>,   <span class="number">0</span>}
+    };
+
+    floydWarshall(dist, V);
+    <span class="comment">// Output:
+    // 0 3 6 4
+    // INF 0 3 1
+    // INF INF 0 INF
+    // INF INF 2 0</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+            </div>
+            <div class="code-content" id="fw-python">
+                <pre><span class="keyword">def</span> floyd_warshall(V, graph):
+    <span class="comment"># graph[i][j] = weight of edge i->j, or float('inf') if no edge</span>
+    INF = float(<span class="string">'inf'</span>)
+    <span class="comment"># Copy input to dist matrix</span>
+    dist = [row[:] <span class="keyword">for</span> row <span class="keyword">in</span> graph]
+
+    <span class="comment"># dp[i][j] = min(dp[i][j], dp[i][k] + dp[k][j])</span>
+    <span class="keyword">for</span> k <span class="keyword">in</span> range(V):
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(V):
+            <span class="keyword">for</span> j <span class="keyword">in</span> range(V):
+                <span class="keyword">if</span> dist[i][k] + dist[k][j] &lt; dist[i][j]:
+                    dist[i][j] = dist[i][k] + dist[k][j]
+    <span class="keyword">return</span> dist
+
+<span class="comment"># Example</span>
+INF = float(<span class="string">'inf'</span>)
+graph = [
+    [<span class="number">0</span>,   <span class="number">3</span>,   INF, <span class="number">5</span>],
+    [<span class="number">2</span>,   <span class="number">0</span>,   INF, <span class="number">4</span>],
+    [INF, <span class="number">1</span>,   <span class="number">0</span>,   INF],
+    [INF, INF, <span class="number">2</span>,   <span class="number">0</span>]
+]
+result = floyd_warshall(<span class="number">4</span>, graph)
+<span class="keyword">for</span> row <span class="keyword">in</span> result:
+    print(row)</pre>
+            </div>
+        </div>
+
+        <h2>Time and Space Complexity</h2>
+        <ul>
+            <li><strong>Time:</strong> O(V^3) -- three nested loops, each running V times.</li>
+            <li><strong>Space:</strong> O(V^2) -- for the distance matrix.</li>
+        </ul>
+
+        <h2>When to Use Floyd-Warshall</h2>
+        <ul>
+            <li><strong>Small graphs</strong> (V up to ~400-500) where V^3 is manageable.</li>
+            <li>When you need <strong>all-pairs</strong> shortest paths (not just from one source).</li>
+            <li>Dense graphs (many edges) -- for sparse graphs, running Dijkstra from each vertex might be faster.</li>
+            <li>Graphs with negative edges (but no negative cycles).</li>
+            <li>Problems like: "Can city A reach city B within budget X?"</li>
+        </ul>
+
+        <h2>Comparison: All Three Algorithms</h2>
+        <div class="visual">
+            <pre>
+    +-------------------+------------+---------------+----------------+
+    | Algorithm         | Dijkstra   | Bellman-Ford  | Floyd-Warshall |
+    +-------------------+------------+---------------+----------------+
+    | Problem type      | Single-src | Single-src    | All-pairs      |
+    | Negative weights  | NO         | YES           | YES            |
+    | Negative cycles   | NO         | Detects       | Detects        |
+    | Time complexity   | O((V+E)lgV)| O(V*E)        | O(V^3)         |
+    | Space             | O(V+E)    | O(V+E)        | O(V^2)         |
+    | Best for          | Sparse,    | Neg weights,  | Small graphs,  |
+    |                   | non-neg    | cycle detect  | all-pairs      |
+    +-------------------+------------+---------------+----------------+
+            </pre>
+        </div>
+
+        <div class="note">
+            <strong>Path Reconstruction:</strong> To find the actual path (not just distances), maintain a "next" matrix. Set next[i][j] = j initially, and when dist[i][j] is updated through k, set next[i][j] = next[i][k]. Then reconstruct the path by following next pointers.
+        </div>
+
+        <h2>Key Takeaways</h2>
+        <ol>
+            <li>Three nested loops -- simple to implement, easy to remember.</li>
+            <li>The outer loop MUST be the intermediate vertex k.</li>
+            <li>Works for both directed and undirected graphs.</li>
+            <li>O(V^3) limits it to smaller graphs (V &lt;= ~500).</li>
+            <li>Use a large constant for INF (not INT_MAX) to avoid integer overflow when adding.</li>
+            <li>Negative cycle exists if dist[i][i] &lt; 0 for any vertex i.</li>
+        </ol>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

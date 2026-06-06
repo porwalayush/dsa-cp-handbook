@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>0-1 BFS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Graph Topics</a>
+
+        <h1>0-1 BFS</h1>
+        <p>0-1 BFS is a shortest path algorithm optimized for graphs where all edge weights are either <strong>0 or 1</strong>. It uses a deque instead of a priority queue, achieving <strong>O(V+E)</strong> time complexity compared to Dijkstra's O((V+E) log V).</p>
+
+        <h2>When to Use</h2>
+        <ul>
+            <li>All edge weights are exactly 0 or 1.</li>
+            <li>Finding minimum cost paths in grids where some moves are "free" and others cost 1.</li>
+            <li>Minimum flips/changes to reach a destination.</li>
+            <li>Any problem reducible to a 0-1 weighted graph.</li>
+        </ul>
+
+        <h2>Key Idea</h2>
+        <p>Instead of a priority queue (min-heap), we use a <strong>deque (double-ended queue)</strong>:</p>
+        <ul>
+            <li>When traversing a <strong>0-weight edge</strong>: push the neighbor to the <strong>front</strong> of the deque.</li>
+            <li>When traversing a <strong>1-weight edge</strong>: push the neighbor to the <strong>back</strong> of the deque.</li>
+        </ul>
+        <p>This ensures that the deque always processes nodes in non-decreasing order of distance, mimicking the behavior of a priority queue without the log factor.</p>
+
+        <h2>Visual Walkthrough</h2>
+        <div class="visual">
+            <pre>
+    Grid: Find minimum flips to reach (2,2) from (0,0)
+    0 = can pass freely, 1 = must flip (costs 1)
+
+        0   1   0
+        0   1   0
+        1   0   0
+
+    Graph representation (each cell is a node):
+    Adjacent cells connected by edge weight = value of destination cell
+
+    (0,0)--0--(0,1) has weight 1 (cell (0,1) = 1, must flip)
+    (0,0)--0--(1,0) has weight 0 (cell (1,0) = 0, free)
+
+    Deque trace:
+    Start: deque = [(0,0, dist=0)]
+
+    Pop (0,0): dist=0
+      (1,0) weight=0 -> push FRONT, dist=0
+      (0,1) weight=1 -> push BACK,  dist=1
+    Deque: [(1,0,0), (0,1,1)]
+
+    Pop (1,0): dist=0
+      (2,0) weight=1 -> push BACK,  dist=1
+      (1,1) weight=1 -> push BACK,  dist=1
+    Deque: [(0,1,1), (2,0,1), (1,1,1)]
+
+    Pop (0,1): dist=1
+      (0,2) weight=0 -> push FRONT, dist=1
+    Deque: [(0,2,1), (2,0,1), (1,1,1)]
+
+    Pop (0,2): dist=1
+      (1,2) weight=0 -> push FRONT, dist=1
+    Deque: [(1,2,1), (2,0,1), (1,1,1)]
+
+    Pop (1,2): dist=1
+      (2,2) weight=0 -> push FRONT, dist=1
+    Deque: [(2,2,1), (2,0,1), (1,1,1)]
+
+    Pop (2,2): dist=1  -> Answer = 1 flip!
+            </pre>
+        </div>
+
+        <h2>Algorithm Steps</h2>
+        <div class="step-box">
+            <strong>Step 1:</strong> Initialize distance array with infinity. Set dist[source] = 0.
+        </div>
+        <div class="step-box">
+            <strong>Step 2:</strong> Push source to deque.
+        </div>
+        <div class="step-box">
+            <strong>Step 3:</strong> While deque is not empty, pop from front.
+        </div>
+        <div class="step-box">
+            <strong>Step 4:</strong> For each neighbor, if new distance is better: update distance. If edge weight = 0, push to front. If edge weight = 1, push to back.
+        </div>
+
+        <h2>Example: Minimum Flips in Grid</h2>
+        <p>Given a binary grid, find the minimum number of cell flips needed to create a path from top-left to bottom-right. Moving to a cell with value 0 is free; moving to a cell with value 1 costs 1 (flip it).</p>
+
+        <h2>Implementation</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bfs01-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'bfs01-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'bfs01-python')">Python</button>
+            </div>
+            <div class="code-content active" id="bfs01-cpp">
+                <pre><span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="comment">// 0-1 BFS on a graph with edges of weight 0 or 1</span>
+vector&lt;<span class="keyword">int</span>&gt; bfs01(<span class="keyword">int</span> V, vector&lt;vector&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt;&gt;&amp; adj, <span class="keyword">int</span> src) {
+    vector&lt;<span class="keyword">int</span>&gt; dist(V, INT_MAX);
+    dist[src] = <span class="number">0</span>;
+    deque&lt;<span class="keyword">int</span>&gt; dq;
+    dq.push_back(src);
+
+    <span class="keyword">while</span> (!dq.empty()) {
+        <span class="keyword">int</span> u = dq.front();
+        dq.pop_front();
+
+        <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [v, w] : adj[u]) {
+            <span class="keyword">if</span> (dist[u] + w &lt; dist[v]) {
+                dist[v] = dist[u] + w;
+                <span class="keyword">if</span> (w == <span class="number">0</span>)
+                    dq.push_front(v);  <span class="comment">// 0-weight: front</span>
+                <span class="keyword">else</span>
+                    dq.push_back(v);   <span class="comment">// 1-weight: back</span>
+            }
+        }
+    }
+    <span class="keyword">return</span> dist;
+}
+
+<span class="comment">// Example: Minimum flips in binary grid</span>
+<span class="keyword">int</span> minFlips(vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; grid) {
+    <span class="keyword">int</span> n = grid.size(), m = grid[<span class="number">0</span>].size();
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; dist(n, vector&lt;<span class="keyword">int</span>&gt;(m, INT_MAX));
+    dist[<span class="number">0</span>][<span class="number">0</span>] = grid[<span class="number">0</span>][<span class="number">0</span>];
+    deque&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt; dq;
+    dq.push_back({<span class="number">0</span>, <span class="number">0</span>});
+
+    <span class="keyword">int</span> dx[] = {<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, -<span class="number">1</span>};
+    <span class="keyword">int</span> dy[] = {<span class="number">1</span>, -<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>};
+
+    <span class="keyword">while</span> (!dq.empty()) {
+        <span class="keyword">auto</span> [x, y] = dq.front();
+        dq.pop_front();
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> d = <span class="number">0</span>; d &lt; <span class="number">4</span>; d++) {
+            <span class="keyword">int</span> nx = x + dx[d], ny = y + dy[d];
+            <span class="keyword">if</span> (nx &lt; <span class="number">0</span> || nx &gt;= n || ny &lt; <span class="number">0</span> || ny &gt;= m) <span class="keyword">continue</span>;
+
+            <span class="keyword">int</span> w = grid[nx][ny]; <span class="comment">// 0 = free, 1 = flip needed</span>
+            <span class="keyword">if</span> (dist[x][y] + w &lt; dist[nx][ny]) {
+                dist[nx][ny] = dist[x][y] + w;
+                <span class="keyword">if</span> (w == <span class="number">0</span>)
+                    dq.push_front({nx, ny});
+                <span class="keyword">else</span>
+                    dq.push_back({nx, ny});
+            }
+        }
+    }
+    <span class="keyword">return</span> dist[n-<span class="number">1</span>][m-<span class="number">1</span>];
+}
+
+<span class="keyword">int</span> main() {
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; grid = {
+        {<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>},
+        {<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>},
+        {<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>}
+    };
+    cout &lt;&lt; minFlips(grid) &lt;&lt; endl; <span class="comment">// Output: 1</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+            </div>
+            <div class="code-content" id="bfs01-java">
+                <pre><span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> ZeroOneBFS {
+    <span class="comment">// Generic 0-1 BFS on adjacency list</span>
+    <span class="keyword">static</span> <span class="keyword">int</span>[] bfs01(<span class="keyword">int</span> V, List&lt;List&lt;<span class="keyword">int</span>[]&gt;&gt; adj, <span class="keyword">int</span> src) {
+        <span class="keyword">int</span>[] dist = <span class="keyword">new</span> <span class="keyword">int</span>[V];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = <span class="number">0</span>;
+        Deque&lt;Integer&gt; dq = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+        dq.addFirst(src);
+
+        <span class="keyword">while</span> (!dq.isEmpty()) {
+            <span class="keyword">int</span> u = dq.pollFirst();
+            <span class="keyword">for</span> (<span class="keyword">int</span>[] edge : adj.get(u)) {
+                <span class="keyword">int</span> v = edge[<span class="number">0</span>], w = edge[<span class="number">1</span>];
+                <span class="keyword">if</span> (dist[u] + w &lt; dist[v]) {
+                    dist[v] = dist[u] + w;
+                    <span class="keyword">if</span> (w == <span class="number">0</span>)
+                        dq.addFirst(v);  <span class="comment">// 0-weight: front</span>
+                    <span class="keyword">else</span>
+                        dq.addLast(v);   <span class="comment">// 1-weight: back</span>
+                }
+            }
+        }
+        <span class="keyword">return</span> dist;
+    }
+
+    <span class="comment">// Minimum flips in binary grid</span>
+    <span class="keyword">static</span> <span class="keyword">int</span> minFlips(<span class="keyword">int</span>[][] grid) {
+        <span class="keyword">int</span> n = grid.length, m = grid[<span class="number">0</span>].length;
+        <span class="keyword">int</span>[][] dist = <span class="keyword">new</span> <span class="keyword">int</span>[n][m];
+        <span class="keyword">for</span> (<span class="keyword">int</span>[] row : dist) Arrays.fill(row, Integer.MAX_VALUE);
+        dist[<span class="number">0</span>][<span class="number">0</span>] = grid[<span class="number">0</span>][<span class="number">0</span>];
+
+        Deque&lt;<span class="keyword">int</span>[]&gt; dq = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+        dq.addFirst(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">0</span>, <span class="number">0</span>});
+
+        <span class="keyword">int</span>[] dx = {<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, -<span class="number">1</span>};
+        <span class="keyword">int</span>[] dy = {<span class="number">1</span>, -<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>};
+
+        <span class="keyword">while</span> (!dq.isEmpty()) {
+            <span class="keyword">int</span>[] curr = dq.pollFirst();
+            <span class="keyword">int</span> x = curr[<span class="number">0</span>], y = curr[<span class="number">1</span>];
+
+            <span class="keyword">for</span> (<span class="keyword">int</span> d = <span class="number">0</span>; d &lt; <span class="number">4</span>; d++) {
+                <span class="keyword">int</span> nx = x + dx[d], ny = y + dy[d];
+                <span class="keyword">if</span> (nx &lt; <span class="number">0</span> || nx &gt;= n || ny &lt; <span class="number">0</span> || ny &gt;= m) <span class="keyword">continue</span>;
+
+                <span class="keyword">int</span> w = grid[nx][ny];
+                <span class="keyword">if</span> (dist[x][y] + w &lt; dist[nx][ny]) {
+                    dist[nx][ny] = dist[x][y] + w;
+                    <span class="keyword">if</span> (w == <span class="number">0</span>)
+                        dq.addFirst(<span class="keyword">new</span> <span class="keyword">int</span>[]{nx, ny});
+                    <span class="keyword">else</span>
+                        dq.addLast(<span class="keyword">new</span> <span class="keyword">int</span>[]{nx, ny});
+                }
+            }
+        }
+        <span class="keyword">return</span> dist[n-<span class="number">1</span>][m-<span class="number">1</span>];
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span>[][] grid = {
+            {<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>},
+            {<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>},
+            {<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>}
+        };
+        System.out.println(minFlips(grid)); <span class="comment">// Output: 1</span>
+    }
+}</pre>
+            </div>
+            <div class="code-content" id="bfs01-python">
+                <pre><span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> bfs_01(V, adj, src):
+    <span class="comment">"""Generic 0-1 BFS. adj[u] = [(v, w), ...] where w is 0 or 1"""</span>
+    dist = [float(<span class="string">'inf'</span>)] * V
+    dist[src] = <span class="number">0</span>
+    dq = deque([src])
+
+    <span class="keyword">while</span> dq:
+        u = dq.popleft()
+        <span class="keyword">for</span> v, w <span class="keyword">in</span> adj[u]:
+            <span class="keyword">if</span> dist[u] + w &lt; dist[v]:
+                dist[v] = dist[u] + w
+                <span class="keyword">if</span> w == <span class="number">0</span>:
+                    dq.appendleft(v)  <span class="comment"># 0-weight: front</span>
+                <span class="keyword">else</span>:
+                    dq.append(v)      <span class="comment"># 1-weight: back</span>
+    <span class="keyword">return</span> dist
+
+<span class="keyword">def</span> min_flips(grid):
+    <span class="comment">"""Minimum flips in binary grid to reach bottom-right"""</span>
+    n, m = len(grid), len(grid[<span class="number">0</span>])
+    dist = [[float(<span class="string">'inf'</span>)] * m <span class="keyword">for</span> _ <span class="keyword">in</span> range(n)]
+    dist[<span class="number">0</span>][<span class="number">0</span>] = grid[<span class="number">0</span>][<span class="number">0</span>]
+    dq = deque([(<span class="number">0</span>, <span class="number">0</span>)])
+
+    directions = [(<span class="number">0</span>,<span class="number">1</span>), (<span class="number">0</span>,-<span class="number">1</span>), (<span class="number">1</span>,<span class="number">0</span>), (-<span class="number">1</span>,<span class="number">0</span>)]
+
+    <span class="keyword">while</span> dq:
+        x, y = dq.popleft()
+        <span class="keyword">for</span> dx, dy <span class="keyword">in</span> directions:
+            nx, ny = x + dx, y + dy
+            <span class="keyword">if</span> <span class="number">0</span> &lt;= nx &lt; n <span class="keyword">and</span> <span class="number">0</span> &lt;= ny &lt; m:
+                w = grid[nx][ny]  <span class="comment"># 0 = free, 1 = flip</span>
+                <span class="keyword">if</span> dist[x][y] + w &lt; dist[nx][ny]:
+                    dist[nx][ny] = dist[x][y] + w
+                    <span class="keyword">if</span> w == <span class="number">0</span>:
+                        dq.appendleft((nx, ny))
+                    <span class="keyword">else</span>:
+                        dq.append((nx, ny))
+
+    <span class="keyword">return</span> dist[n-<span class="number">1</span>][m-<span class="number">1</span>]
+
+<span class="comment"># Example</span>
+grid = [
+    [<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>],
+    [<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>],
+    [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>]
+]
+print(min_flips(grid))  <span class="comment"># Output: 1</span></pre>
+            </div>
+        </div>
+
+        <h2>Why It Works</h2>
+        <p>The deque maintains a key invariant: nodes are ordered by non-decreasing distance. Since edge weights are only 0 or 1:</p>
+        <ul>
+            <li>A 0-weight edge keeps the same distance level, so the neighbor goes to the front (same priority as current).</li>
+            <li>A 1-weight edge increases distance by 1, so the neighbor goes to the back (next priority level).</li>
+        </ul>
+        <p>This is essentially a two-level BFS where level <em>d</em> and level <em>d+1</em> coexist in the deque.</p>
+
+        <h2>Comparison with Dijkstra</h2>
+        <table>
+            <tr>
+                <th>Aspect</th>
+                <th>0-1 BFS</th>
+                <th>Dijkstra</th>
+            </tr>
+            <tr>
+                <td>Data structure</td>
+                <td>Deque</td>
+                <td>Min-heap (priority queue)</td>
+            </tr>
+            <tr>
+                <td>Time complexity</td>
+                <td>O(V + E)</td>
+                <td>O((V + E) log V)</td>
+            </tr>
+            <tr>
+                <td>Edge weights</td>
+                <td>Only 0 and 1</td>
+                <td>Any non-negative</td>
+            </tr>
+            <tr>
+                <td>Space</td>
+                <td>O(V)</td>
+                <td>O(V + E)</td>
+            </tr>
+            <tr>
+                <td>When to prefer</td>
+                <td>Binary weight graphs</td>
+                <td>General non-negative weights</td>
+            </tr>
+        </table>
+
+        <h2>Complexity Analysis</h2>
+        <ul>
+            <li><strong>Time:</strong> O(V + E). Each vertex is processed at most once. Each edge is relaxed at most once. No logarithmic factor from heap operations.</li>
+            <li><strong>Space:</strong> O(V) for the distance array and deque.</li>
+        </ul>
+
+        <div class="note">
+            <strong>Key Insight:</strong> 0-1 BFS can be generalized. If edge weights are 0 and <em>k</em>, you can still use a deque (distances only differ by at most k at any time). For weights 0, 1, 2, ..., k, you need a k-bucket BFS (circular array of k+1 queues).
+        </div>
+
+        <h2>Common Applications</h2>
+        <ul>
+            <li>Minimum flips/modifications to create a path in a grid.</li>
+            <li>Minimum walls to break in a maze.</li>
+            <li>Shortest path where some roads are free and others have toll = 1.</li>
+            <li>Minimum operations to convert one state to another (BFS on implicit graph).</li>
+        </ul>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

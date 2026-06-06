@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prim's Algorithm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare > div {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        @media (max-width: 600px) {
+            .compare { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+        table, .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td,
+        .comparison-table th, .comparison-table td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th, .comparison-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover, .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 20px auto;
+            display: block;
+            background: white;
+        }
+        .decision-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-box h3 { color: #0f172a; margin-bottom: 16px; font-size: 1.2em; }
+        .flow-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Graph Topics</a>
+
+        <h1>Prim's Algorithm</h1>
+        <p>Prim's algorithm finds the <strong>Minimum Spanning Tree (MST)</strong> of a weighted, connected, undirected graph. It grows the MST one vertex at a time, always picking the cheapest edge that connects a vertex already in the MST to one that is not.</p>
+
+        <h2>How It Works (Intuition)</h2>
+        <p>Think of it like building a road network for a group of cities. You start at one city and repeatedly build the cheapest road that connects a new city to your existing network.</p>
+        <ol>
+            <li>Start from any vertex. Mark it as part of the MST.</li>
+            <li>Look at all edges going from MST vertices to non-MST vertices.</li>
+            <li>Pick the edge with the <strong>minimum weight</strong>.</li>
+            <li>Add that edge and the new vertex to the MST.</li>
+            <li>Repeat until all vertices are in the MST.</li>
+        </ol>
+
+        <h2>Visual Walkthrough</h2>
+        <p>Consider this 5-node weighted graph:</p>
+
+        <div class="visual">
+            <pre>
+        (1)
+       / | \
+      2  3  6
+     /   |   \
+   (0)   |   (2)
+     \   |   /
+      8   5  4
+       \  | /
+        (3)
+         |
+         7
+         |
+        (4)
+            </pre>
+        </div>
+
+        <p>Edge list: (0-1,2), (0-3,8), (1-2,6), (1-3,3), (2-3,4), (3-4,7), (1-3,5 is duplicate path - using 1-3=3)</p>
+
+        <div class="visual">
+            <pre>
+Step 1: Start at vertex 0
+        MST = {0}
+        Edges available: (0-1, w=2), (0-3, w=8)
+        Pick minimum: (0-1, w=2) ✓
+
+Step 2: MST = {0, 1}
+        Edges available: (0-3, w=8), (1-2, w=6), (1-3, w=3)
+        Pick minimum: (1-3, w=3) ✓
+
+Step 3: MST = {0, 1, 3}
+        Edges available: (0-3, w=8), (1-2, w=6), (3-2, w=4), (3-4, w=7)
+        Pick minimum: (3-2, w=4) ✓
+
+Step 4: MST = {0, 1, 3, 2}
+        Edges available: (0-3, w=8), (3-4, w=7)
+        Pick minimum: (3-4, w=7) ✓
+
+Step 5: MST = {0, 1, 3, 2, 4}  -- ALL VERTICES INCLUDED!
+        Total MST weight = 2 + 3 + 4 + 7 = 16
+            </pre>
+        </div>
+
+        <div class="visual">
+            <pre>
+Final MST:
+
+   (0) --2-- (1)
+              |
+              3
+              |
+             (3) --4-- (2)
+              |
+              7
+              |
+             (4)
+
+Total weight: 2 + 3 + 4 + 7 = 16
+            </pre>
+        </div>
+
+        <h2>Efficient Implementation (Priority Queue)</h2>
+        <p>The naive approach checks all edges each time. Using a <strong>min-heap (priority queue)</strong>, we efficiently get the minimum weight edge in O(log V) time.</p>
+
+        <div class="note">
+            <strong>Key Idea:</strong> Push all edges of a newly added vertex into the priority queue. Pop the minimum edge. If it connects to an unvisited vertex, add it to the MST. Otherwise, discard and pop again.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'prims-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'prims-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'prims-python')">Python</button>
+            </div>
+            <div class="code-content active" id="prims-java">
+                <pre><span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> PrimsAlgorithm {
+    <span class="comment">// Edge: {weight, destinationVertex}</span>
+    <span class="keyword">static</span> <span class="keyword">int</span> primsMST(<span class="keyword">int</span> V, List&lt;List&lt;<span class="keyword">int</span>[]&gt;&gt; adj) {
+        <span class="comment">// Min-heap: {weight, vertex}</span>
+        PriorityQueue&lt;<span class="keyword">int</span>[]&gt; pq = <span class="keyword">new</span> PriorityQueue&lt;&gt;((a, b) -&gt; a[<span class="number">0</span>] - b[<span class="number">0</span>]);
+        <span class="keyword">boolean</span>[] inMST = <span class="keyword">new</span> <span class="keyword">boolean</span>[V];
+        <span class="keyword">int</span> totalWeight = <span class="number">0</span>;
+
+        <span class="comment">// Start from vertex 0 with weight 0</span>
+        pq.offer(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">0</span>, <span class="number">0</span>});
+
+        <span class="keyword">while</span> (!pq.isEmpty()) {
+            <span class="keyword">int</span>[] top = pq.poll();
+            <span class="keyword">int</span> weight = top[<span class="number">0</span>], u = top[<span class="number">1</span>];
+
+            <span class="comment">// Skip if already in MST</span>
+            <span class="keyword">if</span> (inMST[u]) <span class="keyword">continue</span>;
+
+            <span class="comment">// Add vertex to MST</span>
+            inMST[u] = <span class="keyword">true</span>;
+            totalWeight += weight;
+
+            <span class="comment">// Push all edges from u to non-MST vertices</span>
+            <span class="keyword">for</span> (<span class="keyword">int</span>[] edge : adj.get(u)) {
+                <span class="keyword">int</span> v = edge[<span class="number">0</span>], w = edge[<span class="number">1</span>];
+                <span class="keyword">if</span> (!inMST[v]) {
+                    pq.offer(<span class="keyword">new</span> <span class="keyword">int</span>[]{w, v});
+                }
+            }
+        }
+        <span class="keyword">return</span> totalWeight;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span> V = <span class="number">5</span>;
+        List&lt;List&lt;<span class="keyword">int</span>[]&gt;&gt; adj = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) adj.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+
+        <span class="comment">// Add edges: {destination, weight}</span>
+        adj.get(<span class="number">0</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">1</span>, <span class="number">2</span>});
+        adj.get(<span class="number">1</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">0</span>, <span class="number">2</span>});
+        adj.get(<span class="number">0</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">3</span>, <span class="number">8</span>});
+        adj.get(<span class="number">3</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">0</span>, <span class="number">8</span>});
+        adj.get(<span class="number">1</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">2</span>, <span class="number">6</span>});
+        adj.get(<span class="number">2</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">1</span>, <span class="number">6</span>});
+        adj.get(<span class="number">1</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">3</span>, <span class="number">3</span>});
+        adj.get(<span class="number">3</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">1</span>, <span class="number">3</span>});
+        adj.get(<span class="number">2</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">3</span>, <span class="number">4</span>});
+        adj.get(<span class="number">3</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">2</span>, <span class="number">4</span>});
+        adj.get(<span class="number">3</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">4</span>, <span class="number">7</span>});
+        adj.get(<span class="number">4</span>).add(<span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">3</span>, <span class="number">7</span>});
+
+        System.out.println(<span class="string">"MST weight: "</span> + primsMST(V, adj));
+        <span class="comment">// Output: MST weight: 16</span>
+    }
+}</pre>
+            </div>
+            <div class="code-content" id="prims-cpp">
+                <pre><span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">int</span> primsMST(<span class="keyword">int</span> V, vector&lt;vector&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt;&gt;&amp; adj) {
+    <span class="comment">// Min-heap: {weight, vertex}</span>
+    priority_queue&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;, vector&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt;, greater&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt;&gt; pq;
+    vector&lt;<span class="keyword">bool</span>&gt; inMST(V, <span class="keyword">false</span>);
+    <span class="keyword">int</span> totalWeight = <span class="number">0</span>;
+
+    <span class="comment">// Start from vertex 0</span>
+    pq.push({<span class="number">0</span>, <span class="number">0</span>});
+
+    <span class="keyword">while</span> (!pq.empty()) {
+        <span class="keyword">auto</span> [weight, u] = pq.top();
+        pq.pop();
+
+        <span class="comment">// Skip if already in MST</span>
+        <span class="keyword">if</span> (inMST[u]) <span class="keyword">continue</span>;
+
+        <span class="comment">// Add vertex to MST</span>
+        inMST[u] = <span class="keyword">true</span>;
+        totalWeight += weight;
+
+        <span class="comment">// Push all edges from u to non-MST vertices</span>
+        <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [v, w] : adj[u]) {
+            <span class="keyword">if</span> (!inMST[v]) {
+                pq.push({w, v});
+            }
+        }
+    }
+    <span class="keyword">return</span> totalWeight;
+}
+
+<span class="keyword">int</span> main() {
+    <span class="keyword">int</span> V = <span class="number">5</span>;
+    vector&lt;vector&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt;&gt; adj(V);
+
+    <span class="comment">// Add edges: {destination, weight}</span>
+    adj[<span class="number">0</span>].push_back({<span class="number">1</span>, <span class="number">2</span>}); adj[<span class="number">1</span>].push_back({<span class="number">0</span>, <span class="number">2</span>});
+    adj[<span class="number">0</span>].push_back({<span class="number">3</span>, <span class="number">8</span>}); adj[<span class="number">3</span>].push_back({<span class="number">0</span>, <span class="number">8</span>});
+    adj[<span class="number">1</span>].push_back({<span class="number">2</span>, <span class="number">6</span>}); adj[<span class="number">2</span>].push_back({<span class="number">1</span>, <span class="number">6</span>});
+    adj[<span class="number">1</span>].push_back({<span class="number">3</span>, <span class="number">3</span>}); adj[<span class="number">3</span>].push_back({<span class="number">1</span>, <span class="number">3</span>});
+    adj[<span class="number">2</span>].push_back({<span class="number">3</span>, <span class="number">4</span>}); adj[<span class="number">3</span>].push_back({<span class="number">2</span>, <span class="number">4</span>});
+    adj[<span class="number">3</span>].push_back({<span class="number">4</span>, <span class="number">7</span>}); adj[<span class="number">4</span>].push_back({<span class="number">3</span>, <span class="number">7</span>});
+
+    cout &lt;&lt; <span class="string">"MST weight: "</span> &lt;&lt; primsMST(V, adj) &lt;&lt; endl;
+    <span class="comment">// Output: MST weight: 16</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+            </div>
+            <div class="code-content" id="prims-python">
+                <pre><span class="keyword">import</span> heapq
+
+<span class="keyword">def</span> prims(V, adj):
+    <span class="comment"># adj[u] = [(v, weight), ...]</span>
+    in_mst = [<span class="keyword">False</span>] * V
+    <span class="comment"># Min-heap: (weight, node)</span>
+    pq = [(<span class="number">0</span>, <span class="number">0</span>)]  <span class="comment"># start from node 0 with cost 0</span>
+    mst_cost = <span class="number">0</span>
+
+    <span class="keyword">while</span> pq:
+        w, u = heapq.heappop(pq)
+        <span class="keyword">if</span> in_mst[u]:
+            <span class="keyword">continue</span>
+        in_mst[u] = <span class="keyword">True</span>
+        mst_cost += w
+
+        <span class="keyword">for</span> v, weight <span class="keyword">in</span> adj[u]:
+            <span class="keyword">if not</span> in_mst[v]:
+                heapq.heappush(pq, (weight, v))
+
+    <span class="keyword">return</span> mst_cost
+
+<span class="comment"># Example</span>
+V = <span class="number">5</span>
+adj = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> range(V)]
+edges = [(<span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>), (<span class="number">0</span>,<span class="number">3</span>,<span class="number">6</span>), (<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>), (<span class="number">1</span>,<span class="number">3</span>,<span class="number">8</span>), (<span class="number">1</span>,<span class="number">4</span>,<span class="number">5</span>), (<span class="number">2</span>,<span class="number">4</span>,<span class="number">7</span>), (<span class="number">3</span>,<span class="number">4</span>,<span class="number">9</span>)]
+<span class="keyword">for</span> u, v, w <span class="keyword">in</span> edges:
+    adj[u].append((v, w))
+    adj[v].append((u, w))
+
+print(<span class="string">"MST cost:"</span>, prims(V, adj))</pre>
+            </div>
+        </div>
+
+        <h2>Time and Space Complexity</h2>
+        <ul>
+            <li><strong>Time:</strong> O((V + E) log V) with a binary heap. Each vertex is extracted once (V extractions), and each edge causes at most one insertion into the heap (E insertions). Each heap operation is O(log V).</li>
+            <li><strong>Space:</strong> O(V + E) for the adjacency list and O(E) for the priority queue in the worst case.</li>
+        </ul>
+
+        <h2>Prim's vs Kruskal's</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Prim's</strong> grows from a single source vertex -- better for <strong>dense graphs</strong> (many edges), especially with adjacency matrix + O(V^2) simple loop.</li>
+                <li><strong>Kruskal's</strong> sorts all edges globally -- better for <strong>sparse graphs</strong> (few edges) since sorting E edges is cheap when E is small.</li>
+                <li>Both produce the same MST (if edge weights are unique). If weights have ties, they may produce different valid MSTs.</li>
+                <li>Kruskal's needs Union-Find (DSU); Prim's needs a priority queue.</li>
+            </ul>
+        </div>
+
+        <h2>When to Use Prim's</h2>
+        <ul>
+            <li>Dense graphs where E is close to V^2</li>
+            <li>When you already have an adjacency list/matrix representation</li>
+            <li>When you want to grow the MST incrementally from a starting point</li>
+            <li>Problems where you need to track which edges are in the MST as you build it</li>
+        </ul>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

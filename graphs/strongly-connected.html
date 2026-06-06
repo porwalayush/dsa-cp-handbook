@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strongly Connected Components (SCC)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare > div {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        @media (max-width: 600px) {
+            .compare { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+        table, .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td,
+        .comparison-table th, .comparison-table td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th, .comparison-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover, .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 20px auto;
+            display: block;
+            background: white;
+        }
+        .decision-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-box h3 { color: #0f172a; margin-bottom: 16px; font-size: 1.2em; }
+        .flow-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Strongly Connected Components (SCC)</h1>
+        <p>A <strong>Strongly Connected Component</strong> is a maximal set of vertices in a directed graph such that there is a path from <strong>every vertex to every other vertex</strong> in the set. Think of it as a "group of vertices that can all reach each other."</p>
+
+        <div class="note">
+            <strong>Key Definition:</strong> In an SCC, for any two vertices u and v, there exists a path u -> ... -> v AND a path v -> ... -> u. The component is "maximal" meaning you cannot add any more vertices and keep this property.
+        </div>
+
+        <h2>Visual Example</h2>
+
+        <div class="visual">
+            <pre>
+    Directed Graph:
+
+        0 -------> 1 -------> 3
+        ^         /            |
+        |        /             |
+        |       v              v
+        +------ 2              4 ------> 5
+                                         ^
+                                         |
+                                    6 ---+
+                                    ^    |
+                                    |    v
+                                    +--- 7
+
+    Strongly Connected Components:
+
+    SCC 1: {0, 1, 2}     SCC 2: {3}     SCC 3: {4}     SCC 4: {5, 6, 7}
+
+    Verify SCC 1:
+      0 -> 1 -> 2 -> 0  (cycle! everyone reaches everyone)
+
+    Verify SCC 4:
+      5 -> ... hmm, let me fix:
+      6 -> 5, 6 -> 7, 7 -> 6  => {6, 7} form SCC
+      But 5 cannot reach 6... so 5 is its own SCC!
+
+    Corrected SCCs:
+    SCC 1: {0, 1, 2}   (0->1->2->0)
+    SCC 2: {3}          (no cycle involving 3)
+    SCC 3: {4}          (no cycle involving 4)
+    SCC 4: {5}          (no outgoing edges back)
+    SCC 5: {6, 7}       (6->7->6)
+
+
+    Condensation (DAG of SCCs):
+
+    [0,1,2] ---> [3] ---> [4] ---> [5]
+                                     ^
+                                     |
+                                   [6,7]
+            </pre>
+        </div>
+
+        <h2>Why SCCs Matter</h2>
+        <ul>
+            <li><strong>Condensation:</strong> Replace each SCC with a single node to get a DAG. Now you can do topological sort on the DAG!</li>
+            <li><strong>Reachability:</strong> If u and v are in the same SCC, they can definitely reach each other</li>
+            <li><strong>2-SAT:</strong> SCC is the core algorithm for solving 2-SAT problems</li>
+        </ul>
+
+        <h2>Kosaraju's Algorithm</h2>
+        <p>Kosaraju's algorithm finds all SCCs in <strong>two DFS passes</strong>. It is beautifully simple and relies on a key insight about the transposed graph.</p>
+
+        <div class="step-box">
+            <strong>The Algorithm (3 Steps):</strong>
+            <ol>
+                <li><strong>Pass 1:</strong> Do DFS on the original graph. Push vertices to a stack in order of finish time (post-order).</li>
+                <li><strong>Transpose:</strong> Reverse all edges in the graph (flip every edge direction).</li>
+                <li><strong>Pass 2:</strong> Pop vertices from the stack. For each unvisited vertex, do DFS on the TRANSPOSED graph. Each DFS tree = one SCC.</li>
+            </ol>
+        </div>
+
+        <div class="visual">
+            <pre>
+    Kosaraju's Walkthrough:
+
+    Original Graph:          Transposed Graph (all edges reversed):
+
+    0 --> 1                  0 <-- 1
+    ^    /                   |    ^
+    |   v                    v   /
+    +-- 2 --> 3              2 <-- 3
+
+    STEP 1: DFS on original, record finish order
+      Start at 0: visit 0->1->2->0(back edge)->3
+      Finish order (stack): [3, 2, 1, 0]  (3 finishes first, 0 last)
+
+    STEP 2: Transpose the graph (reverse all arrows)
+
+    STEP 3: Process stack order [0, 1, 2, 3] on transposed graph
+      Pop 0: DFS on transposed -> visits 0, 2, 1 => SCC = {0, 1, 2}
+      Pop 1: already visited
+      Pop 2: already visited
+      Pop 3: DFS on transposed -> visits 3 => SCC = {3}
+
+    Result: SCCs are {0, 1, 2} and {3}
+            </pre>
+        </div>
+
+        <div class="note">
+            <strong>Why does it work?</strong> The vertex that finishes last in DFS belongs to a "source SCC" (no incoming edges from other SCCs in the condensation DAG). When we DFS on the transposed graph starting from it, we can only reach vertices in its OWN SCC (because cross-SCC edges are now reversed and point away).
+        </div>
+
+        <h2>Implementation: Kosaraju's Algorithm</h2>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'scc-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'scc-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div class="code-content active" id="scc-java">
+                <pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">public class</span> <span class="type">KosarajuSCC</span> {
+    <span class="keyword">private int</span> V;
+    <span class="keyword">private</span> List&lt;List&lt;Integer&gt;&gt; adj;      <span class="comment">// original graph</span>
+    <span class="keyword">private</span> List&lt;List&lt;Integer&gt;&gt; radj;     <span class="comment">// transposed graph</span>
+
+    <span class="keyword">public</span> KosarajuSCC(<span class="keyword">int</span> v) {
+        V = v;
+        adj = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        radj = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            adj.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+            radj.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+        }
+    }
+
+    <span class="keyword">public void</span> addEdge(<span class="keyword">int</span> u, <span class="keyword">int</span> v) {
+        adj.get(u).add(v);
+        radj.get(v).add(u); <span class="comment">// reversed edge for transpose</span>
+    }
+
+    <span class="comment">// Pass 1: DFS on original graph, fill stack by finish time</span>
+    <span class="keyword">private void</span> dfs1(<span class="keyword">int</span> node, <span class="keyword">boolean</span>[] visited, Stack&lt;Integer&gt; stack) {
+        visited[node] = <span class="keyword">true</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> neighbor : adj.get(node)) {
+            <span class="keyword">if</span> (!visited[neighbor]) {
+                dfs1(neighbor, visited, stack);
+            }
+        }
+        stack.push(node); <span class="comment">// Push AFTER all descendants finish</span>
+    }
+
+    <span class="comment">// Pass 2: DFS on transposed graph, collect SCC</span>
+    <span class="keyword">private void</span> dfs2(<span class="keyword">int</span> node, <span class="keyword">boolean</span>[] visited, List&lt;Integer&gt; component) {
+        visited[node] = <span class="keyword">true</span>;
+        component.add(node);
+        <span class="keyword">for</span> (<span class="keyword">int</span> neighbor : radj.get(node)) {
+            <span class="keyword">if</span> (!visited[neighbor]) {
+                dfs2(neighbor, visited, component);
+            }
+        }
+    }
+
+    <span class="keyword">public</span> List&lt;List&lt;Integer&gt;&gt; findSCCs() {
+        <span class="keyword">boolean</span>[] visited = <span class="keyword">new boolean</span>[V];
+        Stack&lt;Integer&gt; stack = <span class="keyword">new</span> Stack&lt;&gt;();
+
+        <span class="comment">// PASS 1: Fill stack with finish-time order</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (!visited[i]) {
+                dfs1(i, visited, stack);
+            }
+        }
+
+        <span class="comment">// PASS 2: Process in reverse finish-time on transposed graph</span>
+        Arrays.fill(visited, <span class="keyword">false</span>);
+        List&lt;List&lt;Integer&gt;&gt; sccs = <span class="keyword">new</span> ArrayList&lt;&gt;();
+
+        <span class="keyword">while</span> (!stack.isEmpty()) {
+            <span class="keyword">int</span> node = stack.pop();
+            <span class="keyword">if</span> (!visited[node]) {
+                List&lt;Integer&gt; component = <span class="keyword">new</span> ArrayList&lt;&gt;();
+                dfs2(node, visited, component);
+                sccs.add(component);
+            }
+        }
+        <span class="keyword">return</span> sccs;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        KosarajuSCC g = <span class="keyword">new</span> KosarajuSCC(<span class="number">5</span>);
+        g.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+        g.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+        g.addEdge(<span class="number">2</span>, <span class="number">0</span>); <span class="comment">// SCC: {0, 1, 2}</span>
+        g.addEdge(<span class="number">1</span>, <span class="number">3</span>);
+        g.addEdge(<span class="number">3</span>, <span class="number">4</span>);
+        g.addEdge(<span class="number">4</span>, <span class="number">3</span>); <span class="comment">// SCC: {3, 4}</span>
+
+        List&lt;List&lt;Integer&gt;&gt; sccs = g.findSCCs();
+        <span class="keyword">for</span> (List&lt;Integer&gt; scc : sccs) {
+            System.out.println(scc);
+        }
+        <span class="comment">// Output: [0, 2, 1] and [3, 4]</span>
+    }
+}
+                </pre>
+            </div>
+            <div class="code-content" id="scc-cpp">
+                <pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">class</span> <span class="type">KosarajuSCC</span> {
+    <span class="keyword">int</span> V;
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj;   <span class="comment">// original graph</span>
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; radj;  <span class="comment">// transposed graph</span>
+
+    <span class="comment">// Pass 1: DFS on original, fill stack by finish time</span>
+    <span class="keyword">void</span> dfs1(<span class="keyword">int</span> node, vector&lt;<span class="keyword">bool</span>&gt;&amp; visited, stack&lt;<span class="keyword">int</span>&gt;&amp; stk) {
+        visited[node] = <span class="keyword">true</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> neighbor : adj[node]) {
+            <span class="keyword">if</span> (!visited[neighbor]) {
+                dfs1(neighbor, visited, stk);
+            }
+        }
+        stk.push(node); <span class="comment">// Push AFTER all descendants finish</span>
+    }
+
+    <span class="comment">// Pass 2: DFS on transposed graph, collect SCC</span>
+    <span class="keyword">void</span> dfs2(<span class="keyword">int</span> node, vector&lt;<span class="keyword">bool</span>&gt;&amp; visited, vector&lt;<span class="keyword">int</span>&gt;&amp; component) {
+        visited[node] = <span class="keyword">true</span>;
+        component.push_back(node);
+        <span class="keyword">for</span> (<span class="keyword">int</span> neighbor : radj[node]) {
+            <span class="keyword">if</span> (!visited[neighbor]) {
+                dfs2(neighbor, visited, component);
+            }
+        }
+    }
+
+<span class="keyword">public</span>:
+    KosarajuSCC(<span class="keyword">int</span> v) : V(v), adj(v), radj(v) {}
+
+    <span class="keyword">void</span> addEdge(<span class="keyword">int</span> u, <span class="keyword">int</span> v) {
+        adj[u].push_back(v);
+        radj[v].push_back(u); <span class="comment">// reversed for transpose</span>
+    }
+
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; findSCCs() {
+        vector&lt;<span class="keyword">bool</span>&gt; visited(V, <span class="keyword">false</span>);
+        stack&lt;<span class="keyword">int</span>&gt; stk;
+
+        <span class="comment">// PASS 1: Fill stack with finish-time order</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (!visited[i]) {
+                dfs1(i, visited, stk);
+            }
+        }
+
+        <span class="comment">// PASS 2: Process in reverse finish-time on transposed graph</span>
+        fill(visited.begin(), visited.end(), <span class="keyword">false</span>);
+        vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; sccs;
+
+        <span class="keyword">while</span> (!stk.empty()) {
+            <span class="keyword">int</span> node = stk.top();
+            stk.pop();
+            <span class="keyword">if</span> (!visited[node]) {
+                vector&lt;<span class="keyword">int</span>&gt; component;
+                dfs2(node, visited, component);
+                sccs.push_back(component);
+            }
+        }
+        <span class="keyword">return</span> sccs;
+    }
+};
+
+<span class="keyword">int</span> main() {
+    KosarajuSCC g(<span class="number">5</span>);
+    g.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+    g.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+    g.addEdge(<span class="number">2</span>, <span class="number">0</span>); <span class="comment">// SCC: {0, 1, 2}</span>
+    g.addEdge(<span class="number">1</span>, <span class="number">3</span>);
+    g.addEdge(<span class="number">3</span>, <span class="number">4</span>);
+    g.addEdge(<span class="number">4</span>, <span class="number">3</span>); <span class="comment">// SCC: {3, 4}</span>
+
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; sccs = g.findSCCs();
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; scc : sccs) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> v : scc) cout &lt;&lt; v &lt;&lt; <span class="string">" "</span>;
+        cout &lt;&lt; endl;
+    }
+    <span class="comment">// Output: 0 2 1 \n 3 4</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}
+                </pre>
+            </div>
+            <div class="code-content" id="python1">
+                <pre>
+<span class="keyword">import</span> sys
+sys.setrecursionlimit(<span class="number">10</span>**<span class="number">6</span>)
+
+<span class="keyword">def</span> find_sccs(V, adj):
+    <span class="comment"># Pass 1: DFS on original, fill stack by finish time</span>
+    visited = [<span class="keyword">False</span>] * V
+    stack = []
+
+    <span class="keyword">def</span> dfs1(node):
+        visited[node] = <span class="keyword">True</span>
+        <span class="keyword">for</span> nb <span class="keyword">in</span> adj[node]:
+            <span class="keyword">if</span> <span class="keyword">not</span> visited[nb]:
+                dfs1(nb)
+        stack.append(node)
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(V):
+        <span class="keyword">if</span> <span class="keyword">not</span> visited[i]:
+            dfs1(i)
+
+    <span class="comment"># Build transposed graph</span>
+    transpose = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> range(V)]
+    <span class="keyword">for</span> u <span class="keyword">in</span> range(V):
+        <span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:
+            transpose[v].append(u)
+
+    <span class="comment"># Pass 2: DFS on transposed in stack order</span>
+    visited = [<span class="keyword">False</span>] * V
+    sccs = []
+
+    <span class="keyword">def</span> dfs2(node, comp):
+        visited[node] = <span class="keyword">True</span>
+        comp.append(node)
+        <span class="keyword">for</span> nb <span class="keyword">in</span> transpose[node]:
+            <span class="keyword">if</span> <span class="keyword">not</span> visited[nb]:
+                dfs2(nb, comp)
+
+    <span class="keyword">while</span> stack:
+        node = stack.pop()
+        <span class="keyword">if</span> <span class="keyword">not</span> visited[node]:
+            comp = []
+            dfs2(node, comp)
+            sccs.append(comp)
+
+    <span class="keyword">return</span> sccs
+
+<span class="comment"># Example</span>
+adj = [[<span class="number">1</span>], [<span class="number">2</span>], [<span class="number">0</span>, <span class="number">3</span>], [], []]  <span class="comment"># 0->1->2->0, 2->3</span>
+adj[<span class="number">3</span>].append(<span class="number">4</span>)
+print(find_sccs(<span class="number">5</span>, adj))
+                </pre>
+            </div>
+        </div>
+
+        <h2>Tarjan's Algorithm (Brief Overview)</h2>
+        <p>Tarjan's algorithm also finds SCCs but in a <strong>single DFS pass</strong>. It uses:</p>
+        <ul>
+            <li><strong>Discovery time (disc[]):</strong> When a vertex is first visited</li>
+            <li><strong>Low-link value (low[]):</strong> The smallest discovery time reachable from the subtree of the vertex</li>
+            <li><strong>Stack:</strong> Tracks vertices in the current DFS path</li>
+        </ul>
+
+        <div class="step-box">
+            <strong>Tarjan's Key Rule:</strong> A vertex u is the "root" of an SCC if <code>disc[u] == low[u]</code>. When this happens, pop everything from the stack up to and including u &mdash; that is one SCC.
+        </div>
+
+        <div class="note">
+            <strong>Kosaraju vs Tarjan:</strong><br>
+            - Kosaraju: 2 DFS passes, easier to understand and implement<br>
+            - Tarjan: 1 DFS pass, slightly faster in practice, more complex<br>
+            Both are O(V + E). Choose Kosaraju for interviews (simpler to explain).
+        </div>
+
+        <h2>Complexity</h2>
+        <ul>
+            <li><strong>Time:</strong> O(V + E) for both Kosaraju's and Tarjan's</li>
+            <li><strong>Space:</strong> O(V + E) for graph storage and auxiliary arrays</li>
+        </ul>
+
+        <h2>Applications</h2>
+        <ul>
+            <li><strong>2-SAT:</strong> Build implication graph, find SCCs to determine satisfiability</li>
+            <li><strong>Condensation DAG:</strong> Simplify directed graphs for reachability queries</li>
+            <li><strong>Deadlock detection:</strong> Cycles in wait-for graphs</li>
+            <li><strong>Social networks:</strong> Find tightly-connected communities</li>
+            <li><strong>Compiler optimization:</strong> Finding loops in control-flow graphs</li>
+        </ul>
+    </div>
+
+    <script>
+    function showCode(btn, id) {
+        const container = btn.closest('.code-container');
+        container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+        container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(id).classList.add('active');
+    }
+    </script>
+</body>
+</html>

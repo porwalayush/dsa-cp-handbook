@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridges &amp; Articulation Points</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare > div {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        @media (max-width: 600px) {
+            .compare { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+        table, .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td,
+        .comparison-table th, .comparison-table td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th, .comparison-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover, .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 20px auto;
+            display: block;
+            background: white;
+        }
+        .decision-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-box h3 { color: #0f172a; margin-bottom: 16px; font-size: 1.2em; }
+        .flow-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Bridges &amp; Articulation Points</h1>
+        <p>A <strong>bridge</strong> is an edge whose removal disconnects the graph. An <strong>articulation point</strong> (or cut vertex) is a vertex whose removal (along with its edges) disconnects the graph. These represent critical vulnerabilities in a network.</p>
+
+        <div class="note">
+            <strong>Real-world analogy:</strong> Imagine a road network. A bridge is a road that, if destroyed, splits the city into disconnected parts. An articulation point is an intersection that, if blocked, does the same.
+        </div>
+
+        <h2>Visual Example</h2>
+
+        <div class="visual">
+            <pre>
+    Graph:
+                                    BRIDGE
+        0 --- 1 --- 2 --- 3 ========= 4 --- 5
+              |   /                          |   \
+              |  /                           |    \
+              3                              7 --- 6
+
+    Wait, let me draw a cleaner example:
+
+        1 --- 2 --- 3
+        |   /       |
+        |  /        |           BRIDGE: edge 3-4
+        0       4 ---+--- 5     (removing it disconnects {0,1,2,3} from {4,5,6})
+                |         |
+                +--- 6 ---+
+
+    Even cleaner:
+
+        0 ---- 1 ---- 2
+        |      |
+        |      |         BRIDGE: edge 1--3
+        3 ---- 4         (removing 1--3 disconnects the graph? No...)
+
+    Correct clean example:
+
+        0 --- 1 --- 3 --- 4
+        |   /             |
+        | /               |
+        2                 5
+
+    Bridges: 1---3 and 4---5 and 3---4
+    Articulation Points: 1, 3, 4
+
+    Why 1 is articulation point:
+      Remove vertex 1 -> {0, 2} disconnected from {3, 4, 5}
+
+    Why edge 1-3 is a bridge:
+      Remove edge 1-3 -> {0, 1, 2} disconnected from {3, 4, 5}
+            </pre>
+        </div>
+
+        <h2>Detailed Example with Discovery and Low Values</h2>
+
+        <div class="visual">
+            <pre>
+    Graph:
+
+        0 --- 1 --- 3 --- 4
+        |   /             |
+        | /               |
+        2                 5
+
+    DFS Tree (starting from 0):
+
+        0 (disc=0, low=0)
+        |
+        1 (disc=1, low=0)    <-- low=0 because 2 has back edge to 0
+       / \
+      2    3 (disc=3, low=3)  <-- low stays 3 (no back edge to anything earlier)
+      |    |
+  (back   4 (disc=4, low=4)
+   to 0)  |
+          5 (disc=5, low=4)  <-- low=4 because back edge to 4
+
+    disc=2 for vertex 2, low=0 (back edge to 0)
+
+    Finding BRIDGES:
+      Edge u-v is a bridge if: low[v] > disc[u]
+
+      Edge 1-3: low[3]=3 > disc[1]=1  => BRIDGE!
+        (vertex 3 cannot reach anything above vertex 1 without using edge 1-3)
+
+      Edge 0-1: low[1]=0, disc[0]=0  => NOT bridge (0 = 0, not greater)
+      Edge 0-2: low[2]=0, disc[0]=0  => NOT bridge
+
+    Finding ARTICULATION POINTS:
+      For root: articulation point if it has 2+ children in DFS tree
+      For non-root u: articulation point if any child v has low[v] >= disc[u]
+
+      Vertex 1: child 3 has low[3]=3 >= disc[1]=1  => ARTICULATION POINT
+      Vertex 3: child 4 has low[4]=4 >= disc[3]=3  => ARTICULATION POINT
+      Vertex 0 (root): only 1 child in DFS tree => NOT articulation point
+            </pre>
+        </div>
+
+        <h2>The Algorithm (Tarjan's Approach)</h2>
+
+        <div class="step-box">
+            <strong>Key Concepts:</strong>
+            <ul>
+                <li><strong>disc[u]:</strong> Discovery time &mdash; when vertex u was first visited in DFS</li>
+                <li><strong>low[u]:</strong> The lowest discovery time reachable from the subtree of u (using back edges)</li>
+                <li>A <strong>back edge</strong> to an ancestor means there is an alternative path (cycle), so the edge is NOT critical</li>
+            </ul>
+        </div>
+
+        <div class="step-box">
+            <strong>Bridge Condition:</strong>
+            <p>Edge (u, v) is a bridge if <code>low[v] > disc[u]</code></p>
+            <p>Meaning: vertex v (and its subtree) has NO back edge to u or any ancestor of u. The only way to reach v from above is through edge (u,v).</p>
+        </div>
+
+        <div class="step-box">
+            <strong>Articulation Point Conditions:</strong>
+            <ul>
+                <li><strong>Root vertex:</strong> Is an articulation point if it has 2 or more children in the DFS tree</li>
+                <li><strong>Non-root vertex u:</strong> Is an articulation point if there exists a child v such that <code>low[v] >= disc[u]</code> (no back edge from v's subtree to above u)</li>
+            </ul>
+        </div>
+
+        <h2>Implementation</h2>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bridge-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'bridge-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'bridge-python')">Python</button>
+            </div>
+            <div class="code-content active" id="bridge-java">
+                <pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">public class</span> <span class="type">BridgesAndAP</span> {
+    <span class="keyword">private int</span> V;
+    <span class="keyword">private</span> List&lt;List&lt;Integer&gt;&gt; adj;
+    <span class="keyword">private int</span> timer = <span class="number">0</span>;
+
+    <span class="keyword">public</span> BridgesAndAP(<span class="keyword">int</span> v) {
+        V = v;
+        adj = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++)
+            adj.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+    }
+
+    <span class="keyword">public void</span> addEdge(<span class="keyword">int</span> u, <span class="keyword">int</span> v) {
+        adj.get(u).add(v);
+        adj.get(v).add(u);
+    }
+
+    <span class="keyword">public void</span> findBridgesAndAP() {
+        <span class="keyword">int</span>[] disc = <span class="keyword">new int</span>[V];
+        <span class="keyword">int</span>[] low = <span class="keyword">new int</span>[V];
+        <span class="keyword">boolean</span>[] visited = <span class="keyword">new boolean</span>[V];
+        <span class="keyword">int</span>[] parent = <span class="keyword">new int</span>[V];
+        <span class="keyword">boolean</span>[] isAP = <span class="keyword">new boolean</span>[V];
+        List&lt;<span class="keyword">int</span>[]&gt; bridges = <span class="keyword">new</span> ArrayList&lt;&gt;();
+
+        Arrays.fill(parent, -<span class="number">1</span>);
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (!visited[i]) {
+                dfs(i, disc, low, visited, parent, isAP, bridges);
+            }
+        }
+
+        <span class="comment">// Print bridges</span>
+        System.out.println(<span class="string">"Bridges:"</span>);
+        <span class="keyword">for</span> (<span class="keyword">int</span>[] bridge : bridges) {
+            System.out.println(bridge[<span class="number">0</span>] + <span class="string">" - "</span> + bridge[<span class="number">1</span>]);
+        }
+
+        <span class="comment">// Print articulation points</span>
+        System.out.println(<span class="string">"Articulation Points:"</span>);
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (isAP[i]) System.out.println(i);
+        }
+    }
+
+    <span class="keyword">private void</span> dfs(<span class="keyword">int</span> u, <span class="keyword">int</span>[] disc, <span class="keyword">int</span>[] low,
+                     <span class="keyword">boolean</span>[] visited, <span class="keyword">int</span>[] parent,
+                     <span class="keyword">boolean</span>[] isAP, List&lt;<span class="keyword">int</span>[]&gt; bridges) {
+        visited[u] = <span class="keyword">true</span>;
+        disc[u] = low[u] = timer++;
+        <span class="keyword">int</span> children = <span class="number">0</span>; <span class="comment">// Count DFS tree children (for root check)</span>
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> v : adj.get(u)) {
+            <span class="keyword">if</span> (!visited[v]) {
+                children++;
+                parent[v] = u;
+                dfs(v, disc, low, visited, parent, isAP, bridges);
+
+                <span class="comment">// After DFS of child, update low value</span>
+                low[u] = Math.min(low[u], low[v]);
+
+                <span class="comment">// BRIDGE check: low[v] > disc[u]</span>
+                <span class="keyword">if</span> (low[v] &gt; disc[u]) {
+                    bridges.add(<span class="keyword">new int</span>[]{u, v});
+                }
+
+                <span class="comment">// ARTICULATION POINT check (non-root)</span>
+                <span class="keyword">if</span> (parent[u] != -<span class="number">1</span> && low[v] &gt;= disc[u]) {
+                    isAP[u] = <span class="keyword">true</span>;
+                }
+            } <span class="keyword">else if</span> (v != parent[u]) {
+                <span class="comment">// Back edge: update low value</span>
+                low[u] = Math.min(low[u], disc[v]);
+            }
+        }
+
+        <span class="comment">// ARTICULATION POINT check (root with 2+ children)</span>
+        <span class="keyword">if</span> (parent[u] == -<span class="number">1</span> && children &gt;= <span class="number">2</span>) {
+            isAP[u] = <span class="keyword">true</span>;
+        }
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        BridgesAndAP g = <span class="keyword">new</span> BridgesAndAP(<span class="number">6</span>);
+        g.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+        g.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+        g.addEdge(<span class="number">2</span>, <span class="number">0</span>); <span class="comment">// Triangle: 0-1-2 (no bridges here)</span>
+        g.addEdge(<span class="number">1</span>, <span class="number">3</span>); <span class="comment">// Bridge: 1-3</span>
+        g.addEdge(<span class="number">3</span>, <span class="number">4</span>);
+        g.addEdge(<span class="number">4</span>, <span class="number">5</span>);
+        g.addEdge(<span class="number">5</span>, <span class="number">3</span>); <span class="comment">// Triangle: 3-4-5 (no bridges here)</span>
+
+        g.findBridgesAndAP();
+        <span class="comment">// Bridges: 1-3</span>
+        <span class="comment">// Articulation Points: 1, 3</span>
+    }
+}
+                </pre>
+            </div>
+            <div class="code-content" id="bridge-cpp">
+                <pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">class</span> <span class="type">BridgesAndAP</span> {
+    <span class="keyword">int</span> V, timer = <span class="number">0</span>;
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj;
+    vector&lt;<span class="keyword">int</span>&gt; disc, low, parent;
+    vector&lt;<span class="keyword">bool</span>&gt; visited, isAP;
+    vector&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt; bridges;
+
+    <span class="keyword">void</span> dfs(<span class="keyword">int</span> u) {
+        visited[u] = <span class="keyword">true</span>;
+        disc[u] = low[u] = timer++;
+        <span class="keyword">int</span> children = <span class="number">0</span>;
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) {
+            <span class="keyword">if</span> (!visited[v]) {
+                children++;
+                parent[v] = u;
+                dfs(v);
+
+                <span class="comment">// Update low value from child</span>
+                low[u] = min(low[u], low[v]);
+
+                <span class="comment">// BRIDGE check</span>
+                <span class="keyword">if</span> (low[v] &gt; disc[u]) {
+                    bridges.push_back({u, v});
+                }
+
+                <span class="comment">// ARTICULATION POINT (non-root)</span>
+                <span class="keyword">if</span> (parent[u] != -<span class="number">1</span> && low[v] &gt;= disc[u]) {
+                    isAP[u] = <span class="keyword">true</span>;
+                }
+            } <span class="keyword">else if</span> (v != parent[u]) {
+                <span class="comment">// Back edge: update low value</span>
+                low[u] = min(low[u], disc[v]);
+            }
+        }
+
+        <span class="comment">// ARTICULATION POINT (root with 2+ children)</span>
+        <span class="keyword">if</span> (parent[u] == -<span class="number">1</span> && children &gt;= <span class="number">2</span>) {
+            isAP[u] = <span class="keyword">true</span>;
+        }
+    }
+
+<span class="keyword">public</span>:
+    BridgesAndAP(<span class="keyword">int</span> v) : V(v), adj(v), disc(v), low(v),
+        parent(v, -<span class="number">1</span>), visited(v, <span class="keyword">false</span>), isAP(v, <span class="keyword">false</span>) {}
+
+    <span class="keyword">void</span> addEdge(<span class="keyword">int</span> u, <span class="keyword">int</span> v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    <span class="keyword">void</span> findAll() {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (!visited[i]) dfs(i);
+        }
+
+        cout &lt;&lt; <span class="string">"Bridges:"</span> &lt;&lt; endl;
+        <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [u, v] : bridges) {
+            cout &lt;&lt; u &lt;&lt; <span class="string">" - "</span> &lt;&lt; v &lt;&lt; endl;
+        }
+
+        cout &lt;&lt; <span class="string">"Articulation Points:"</span> &lt;&lt; endl;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (isAP[i]) cout &lt;&lt; i &lt;&lt; endl;
+        }
+    }
+};
+
+<span class="keyword">int</span> main() {
+    BridgesAndAP g(<span class="number">6</span>);
+    g.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+    g.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+    g.addEdge(<span class="number">2</span>, <span class="number">0</span>); <span class="comment">// Triangle: 0-1-2</span>
+    g.addEdge(<span class="number">1</span>, <span class="number">3</span>); <span class="comment">// Bridge: 1-3</span>
+    g.addEdge(<span class="number">3</span>, <span class="number">4</span>);
+    g.addEdge(<span class="number">4</span>, <span class="number">5</span>);
+    g.addEdge(<span class="number">5</span>, <span class="number">3</span>); <span class="comment">// Triangle: 3-4-5</span>
+
+    g.findAll();
+    <span class="comment">// Bridges: 1 - 3</span>
+    <span class="comment">// Articulation Points: 1, 3</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}
+                </pre>
+            </div>
+            <div class="code-content" id="bridge-python">
+                <pre>
+<span class="keyword">def</span> find_bridges(V, adj):
+    disc = [-<span class="number">1</span>] * V
+    low = [-<span class="number">1</span>] * V
+    bridges = []
+    timer = [<span class="number">0</span>]
+
+    <span class="keyword">def</span> dfs(node, parent):
+        disc[node] = low[node] = timer[<span class="number">0</span>]
+        timer[<span class="number">0</span>] += <span class="number">1</span>
+
+        <span class="keyword">for</span> neighbor <span class="keyword">in</span> adj[node]:
+            <span class="keyword">if</span> disc[neighbor] == -<span class="number">1</span>:  <span class="comment"># not visited</span>
+                dfs(neighbor, node)
+                low[node] = min(low[node], low[neighbor])
+                <span class="comment"># Bridge condition</span>
+                <span class="keyword">if</span> low[neighbor] &gt; disc[node]:
+                    bridges.append((node, neighbor))
+            <span class="keyword">elif</span> neighbor != parent:
+                low[node] = min(low[node], disc[neighbor])
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(V):
+        <span class="keyword">if</span> disc[i] == -<span class="number">1</span>:
+            dfs(i, -<span class="number">1</span>)
+
+    <span class="keyword">return</span> bridges
+
+<span class="comment"># Example</span>
+V = <span class="number">5</span>
+adj = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> range(V)]
+edges = [(<span class="number">0</span>,<span class="number">1</span>), (<span class="number">1</span>,<span class="number">2</span>), (<span class="number">2</span>,<span class="number">0</span>), (<span class="number">1</span>,<span class="number">3</span>), (<span class="number">3</span>,<span class="number">4</span>)]
+<span class="keyword">for</span> u, v <span class="keyword">in</span> edges:
+    adj[u].append(v)
+    adj[v].append(u)
+print(<span class="string">"Bridges:"</span>, find_bridges(V, adj))  <span class="comment"># [(1,3), (3,4)]</span>
+                </pre>
+            </div>
+        </div>
+
+        <h2>Understanding Low-Link Values</h2>
+
+        <div class="visual">
+            <pre>
+    Complete walkthrough for this graph:
+
+        0 --- 1 --- 3 --- 4
+        |   /       |   /
+        | /         | /
+        2           5
+
+    DFS from 0:
+
+    Visit 0: disc[0]=0, low[0]=0
+      Visit 1: disc[1]=1, low[1]=1
+        Visit 2: disc[2]=2, low[2]=2
+          Back edge 2->0: low[2] = min(2, disc[0]) = min(2,0) = 0
+        Return to 1: low[1] = min(1, low[2]) = min(1,0) = 0
+        Visit 3: disc[3]=3, low[3]=3
+          Visit 4: disc[4]=4, low[4]=4
+            Visit 5: disc[5]=5, low[5]=5
+              Back edge 5->3: low[5] = min(5, disc[3]) = min(5,3) = 3
+              Back edge 5->4: already parent, skip
+            Return to 4: low[4] = min(4, low[5]) = min(4,3) = 3
+            Back edge 4->3: 3 is parent, skip
+          Return to 3: low[3] = min(3, low[4]) = min(3,3) = 3
+        Return to 1: low[1] stays 0
+        Check edge 1-3: low[3]=3 > disc[1]=1  => BRIDGE!
+        Check AP for 1: low[3]=3 >= disc[1]=1 => YES, AP!
+      Return to 0: low[0] = min(0, low[1]) = 0
+      0 is root with 1 child => NOT AP
+
+    Results:
+      Bridge: 1-3
+      Articulation Point: 1, 3
+            </pre>
+        </div>
+
+        <h2>Complexity</h2>
+        <ul>
+            <li><strong>Time:</strong> O(V + E) &mdash; single DFS traversal</li>
+            <li><strong>Space:</strong> O(V + E) for the graph and auxiliary arrays</li>
+        </ul>
+
+        <h2>Applications</h2>
+        <ul>
+            <li><strong>Network reliability:</strong> Identify single points of failure in computer networks</li>
+            <li><strong>Infrastructure planning:</strong> Find critical roads/cables whose failure isolates parts of a network</li>
+            <li><strong>Biconnected components:</strong> Decompose graph into 2-edge-connected or 2-vertex-connected components</li>
+            <li><strong>Circuit design:</strong> Identify critical connections in electrical circuits</li>
+        </ul>
+
+        <div class="note">
+            <strong>Interview Tip:</strong> The bridge/AP algorithm is essentially the same as Tarjan's SCC but for undirected graphs. The core idea (disc and low arrays + DFS) is shared. Master one, and the other comes naturally!
+        </div>
+    </div>
+
+    <script>
+    function showCode(btn, id) {
+        const container = btn.closest('.code-container');
+        container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+        container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(id).classList.add('active');
+    }
+    </script>
+</body>
+</html>

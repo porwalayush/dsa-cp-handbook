@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bipartite Graph &amp; 2-Coloring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare > div {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        @media (max-width: 600px) {
+            .compare { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+        table, .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td,
+        .comparison-table th, .comparison-table td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th, .comparison-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover, .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 20px auto;
+            display: block;
+            background: white;
+        }
+        .decision-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-box h3 { color: #0f172a; margin-bottom: 16px; font-size: 1.2em; }
+        .flow-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Bipartite Graph &amp; 2-Coloring</h1>
+        <p>A <strong>bipartite graph</strong> is a graph whose vertices can be divided into two disjoint sets (say, Red and Blue) such that every edge connects a vertex in one set to a vertex in the other set. No edge exists between vertices of the same set.</p>
+
+        <div class="note">
+            <strong>Equivalent definitions (all mean the same thing):</strong>
+            <ul>
+                <li>Graph is 2-colorable (can color vertices with 2 colors so no adjacent vertices share a color)</li>
+                <li>Graph contains NO odd-length cycle</li>
+                <li>Graph vertices can be split into two independent sets</li>
+            </ul>
+        </div>
+
+        <h2>Visual: Bipartite vs Non-Bipartite</h2>
+
+        <div class="visual">
+            <pre>
+    BIPARTITE (2-colorable):
+
+    Set A (Red)      Set B (Blue)        As a flat graph:
+
+      [0] ------------ [1]                 0(R) --- 1(B)
+       |                |                  |         |
+       |                |                  |         |
+      [2] ------------ [3]                 2(R) --- 3(B)
+       |                                   |
+       |                                   |
+      [4] ------------ [5]                 4(R) --- 5(B)
+
+    Every edge goes Red <-> Blue. No Red-Red or Blue-Blue edges!
+
+
+    NOT BIPARTITE (has odd cycle):
+
+      0(R) --- 1(B)                Triangle = odd cycle (length 3)
+       \       /
+        \     /                    Try coloring:
+         \   /                       0 = Red
+          \ /                        1 = Blue (neighbor of 0)
+           2(?)                      2 = ??? Must be Blue (neighbor of 0)
+                                            BUT also Red (neighbor of 1)
+    Color conflict at vertex 2!              CONTRADICTION!
+
+    Odd cycle = IMPOSSIBLE to 2-color = NOT bipartite
+            </pre>
+        </div>
+
+        <h2>The Key Insight: Odd Cycles</h2>
+
+        <div class="visual">
+            <pre>
+    WHY odd cycles break bipartiteness:
+
+    Even cycle (length 4):          Odd cycle (length 3):
+
+    R --- B                         R --- B
+    |     |    Alternating           \   /
+    |     |    colors work!           \ /
+    B --- R                            ?  <- Must be BOTH colors!
+
+    Even cycle (length 6):          Odd cycle (length 5):
+
+    R - B - R                       R - B - R
+    |       |   Works!              |       |
+    B - R - B                       B - R --+  <- R connects to R!
+
+    RULE: A graph is bipartite if and only if it contains NO odd-length cycle.
+            </pre>
+        </div>
+
+        <h2>Algorithm: BFS 2-Coloring</h2>
+        <p>To check if a graph is bipartite, try to 2-color it using BFS. If you find a conflict (neighbor already has same color), it is NOT bipartite.</p>
+
+        <div class="step-box">
+            <strong>Steps:</strong>
+            <ol>
+                <li>Pick any uncolored vertex, color it RED (0), add to BFS queue</li>
+                <li>For each vertex in queue, color all uncolored neighbors with the OPPOSITE color</li>
+                <li>If a neighbor is ALREADY colored with the SAME color as current vertex = NOT bipartite!</li>
+                <li>Repeat for all connected components (graph might be disconnected)</li>
+            </ol>
+        </div>
+
+        <div class="visual">
+            <pre>
+    BFS Coloring Walkthrough:
+
+    Graph: 0-1, 0-2, 1-3, 2-3, 3-4
+
+        0 --- 1
+        |     |
+        2 --- 3 --- 4
+
+    Step 1: Color 0 = RED, queue = [0]
+
+    Step 2: Process 0 (RED)
+      Neighbor 1: uncolored -> BLUE,  queue = [1, 2]
+      Neighbor 2: uncolored -> BLUE,  queue = [1, 2]
+
+    Step 3: Process 1 (BLUE)
+      Neighbor 0: already RED (opposite of BLUE) -> OK
+      Neighbor 3: uncolored -> RED,  queue = [2, 3]
+
+    Step 4: Process 2 (BLUE)
+      Neighbor 0: already RED -> OK
+      Neighbor 3: already RED (opposite of BLUE) -> OK!
+
+    Step 5: Process 3 (RED)
+      Neighbor 1: already BLUE -> OK
+      Neighbor 2: already BLUE -> OK
+      Neighbor 4: uncolored -> BLUE
+
+    Result: Successfully 2-colored! Graph IS bipartite.
+    Set A (RED): {0, 3}    Set B (BLUE): {1, 2, 4}
+            </pre>
+        </div>
+
+        <h2>Implementation</h2>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bip-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'bip-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'bip-python')">Python</button>
+            </div>
+            <div class="code-content active" id="bip-java">
+                <pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">public class</span> <span class="type">BipartiteCheck</span> {
+    <span class="keyword">private int</span> V;
+    <span class="keyword">private</span> List&lt;List&lt;Integer&gt;&gt; adj;
+
+    <span class="keyword">public</span> BipartiteCheck(<span class="keyword">int</span> v) {
+        V = v;
+        adj = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++)
+            adj.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+    }
+
+    <span class="keyword">public void</span> addEdge(<span class="keyword">int</span> u, <span class="keyword">int</span> v) {
+        adj.get(u).add(v);
+        adj.get(v).add(u);
+    }
+
+    <span class="keyword">public boolean</span> isBipartite() {
+        <span class="keyword">int</span>[] color = <span class="keyword">new int</span>[V];
+        Arrays.fill(color, -<span class="number">1</span>); <span class="comment">// -1 = uncolored, 0 = RED, 1 = BLUE</span>
+
+        <span class="comment">// Check all components (graph might be disconnected)</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (color[i] == -<span class="number">1</span>) {
+                <span class="keyword">if</span> (!bfsCheck(i, color)) {
+                    <span class="keyword">return false</span>;
+                }
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+
+    <span class="keyword">private boolean</span> bfsCheck(<span class="keyword">int</span> start, <span class="keyword">int</span>[] color) {
+        Queue&lt;Integer&gt; queue = <span class="keyword">new</span> LinkedList&lt;&gt;();
+        queue.offer(start);
+        color[start] = <span class="number">0</span>; <span class="comment">// Color source RED</span>
+
+        <span class="keyword">while</span> (!queue.isEmpty()) {
+            <span class="keyword">int</span> u = queue.poll();
+
+            <span class="keyword">for</span> (<span class="keyword">int</span> v : adj.get(u)) {
+                <span class="keyword">if</span> (color[v] == -<span class="number">1</span>) {
+                    <span class="comment">// Uncolored: assign opposite color</span>
+                    color[v] = <span class="number">1</span> - color[u];
+                    queue.offer(v);
+                } <span class="keyword">else if</span> (color[v] == color[u]) {
+                    <span class="comment">// CONFLICT! Same color as neighbor</span>
+                    <span class="keyword">return false</span>; <span class="comment">// Not bipartite</span>
+                }
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+
+    <span class="comment">// DFS version (alternative)</span>
+    <span class="keyword">public boolean</span> isBipartiteDFS() {
+        <span class="keyword">int</span>[] color = <span class="keyword">new int</span>[V];
+        Arrays.fill(color, -<span class="number">1</span>);
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (color[i] == -<span class="number">1</span>) {
+                color[i] = <span class="number">0</span>;
+                <span class="keyword">if</span> (!dfsCheck(i, color)) <span class="keyword">return false</span>;
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+
+    <span class="keyword">private boolean</span> dfsCheck(<span class="keyword">int</span> u, <span class="keyword">int</span>[] color) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> v : adj.get(u)) {
+            <span class="keyword">if</span> (color[v] == -<span class="number">1</span>) {
+                color[v] = <span class="number">1</span> - color[u];
+                <span class="keyword">if</span> (!dfsCheck(v, color)) <span class="keyword">return false</span>;
+            } <span class="keyword">else if</span> (color[v] == color[u]) {
+                <span class="keyword">return false</span>;
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="comment">// Bipartite graph</span>
+        BipartiteCheck g1 = <span class="keyword">new</span> BipartiteCheck(<span class="number">4</span>);
+        g1.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+        g1.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+        g1.addEdge(<span class="number">2</span>, <span class="number">3</span>);
+        g1.addEdge(<span class="number">3</span>, <span class="number">0</span>);
+        System.out.println(g1.isBipartite()); <span class="comment">// true (even cycle)</span>
+
+        <span class="comment">// Non-bipartite graph (triangle)</span>
+        BipartiteCheck g2 = <span class="keyword">new</span> BipartiteCheck(<span class="number">3</span>);
+        g2.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+        g2.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+        g2.addEdge(<span class="number">2</span>, <span class="number">0</span>);
+        System.out.println(g2.isBipartite()); <span class="comment">// false (odd cycle)</span>
+    }
+}
+                </pre>
+            </div>
+            <div class="code-content" id="bip-cpp">
+                <pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">class</span> <span class="type">BipartiteCheck</span> {
+    <span class="keyword">int</span> V;
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj;
+
+    <span class="keyword">bool</span> bfsCheck(<span class="keyword">int</span> start, vector&lt;<span class="keyword">int</span>&gt;&amp; color) {
+        queue&lt;<span class="keyword">int</span>&gt; q;
+        q.push(start);
+        color[start] = <span class="number">0</span>; <span class="comment">// Color source RED</span>
+
+        <span class="keyword">while</span> (!q.empty()) {
+            <span class="keyword">int</span> u = q.front();
+            q.pop();
+
+            <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) {
+                <span class="keyword">if</span> (color[v] == -<span class="number">1</span>) {
+                    <span class="comment">// Uncolored: assign opposite color</span>
+                    color[v] = <span class="number">1</span> - color[u];
+                    q.push(v);
+                } <span class="keyword">else if</span> (color[v] == color[u]) {
+                    <span class="comment">// CONFLICT! Same color as neighbor</span>
+                    <span class="keyword">return false</span>;
+                }
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+
+<span class="keyword">public</span>:
+    BipartiteCheck(<span class="keyword">int</span> v) : V(v), adj(v) {}
+
+    <span class="keyword">void</span> addEdge(<span class="keyword">int</span> u, <span class="keyword">int</span> v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    <span class="keyword">bool</span> isBipartite() {
+        vector&lt;<span class="keyword">int</span>&gt; color(V, -<span class="number">1</span>); <span class="comment">// -1 = uncolored</span>
+
+        <span class="comment">// Check all connected components</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (color[i] == -<span class="number">1</span>) {
+                <span class="keyword">if</span> (!bfsCheck(i, color)) {
+                    <span class="keyword">return false</span>;
+                }
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+
+    <span class="comment">// DFS version (alternative)</span>
+    <span class="keyword">bool</span> dfsCheck(<span class="keyword">int</span> u, vector&lt;<span class="keyword">int</span>&gt;&amp; color) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) {
+            <span class="keyword">if</span> (color[v] == -<span class="number">1</span>) {
+                color[v] = <span class="number">1</span> - color[u];
+                <span class="keyword">if</span> (!dfsCheck(v, color)) <span class="keyword">return false</span>;
+            } <span class="keyword">else if</span> (color[v] == color[u]) {
+                <span class="keyword">return false</span>;
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+
+    <span class="keyword">bool</span> isBipartiteDFS() {
+        vector&lt;<span class="keyword">int</span>&gt; color(V, -<span class="number">1</span>);
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++) {
+            <span class="keyword">if</span> (color[i] == -<span class="number">1</span>) {
+                color[i] = <span class="number">0</span>;
+                <span class="keyword">if</span> (!dfsCheck(i, color)) <span class="keyword">return false</span>;
+            }
+        }
+        <span class="keyword">return true</span>;
+    }
+};
+
+<span class="keyword">int</span> main() {
+    <span class="comment">// Bipartite graph (even cycle)</span>
+    BipartiteCheck g1(<span class="number">4</span>);
+    g1.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+    g1.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+    g1.addEdge(<span class="number">2</span>, <span class="number">3</span>);
+    g1.addEdge(<span class="number">3</span>, <span class="number">0</span>);
+    cout &lt;&lt; (g1.isBipartite() ? <span class="string">"Bipartite"</span> : <span class="string">"Not Bipartite"</span>) &lt;&lt; endl;
+    <span class="comment">// Output: Bipartite</span>
+
+    <span class="comment">// Non-bipartite graph (triangle / odd cycle)</span>
+    BipartiteCheck g2(<span class="number">3</span>);
+    g2.addEdge(<span class="number">0</span>, <span class="number">1</span>);
+    g2.addEdge(<span class="number">1</span>, <span class="number">2</span>);
+    g2.addEdge(<span class="number">2</span>, <span class="number">0</span>);
+    cout &lt;&lt; (g2.isBipartite() ? <span class="string">"Bipartite"</span> : <span class="string">"Not Bipartite"</span>) &lt;&lt; endl;
+    <span class="comment">// Output: Not Bipartite</span>
+
+    <span class="keyword">return</span> <span class="number">0</span>;
+}
+                </pre>
+            </div>
+            <div class="code-content" id="bip-python">
+                <pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> is_bipartite(adj, V):
+    color = [-<span class="number">1</span>] * V  <span class="comment"># -1 = uncolored</span>
+
+    <span class="keyword">for</span> start <span class="keyword">in</span> range(V):
+        <span class="keyword">if</span> color[start] != -<span class="number">1</span>:
+            <span class="keyword">continue</span>
+        <span class="comment"># BFS coloring</span>
+        queue = deque([start])
+        color[start] = <span class="number">0</span>
+
+        <span class="keyword">while</span> queue:
+            node = queue.popleft()
+            <span class="keyword">for</span> neighbor <span class="keyword">in</span> adj[node]:
+                <span class="keyword">if</span> color[neighbor] == -<span class="number">1</span>:
+                    color[neighbor] = <span class="number">1</span> - color[node]  <span class="comment"># alternate color</span>
+                    queue.append(neighbor)
+                <span class="keyword">elif</span> color[neighbor] == color[node]:
+                    <span class="keyword">return</span> <span class="keyword">False</span>  <span class="comment"># same color = odd cycle = NOT bipartite</span>
+
+    <span class="keyword">return</span> <span class="keyword">True</span>
+
+<span class="comment"># Example</span>
+V = <span class="number">4</span>
+adj = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> range(V)]
+adj[<span class="number">0</span>] = [<span class="number">1</span>, <span class="number">3</span>]; adj[<span class="number">1</span>] = [<span class="number">0</span>, <span class="number">2</span>]
+adj[<span class="number">2</span>] = [<span class="number">1</span>, <span class="number">3</span>]; adj[<span class="number">3</span>] = [<span class="number">0</span>, <span class="number">2</span>]
+print(<span class="string">"Is bipartite:"</span>, is_bipartite(adj, V))  <span class="comment"># True</span>
+                </pre>
+            </div>
+        </div>
+
+        <h2>Common Examples of Bipartite Graphs</h2>
+
+        <div class="visual">
+            <pre>
+    Trees are ALWAYS bipartite:
+
+          0(R)                  Level 0: RED
+         / \                    Level 1: BLUE
+       1(B)  2(B)               Level 2: RED
+       /      \                 ...alternating by level!
+     3(R)     4(R)
+
+
+    Even cycles are bipartite:       Odd cycles are NOT:
+
+    R --- B --- R                    R --- B
+    |           |                    |     |
+    B --- R --- B                    B --- R --- ?
+    (length 6: works)                (length 5: fails)
+
+
+    Complete bipartite graph K(3,3):
+
+    Set A: {a1, a2, a3}    Every vertex in A connects
+    Set B: {b1, b2, b3}    to every vertex in B
+
+    a1 --- b1
+    a1 --- b2         9 edges total
+    a1 --- b3         (3 x 3 = 9)
+    a2 --- b1
+    ...etc
+            </pre>
+        </div>
+
+        <h2>Complexity</h2>
+        <ul>
+            <li><strong>Time:</strong> O(V + E) &mdash; standard BFS/DFS traversal</li>
+            <li><strong>Space:</strong> O(V) for the color array and queue/stack</li>
+        </ul>
+
+        <h2>Applications</h2>
+        <ul>
+            <li><strong>Matching problems:</strong> Maximum bipartite matching (Hungarian algorithm) only works on bipartite graphs</li>
+            <li><strong>Job assignment:</strong> Workers (set A) matched to jobs (set B)</li>
+            <li><strong>Scheduling:</strong> Can tasks be divided into 2 groups with no conflicts within a group?</li>
+            <li><strong>Graph coloring:</strong> 2-coloring is the simplest case; if not 2-colorable, need more colors</li>
+            <li><strong>Stable marriage problem:</strong> Two disjoint sets with preferences</li>
+        </ul>
+
+        <div class="note">
+            <strong>Interview Pattern:</strong> Many problems reduce to "can we split elements into 2 groups such that no conflicts exist within a group?" This is exactly bipartite checking! Examples: "Is the graph 2-colorable?", "Can students be divided into 2 teams with no enemies on same team?"
+        </div>
+
+        <h2>Quick Reference</h2>
+        <div class="step-box">
+            <strong>Always Bipartite:</strong>
+            <ul>
+                <li>Trees (any tree is bipartite)</li>
+                <li>Even-length cycles</li>
+                <li>Graphs with no cycles (forests)</li>
+                <li>Paths</li>
+            </ul>
+        </div>
+        <div class="step-box">
+            <strong>Never Bipartite:</strong>
+            <ul>
+                <li>Odd-length cycles (triangle, pentagon, etc.)</li>
+                <li>Complete graphs K_n for n >= 3</li>
+                <li>Any graph containing an odd cycle as a subgraph</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+    function showCode(btn, id) {
+        const container = btn.closest('.code-container');
+        container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+        container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(id).classList.add('active');
+    }
+    </script>
+</body>
+</html>

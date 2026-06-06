@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Euler Tour / Path</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare > div {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        @media (max-width: 600px) {
+            .compare { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+        table, .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td,
+        .comparison-table th, .comparison-table td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th, .comparison-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover, .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 20px auto;
+            display: block;
+            background: white;
+        }
+        .decision-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-box h3 { color: #0f172a; margin-bottom: 16px; font-size: 1.2em; }
+        .flow-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Index</a>
+        <h1>Euler Tour / Euler Path</h1>
+        <p>Visit every <strong>EDGE</strong> exactly once. (Hamiltonian = visit every vertex once, which is NP-hard. Euler is polynomial!)</p>
+
+        <h2>Euler Path vs Euler Circuit</h2>
+        <div class="visual">
+<pre>
+  EULER PATH: Visit every edge once. Start and end can be different.
+  EULER CIRCUIT: Visit every edge once AND return to start.
+
+  Example (Euler Circuit):        Example (Euler Path only):
+      0 --- 1                         0 --- 1
+      |  X  |                         |     |
+      3 --- 2                         3 --- 2 --- 4
+
+  Circuit: 0→1→2→3→0→2→1→3          Path: 0→1→2→3→0 (but no circuit
+  (all edges used, back to start)     because degrees differ)
+</pre>
+        </div>
+
+        <h2>Conditions for Existence</h2>
+        <table>
+            <tr>
+                <th></th>
+                <th>Undirected Graph</th>
+                <th>Directed Graph</th>
+            </tr>
+            <tr>
+                <td><strong>Euler Circuit</strong></td>
+                <td>All vertices have EVEN degree</td>
+                <td>Every vertex: in-degree = out-degree</td>
+            </tr>
+            <tr>
+                <td><strong>Euler Path</strong></td>
+                <td>Exactly 0 or 2 vertices with ODD degree</td>
+                <td>At most one vertex: out-in = 1 (start)<br>At most one vertex: in-out = 1 (end)<br>All others: in = out</td>
+            </tr>
+        </table>
+
+        <div class="note">
+            <strong>Remember:</strong> Graph must also be connected (considering only vertices with edges)!
+        </div>
+
+        <h2>Hierholzer's Algorithm</h2>
+        <p>Finds Euler path/circuit in O(E) time.</p>
+        <ol>
+            <li>Start from a valid starting vertex</li>
+            <li>Follow edges (removing them as you go) until you get stuck</li>
+            <li>If stuck at a vertex with remaining edges, start a sub-tour from there</li>
+            <li>Splice sub-tours together</li>
+        </ol>
+
+        <div class="visual">
+<pre>
+  Simplified approach (using stack):
+
+  1. Push start vertex to stack
+  2. While stack not empty:
+     - curr = top of stack
+     - If curr has unused edges:
+         Pick one edge (curr → next), remove it, push next
+     - Else:
+         Pop curr, add to result (front)
+  3. Reverse result = Euler path!
+</pre>
+        </div>
+
+        <h2>Code: Hierholzer's (Undirected Graph)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="java1" class="code-content active">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">public class</span> EulerPath {
+    <span class="keyword">static</span> List&lt;Integer&gt; findEulerPath(<span class="keyword">int</span> V, List&lt;List&lt;<span class="keyword">int</span>[]&gt;&gt; adj) {
+        <span class="comment">// adj[u] contains {v, edgeIndex} pairs</span>
+        <span class="comment">// Find start: vertex with odd degree (or any if circuit)</span>
+        <span class="keyword">int</span> start = <span class="number">0</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++)
+            <span class="keyword">if</span> (adj.get(i).size() % <span class="number">2</span> == <span class="number">1</span>) { start = i; <span class="keyword">break</span>; }
+
+        Stack&lt;Integer&gt; stack = <span class="keyword">new</span> Stack&lt;&gt;();
+        List&lt;Integer&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">boolean</span>[] usedEdge = <span class="keyword">new boolean</span>[<span class="comment">/* total edges */</span>];
+        <span class="keyword">int</span>[] ptr = <span class="keyword">new int</span>[V]; <span class="comment">// pointer to next unused edge for each vertex</span>
+
+        stack.push(start);
+        <span class="keyword">while</span> (!stack.isEmpty()) {
+            <span class="keyword">int</span> v = stack.peek();
+            <span class="keyword">boolean</span> found = <span class="keyword">false</span>;
+
+            <span class="keyword">while</span> (ptr[v] &lt; adj.get(v).size()) {
+                <span class="keyword">int</span>[] edge = adj.get(v).get(ptr[v]);
+                ptr[v]++;
+                <span class="keyword">if</span> (!usedEdge[edge[<span class="number">1</span>]]) {
+                    usedEdge[edge[<span class="number">1</span>]] = <span class="keyword">true</span>;
+                    stack.push(edge[<span class="number">0</span>]);
+                    found = <span class="keyword">true</span>;
+                    <span class="keyword">break</span>;
+                }
+            }
+
+            <span class="keyword">if</span> (!found) {
+                result.add(stack.pop());
+            }
+        }
+        Collections.reverse(result);
+        <span class="keyword">return</span> result;
+    }
+}
+</pre>
+            </div>
+            <div id="cpp1" class="code-content">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="comment">// Simpler version for directed graph (Euler circuit)</span>
+vector&lt;<span class="keyword">int</span>&gt; findEulerCircuit(<span class="keyword">int</span> V, vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; adj) {
+    vector&lt;<span class="keyword">int</span>&gt; ptr(V, <span class="number">0</span>); <span class="comment">// next edge to try</span>
+    stack&lt;<span class="keyword">int</span>&gt; st;
+    vector&lt;<span class="keyword">int</span>&gt; result;
+
+    st.push(<span class="number">0</span>);
+    <span class="keyword">while</span> (!st.empty()) {
+        <span class="keyword">int</span> v = st.top();
+        <span class="keyword">if</span> (ptr[v] &lt; (<span class="keyword">int</span>)adj[v].size()) {
+            <span class="keyword">int</span> u = adj[v][ptr[v]++];
+            st.push(u);
+        } <span class="keyword">else</span> {
+            result.push_back(v);
+            st.pop();
+        }
+    }
+    reverse(result.begin(), result.end());
+    <span class="keyword">return</span> result;
+}
+
+<span class="comment">// For undirected: need to track used edges</span>
+vector&lt;<span class="keyword">int</span>&gt; findEulerPathUndirected(<span class="keyword">int</span> V, vector&lt;vector&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt;&gt;&amp; adj, <span class="keyword">int</span> E) {
+    <span class="comment">// adj[u] = {{v, edge_id}, ...}</span>
+    vector&lt;<span class="keyword">bool</span>&gt; usedEdge(E, <span class="keyword">false</span>);
+    vector&lt;<span class="keyword">int</span>&gt; ptr(V, <span class="number">0</span>);
+
+    <span class="comment">// Find start (odd degree vertex, or 0)</span>
+    <span class="keyword">int</span> start = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; V; i++)
+        <span class="keyword">if</span> (adj[i].size() % <span class="number">2</span> == <span class="number">1</span>) { start = i; <span class="keyword">break</span>; }
+
+    stack&lt;<span class="keyword">int</span>&gt; st;
+    vector&lt;<span class="keyword">int</span>&gt; result;
+    st.push(start);
+
+    <span class="keyword">while</span> (!st.empty()) {
+        <span class="keyword">int</span> v = st.top();
+        <span class="keyword">bool</span> found = <span class="keyword">false</span>;
+        <span class="keyword">while</span> (ptr[v] &lt; (<span class="keyword">int</span>)adj[v].size()) {
+            <span class="keyword">auto</span> [u, eid] = adj[v][ptr[v]++];
+            <span class="keyword">if</span> (!usedEdge[eid]) {
+                usedEdge[eid] = <span class="keyword">true</span>;
+                st.push(u);
+                found = <span class="keyword">true</span>;
+                <span class="keyword">break</span>;
+            }
+        }
+        <span class="keyword">if</span> (!found) { result.push_back(st.top()); st.pop(); }
+    }
+    reverse(result.begin(), result.end());
+    <span class="keyword">return</span> result;
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict
+
+<span class="keyword">def</span> find_euler_path(V, edges):
+    <span class="comment"># Build adjacency list with edge indices</span>
+    adj = defaultdict(list)
+    <span class="keyword">for</span> i, (u, v) <span class="keyword">in</span> enumerate(edges):
+        adj[u].append((v, i))
+        adj[v].append((u, i))
+
+    <span class="comment"># Find start (odd degree vertex, or 0)</span>
+    start = <span class="number">0</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(V):
+        <span class="keyword">if</span> len(adj[i]) % <span class="number">2</span> == <span class="number">1</span>:
+            start = i
+            <span class="keyword">break</span>
+
+    used_edge = [<span class="keyword">False</span>] * len(edges)
+    stack = [start]
+    result = []
+
+    <span class="keyword">while</span> stack:
+        v = stack[-<span class="number">1</span>]
+        found = <span class="keyword">False</span>
+        <span class="keyword">while</span> adj[v]:
+            u, eid = adj[v].pop()
+            <span class="keyword">if</span> <span class="keyword">not</span> used_edge[eid]:
+                used_edge[eid] = <span class="keyword">True</span>
+                stack.append(u)
+                found = <span class="keyword">True</span>
+                <span class="keyword">break</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> found:
+            result.append(stack.pop())
+
+    <span class="keyword">return</span> result[::-<span class="number">1</span>]
+</pre>
+            </div>
+        </div>
+
+        <h2>Key Points</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Euler ≠ Hamiltonian:</strong> Euler visits every edge once; Hamiltonian visits every vertex once</li>
+                <li><strong>Time:</strong> O(E) using Hierholzer's algorithm</li>
+                <li><strong>Check existence first:</strong> Verify degree conditions before running the algorithm</li>
+                <li><strong>Applications:</strong> Chinese postman problem, DNA sequencing, circuit design</li>
+                <li><strong>Directed version:</strong> Even simpler — just follow edges and use pointer array</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

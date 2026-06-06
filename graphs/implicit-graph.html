@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implicit Graphs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        .compare {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .compare > div {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        @media (max-width: 600px) {
+            .compare { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+        table, .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td,
+        .comparison-table th, .comparison-table td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th, .comparison-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover, .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            margin: 20px auto;
+            display: block;
+            background: white;
+        }
+        .decision-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-box h3 { color: #0f172a; margin-bottom: 16px; font-size: 1.2em; }
+        .flow-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Index</a>
+        <h1>Implicit Graphs</h1>
+        <p>An implicit graph is one where you <strong>don't build an adjacency list</strong>. Instead, neighbors are computed on-the-fly using rules. Most grid problems and state-space problems are implicit graphs!</p>
+
+        <h2>What Makes a Graph "Implicit"?</h2>
+        <div class="visual">
+<pre>
+  EXPLICIT GRAPH:                    IMPLICIT GRAPH:
+  You build adjacency list:          No adj list needed!
+  adj[0] = [1, 2]                    Grid cell (r,c) → neighbors are
+  adj[1] = [0, 3]                    (r+1,c), (r-1,c), (r,c+1), (r,c-1)
+  adj[2] = [0]
+                                     Rule defines the edges!
+</pre>
+        </div>
+
+        <h2>Type 1: Grid as Graph (Most Common)</h2>
+        <p>Each cell is a node. Edges go to 4 (or 8) adjacent cells.</p>
+
+        <div class="visual">
+<pre>
+  Grid:                    As a Graph:
+  S . . .                  S ─ . ─ . ─ .
+  . # # .                  |   |   |   |
+  . . . E                  . ─ # ─ # ─ .
+  . # . .                  |   |   |   |
+                           . ─ . ─ . ─ E
+  S = start, E = end       |   |   |   |
+  # = wall (no edge)       . ─ # ─ . ─ .
+
+  BFS on this grid = shortest path from S to E!
+</pre>
+        </div>
+
+        <h3>Grid BFS (Shortest Path in Maze)</h3>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="java1" class="code-content active">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">public class</span> GridBFS {
+    <span class="keyword">static int</span> shortestPath(<span class="keyword">char</span>[][] grid) {
+        <span class="keyword">int</span> R = grid.length, C = grid[<span class="number">0</span>].length;
+        <span class="keyword">int</span> sr = -<span class="number">1</span>, sc = -<span class="number">1</span>;
+
+        <span class="comment">// Find start position</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; R; i++)
+            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; C; j++)
+                <span class="keyword">if</span> (grid[i][j] == <span class="string">'S'</span>) { sr = i; sc = j; }
+
+        <span class="comment">// BFS</span>
+        <span class="keyword">int</span>[][] dist = <span class="keyword">new int</span>[R][C];
+        <span class="keyword">for</span> (<span class="keyword">int</span>[] row : dist) Arrays.fill(row, -<span class="number">1</span>);
+        dist[sr][sc] = <span class="number">0</span>;
+
+        Queue&lt;<span class="keyword">int</span>[]&gt; queue = <span class="keyword">new</span> LinkedList&lt;&gt;();
+        queue.add(<span class="keyword">new int</span>[]{sr, sc});
+
+        <span class="comment">// 4 directions: up, down, left, right</span>
+        <span class="keyword">int</span>[][] dirs = {{-<span class="number">1</span>,<span class="number">0</span>},{<span class="number">1</span>,<span class="number">0</span>},{<span class="number">0</span>,-<span class="number">1</span>},{<span class="number">0</span>,<span class="number">1</span>}};
+
+        <span class="keyword">while</span> (!queue.isEmpty()) {
+            <span class="keyword">int</span>[] cell = queue.poll();
+            <span class="keyword">int</span> r = cell[<span class="number">0</span>], c = cell[<span class="number">1</span>];
+
+            <span class="keyword">for</span> (<span class="keyword">int</span>[] d : dirs) {
+                <span class="keyword">int</span> nr = r + d[<span class="number">0</span>], nc = c + d[<span class="number">1</span>];
+
+                <span class="comment">// Check bounds, not wall, not visited</span>
+                <span class="keyword">if</span> (nr &gt;= <span class="number">0</span> &amp;&amp; nr &lt; R &amp;&amp; nc &gt;= <span class="number">0</span> &amp;&amp; nc &lt; C
+                    &amp;&amp; grid[nr][nc] != <span class="string">'#'</span> &amp;&amp; dist[nr][nc] == -<span class="number">1</span>) {
+
+                    dist[nr][nc] = dist[r][c] + <span class="number">1</span>;
+
+                    <span class="keyword">if</span> (grid[nr][nc] == <span class="string">'E'</span>)
+                        <span class="keyword">return</span> dist[nr][nc]; <span class="comment">// found end!</span>
+
+                    queue.add(<span class="keyword">new int</span>[]{nr, nc});
+                }
+            }
+        }
+        <span class="keyword">return</span> -<span class="number">1</span>; <span class="comment">// no path</span>
+    }
+}
+</pre>
+            </div>
+            <div id="cpp1" class="code-content">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">int</span> shortestPath(vector&lt;vector&lt;<span class="keyword">char</span>&gt;&gt;&amp; grid) {
+    <span class="keyword">int</span> R = grid.size(), C = grid[<span class="number">0</span>].size();
+    <span class="keyword">int</span> sr = -<span class="number">1</span>, sc = -<span class="number">1</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; R; i++)
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; C; j++)
+            <span class="keyword">if</span> (grid[i][j] == <span class="string">'S'</span>) { sr = i; sc = j; }
+
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; dist(R, vector&lt;<span class="keyword">int</span>&gt;(C, -<span class="number">1</span>));
+    dist[sr][sc] = <span class="number">0</span>;
+
+    queue&lt;pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt; q;
+    q.push({sr, sc});
+
+    <span class="keyword">int</span> dx[] = {-<span class="number">1</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>}, dy[] = {<span class="number">0</span>,<span class="number">0</span>,-<span class="number">1</span>,<span class="number">1</span>};
+
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">auto</span> [r, c] = q.front(); q.pop();
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> d = <span class="number">0</span>; d &lt; <span class="number">4</span>; d++) {
+            <span class="keyword">int</span> nr = r + dx[d], nc = c + dy[d];
+
+            <span class="keyword">if</span> (nr &gt;= <span class="number">0</span> &amp;&amp; nr &lt; R &amp;&amp; nc &gt;= <span class="number">0</span> &amp;&amp; nc &lt; C
+                &amp;&amp; grid[nr][nc] != <span class="string">'#'</span> &amp;&amp; dist[nr][nc] == -<span class="number">1</span>) {
+
+                dist[nr][nc] = dist[r][c] + <span class="number">1</span>;
+                <span class="keyword">if</span> (grid[nr][nc] == <span class="string">'E'</span>) <span class="keyword">return</span> dist[nr][nc];
+                q.push({nr, nc});
+            }
+        }
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>;
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> shortest_path(grid):
+    R, C = len(grid), len(grid[<span class="number">0</span>])
+    sr, sc = -<span class="number">1</span>, -<span class="number">1</span>
+
+    <span class="comment"># Find start</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(R):
+        <span class="keyword">for</span> j <span class="keyword">in</span> range(C):
+            <span class="keyword">if</span> grid[i][j] == <span class="string">'S'</span>:
+                sr, sc = i, j
+
+    dist = [[-<span class="number">1</span>] * C <span class="keyword">for</span> _ <span class="keyword">in</span> range(R)]
+    dist[sr][sc] = <span class="number">0</span>
+    queue = deque([(sr, sc)])
+    dirs = [(-<span class="number">1</span>,<span class="number">0</span>), (<span class="number">1</span>,<span class="number">0</span>), (<span class="number">0</span>,-<span class="number">1</span>), (<span class="number">0</span>,<span class="number">1</span>)]
+
+    <span class="keyword">while</span> queue:
+        r, c = queue.popleft()
+        <span class="keyword">for</span> dr, dc <span class="keyword">in</span> dirs:
+            nr, nc = r + dr, c + dc
+            <span class="keyword">if</span> <span class="number">0</span> &lt;= nr &lt; R <span class="keyword">and</span> <span class="number">0</span> &lt;= nc &lt; C <span class="keyword">and</span> grid[nr][nc] != <span class="string">'#'</span> <span class="keyword">and</span> dist[nr][nc] == -<span class="number">1</span>:
+                dist[nr][nc] = dist[r][c] + <span class="number">1</span>
+                <span class="keyword">if</span> grid[nr][nc] == <span class="string">'E'</span>:
+                    <span class="keyword">return</span> dist[nr][nc]
+                queue.append((nr, nc))
+    <span class="keyword">return</span> -<span class="number">1</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Type 2: State-Space Graph</h2>
+        <p>Each "state" is a node. Transitions between states are edges. Examples: word ladder, combination lock, puzzle states.</p>
+
+        <div class="visual">
+<pre>
+  Word Ladder: "hit" → "hot" → "dot" → "dog" → "cog"
+
+  Each word is a node.
+  Edge exists if words differ by exactly 1 letter.
+
+  "hit" → "hot" (change i→o)
+  "hot" → "dot" (change h→d)
+  "dot" → "dog" (change t→g)
+  "dog" → "cog" (change d→c)
+
+  BFS gives shortest transformation sequence!
+</pre>
+        </div>
+
+        <h2>Type 3: Knight Moves on Chessboard</h2>
+        <div class="visual">
+<pre>
+  Knight at (0,0), find minimum moves to reach (7,7)
+
+  From any position (r,c), knight can move to:
+  (r±2, c±1) or (r±1, c±2)   ← 8 possible moves
+
+  This is an implicit graph:
+  - Nodes: all board positions
+  - Edges: valid knight moves
+  - BFS gives minimum moves!
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="java2" class="code-content active">
+<pre>
+<span class="comment">// Minimum knight moves from (0,0) to (tr,tc) on N×N board</span>
+<span class="keyword">static int</span> minKnightMoves(<span class="keyword">int</span> N, <span class="keyword">int</span> tr, <span class="keyword">int</span> tc) {
+    <span class="keyword">int</span>[][] moves = {{-<span class="number">2</span>,-<span class="number">1</span>},{-<span class="number">2</span>,<span class="number">1</span>},{-<span class="number">1</span>,-<span class="number">2</span>},{-<span class="number">1</span>,<span class="number">2</span>},
+                     {<span class="number">1</span>,-<span class="number">2</span>},{<span class="number">1</span>,<span class="number">2</span>},{<span class="number">2</span>,-<span class="number">1</span>},{<span class="number">2</span>,<span class="number">1</span>}};
+
+    <span class="keyword">boolean</span>[][] visited = <span class="keyword">new boolean</span>[N][N];
+    Queue&lt;<span class="keyword">int</span>[]&gt; queue = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    queue.add(<span class="keyword">new int</span>[]{<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>}); <span class="comment">// {row, col, moves}</span>
+    visited[<span class="number">0</span>][<span class="number">0</span>] = <span class="keyword">true</span>;
+
+    <span class="keyword">while</span> (!queue.isEmpty()) {
+        <span class="keyword">int</span>[] curr = queue.poll();
+        <span class="keyword">if</span> (curr[<span class="number">0</span>] == tr &amp;&amp; curr[<span class="number">1</span>] == tc)
+            <span class="keyword">return</span> curr[<span class="number">2</span>];
+
+        <span class="keyword">for</span> (<span class="keyword">int</span>[] m : moves) {
+            <span class="keyword">int</span> nr = curr[<span class="number">0</span>] + m[<span class="number">0</span>], nc = curr[<span class="number">1</span>] + m[<span class="number">1</span>];
+            <span class="keyword">if</span> (nr &gt;= <span class="number">0</span> &amp;&amp; nr &lt; N &amp;&amp; nc &gt;= <span class="number">0</span> &amp;&amp; nc &lt; N &amp;&amp; !visited[nr][nc]) {
+                visited[nr][nc] = <span class="keyword">true</span>;
+                queue.add(<span class="keyword">new int</span>[]{nr, nc, curr[<span class="number">2</span>] + <span class="number">1</span>});
+            }
+        }
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>;
+}
+</pre>
+            </div>
+            <div id="cpp2" class="code-content">
+<pre>
+<span class="comment">// Minimum knight moves from (0,0) to (tr,tc) on N×N board</span>
+<span class="keyword">int</span> minKnightMoves(<span class="keyword">int</span> N, <span class="keyword">int</span> tr, <span class="keyword">int</span> tc) {
+    <span class="keyword">int</span> dx[] = {-<span class="number">2</span>,-<span class="number">2</span>,-<span class="number">1</span>,-<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">2</span>};
+    <span class="keyword">int</span> dy[] = {-<span class="number">1</span>,<span class="number">1</span>,-<span class="number">2</span>,<span class="number">2</span>,-<span class="number">2</span>,<span class="number">2</span>,-<span class="number">1</span>,<span class="number">1</span>};
+
+    vector&lt;vector&lt;<span class="keyword">bool</span>&gt;&gt; visited(N, vector&lt;<span class="keyword">bool</span>&gt;(N, <span class="keyword">false</span>));
+    queue&lt;tuple&lt;<span class="keyword">int</span>,<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt; q;
+    q.push({<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>});
+    visited[<span class="number">0</span>][<span class="number">0</span>] = <span class="keyword">true</span>;
+
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">auto</span> [r, c, moves] = q.front(); q.pop();
+        <span class="keyword">if</span> (r == tr &amp;&amp; c == tc) <span class="keyword">return</span> moves;
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> d = <span class="number">0</span>; d &lt; <span class="number">8</span>; d++) {
+            <span class="keyword">int</span> nr = r + dx[d], nc = c + dy[d];
+            <span class="keyword">if</span> (nr &gt;= <span class="number">0</span> &amp;&amp; nr &lt; N &amp;&amp; nc &gt;= <span class="number">0</span> &amp;&amp; nc &lt; N &amp;&amp; !visited[nr][nc]) {
+                visited[nr][nc] = <span class="keyword">true</span>;
+                q.push({nr, nc, moves + <span class="number">1</span>});
+            }
+        }
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>;
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> min_knight_moves(N, tr, tc):
+    moves = [(-<span class="number">2</span>,-<span class="number">1</span>),(-<span class="number">2</span>,<span class="number">1</span>),(-<span class="number">1</span>,-<span class="number">2</span>),(-<span class="number">1</span>,<span class="number">2</span>),(<span class="number">1</span>,-<span class="number">2</span>),(<span class="number">1</span>,<span class="number">2</span>),(<span class="number">2</span>,-<span class="number">1</span>),(<span class="number">2</span>,<span class="number">1</span>)]
+    visited = [[<span class="keyword">False</span>]*N <span class="keyword">for</span> _ <span class="keyword">in</span> range(N)]
+    queue = deque([(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)])  <span class="comment"># (row, col, num_moves)</span>
+    visited[<span class="number">0</span>][<span class="number">0</span>] = <span class="keyword">True</span>
+
+    <span class="keyword">while</span> queue:
+        r, c, steps = queue.popleft()
+        <span class="keyword">if</span> r == tr <span class="keyword">and</span> c == tc:
+            <span class="keyword">return</span> steps
+        <span class="keyword">for</span> dr, dc <span class="keyword">in</span> moves:
+            nr, nc = r + dr, c + dc
+            <span class="keyword">if</span> <span class="number">0</span> &lt;= nr &lt; N <span class="keyword">and</span> <span class="number">0</span> &lt;= nc &lt; N <span class="keyword">and</span> <span class="keyword">not</span> visited[nr][nc]:
+                visited[nr][nc] = <span class="keyword">True</span>
+                queue.append((nr, nc, steps + <span class="number">1</span>))
+    <span class="keyword">return</span> -<span class="number">1</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Key Patterns</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Grid → Graph:</strong> 4 directions = 4 edges per cell. Wall = no edge.</li>
+                <li><strong>State → Graph:</strong> Each unique state is a node. Valid transitions = edges.</li>
+                <li><strong>Visited tracking:</strong> Use 2D array for grids, HashSet for states</li>
+                <li><strong>Common problems:</strong> Maze shortest path, word ladder, sliding puzzle, minimum operations to reach target</li>
+                <li><strong>Advantage:</strong> No need to explicitly build graph — saves memory!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

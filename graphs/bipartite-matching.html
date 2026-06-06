@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bipartite Matching</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Graph Topics</a>
+
+        <h1>Bipartite Matching</h1>
+        <p>Given a bipartite graph with two disjoint sets of vertices L and R, a <strong>matching</strong> is a set of edges with no shared vertices. The <strong>maximum matching</strong> is the largest such set. This has wide applications from job assignment to resource allocation.</p>
+
+        <h2>Problem Statement</h2>
+        <p>Given a bipartite graph G = (L + R, E) where edges only go between L and R, find the maximum number of edges such that no vertex appears more than once.</p>
+
+        <h2>Visual Walkthrough</h2>
+        <div class="visual">
+            <pre>
+    Bipartite Graph:          Maximum Matching:
+
+    Workers    Jobs           Workers    Jobs
+    -------    ----           -------    ----
+    Alice  --- Web Dev        Alice  === Web Dev
+    Alice  --- Backend
+    Bob    --- Backend        Bob    === Backend
+    Bob    --- Database
+    Carol  --- Database       Carol  === Database
+    Carol  --- Web Dev
+
+    Maximum matching size = 3
+
+    Augmenting Path Example:
+    ─────────────────────────
+    Current matching: Alice-WebDev, Bob-Backend
+
+    Carol wants Database... free! Match Carol-Database.
+    Done! Matching size = 3.
+
+    But what if Carol only connects to WebDev?
+    Carol -> WebDev (matched to Alice)
+          -> Alice -> Backend (matched to Bob)
+                   -> Bob -> Database (FREE!)
+
+    Augmenting path found! Rearrange:
+    Carol-WebDev, Alice-Backend, Bob-Database
+    Matching size = 3
+            </pre>
+        </div>
+
+        <h2>Kuhn's Algorithm (Hungarian Method for Unweighted)</h2>
+        <p>Kuhn's algorithm finds maximum matching by trying to find augmenting paths from each unmatched left vertex using DFS.</p>
+
+        <div class="step-box">
+            <strong>Step 1:</strong> For each unmatched vertex u in L, try to find an augmenting path via DFS.
+        </div>
+        <div class="step-box">
+            <strong>Step 2:</strong> In DFS from u, try each neighbor v in R. If v is unmatched, we found an augmenting path. If v is matched to some w, recursively try to find an augmenting path from w.
+        </div>
+        <div class="step-box">
+            <strong>Step 3:</strong> If augmenting path found, flip all edges along it (matched becomes unmatched and vice versa).
+        </div>
+
+        <h2>Hopcroft-Karp Algorithm</h2>
+        <p>Optimizes Kuhn's by finding multiple augmenting paths simultaneously using BFS to find shortest augmenting paths, then DFS to augment along them.</p>
+        <ul>
+            <li>BFS builds a layered graph of shortest augmenting paths.</li>
+            <li>DFS finds vertex-disjoint augmenting paths in the layered graph.</li>
+            <li>Each phase increases matching by at least 1, and there are at most O(sqrt(V)) phases.</li>
+            <li>Total time: O(E * sqrt(V)).</li>
+        </ul>
+
+        <h2>Implementation (Kuhn's Algorithm)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'match-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'match-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'match-python')">Python</button>
+            </div>
+            <div class="code-content active" id="match-cpp">
+                <pre><span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">int</span> n, m; <span class="comment">// n = left vertices, m = right vertices</span>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj; <span class="comment">// adj[u] = list of right vertices u connects to</span>
+vector&lt;<span class="keyword">int</span>&gt; match_l, match_r; <span class="comment">// match_l[u] = matched right vertex (-1 if unmatched)</span>
+vector&lt;<span class="keyword">bool</span>&gt; visited;
+
+<span class="keyword">bool</span> dfs(<span class="keyword">int</span> u) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) {
+        <span class="keyword">if</span> (visited[v]) <span class="keyword">continue</span>;
+        visited[v] = <span class="keyword">true</span>;
+
+        <span class="comment">// If v is free OR we can reroute v's current match</span>
+        <span class="keyword">if</span> (match_r[v] == -<span class="number">1</span> || dfs(match_r[v])) {
+            match_l[u] = v;
+            match_r[v] = u;
+            <span class="keyword">return true</span>;
+        }
+    }
+    <span class="keyword">return false</span>;
+}
+
+<span class="keyword">int</span> maxMatching() {
+    match_l.assign(n, -<span class="number">1</span>);
+    match_r.assign(m, -<span class="number">1</span>);
+    <span class="keyword">int</span> result = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u = <span class="number">0</span>; u &lt; n; u++) {
+        visited.assign(m, <span class="keyword">false</span>);
+        <span class="keyword">if</span> (dfs(u)) result++;
+    }
+    <span class="keyword">return</span> result;
+}
+
+<span class="keyword">int</span> main() {
+    n = <span class="number">3</span>; m = <span class="number">3</span>; <span class="comment">// 3 workers, 3 jobs</span>
+    adj.resize(n);
+
+    <span class="comment">// Alice(0) -> WebDev(0), Backend(1)</span>
+    adj[<span class="number">0</span>] = {<span class="number">0</span>, <span class="number">1</span>};
+    <span class="comment">// Bob(1) -> Backend(1), Database(2)</span>
+    adj[<span class="number">1</span>] = {<span class="number">1</span>, <span class="number">2</span>};
+    <span class="comment">// Carol(2) -> Database(2), WebDev(0)</span>
+    adj[<span class="number">2</span>] = {<span class="number">2</span>, <span class="number">0</span>};
+
+    cout &lt;&lt; maxMatching() &lt;&lt; endl; <span class="comment">// Output: 3</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+            </div>
+            <div class="code-content" id="match-java">
+                <pre><span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> BipartiteMatching {
+    <span class="keyword">static</span> <span class="keyword">int</span> n, m;
+    <span class="keyword">static</span> List&lt;List&lt;Integer&gt;&gt; adj;
+    <span class="keyword">static</span> <span class="keyword">int</span>[] matchL, matchR;
+    <span class="keyword">static</span> <span class="keyword">boolean</span>[] visited;
+
+    <span class="keyword">static boolean</span> dfs(<span class="keyword">int</span> u) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> v : adj.get(u)) {
+            <span class="keyword">if</span> (visited[v]) <span class="keyword">continue</span>;
+            visited[v] = <span class="keyword">true</span>;
+
+            <span class="comment">// If v is free OR we can reroute v's match</span>
+            <span class="keyword">if</span> (matchR[v] == -<span class="number">1</span> || dfs(matchR[v])) {
+                matchL[u] = v;
+                matchR[v] = u;
+                <span class="keyword">return true</span>;
+            }
+        }
+        <span class="keyword">return false</span>;
+    }
+
+    <span class="keyword">static int</span> maxMatching() {
+        matchL = <span class="keyword">new</span> <span class="keyword">int</span>[n];
+        matchR = <span class="keyword">new</span> <span class="keyword">int</span>[m];
+        Arrays.fill(matchL, -<span class="number">1</span>);
+        Arrays.fill(matchR, -<span class="number">1</span>);
+        <span class="keyword">int</span> result = <span class="number">0</span>;
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> u = <span class="number">0</span>; u &lt; n; u++) {
+            visited = <span class="keyword">new</span> <span class="keyword">boolean</span>[m];
+            <span class="keyword">if</span> (dfs(u)) result++;
+        }
+        <span class="keyword">return</span> result;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        n = <span class="number">3</span>; m = <span class="number">3</span>;
+        adj = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) adj.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+
+        <span class="comment">// Alice(0) -> WebDev(0), Backend(1)</span>
+        adj.get(<span class="number">0</span>).addAll(Arrays.asList(<span class="number">0</span>, <span class="number">1</span>));
+        <span class="comment">// Bob(1) -> Backend(1), Database(2)</span>
+        adj.get(<span class="number">1</span>).addAll(Arrays.asList(<span class="number">1</span>, <span class="number">2</span>));
+        <span class="comment">// Carol(2) -> Database(2), WebDev(0)</span>
+        adj.get(<span class="number">2</span>).addAll(Arrays.asList(<span class="number">2</span>, <span class="number">0</span>));
+
+        System.out.println(maxMatching()); <span class="comment">// Output: 3</span>
+    }
+}</pre>
+            </div>
+            <div class="code-content" id="match-python">
+                <pre><span class="keyword">def</span> max_bipartite_matching(n, m, adj):
+    <span class="comment">"""
+    n = number of left vertices (0..n-1)
+    m = number of right vertices (0..m-1)
+    adj[u] = list of right vertices u connects to
+    Returns: maximum matching size
+    """</span>
+    match_l = [-<span class="number">1</span>] * n
+    match_r = [-<span class="number">1</span>] * m
+
+    <span class="keyword">def</span> dfs(u, visited):
+        <span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:
+            <span class="keyword">if</span> visited[v]:
+                <span class="keyword">continue</span>
+            visited[v] = <span class="keyword">True</span>
+
+            <span class="comment"># If v is free OR we can reroute v's match</span>
+            <span class="keyword">if</span> match_r[v] == -<span class="number">1</span> <span class="keyword">or</span> dfs(match_r[v], visited):
+                match_l[u] = v
+                match_r[v] = u
+                <span class="keyword">return True</span>
+        <span class="keyword">return False</span>
+
+    result = <span class="number">0</span>
+    <span class="keyword">for</span> u <span class="keyword">in</span> range(n):
+        visited = [<span class="keyword">False</span>] * m
+        <span class="keyword">if</span> dfs(u, visited):
+            result += <span class="number">1</span>
+    <span class="keyword">return</span> result
+
+<span class="comment"># Example: 3 workers, 3 jobs</span>
+n, m = <span class="number">3</span>, <span class="number">3</span>
+adj = [
+    [<span class="number">0</span>, <span class="number">1</span>],  <span class="comment"># Alice -> WebDev, Backend</span>
+    [<span class="number">1</span>, <span class="number">2</span>],  <span class="comment"># Bob -> Backend, Database</span>
+    [<span class="number">2</span>, <span class="number">0</span>],  <span class="comment"># Carol -> Database, WebDev</span>
+]
+
+print(max_bipartite_matching(n, m, adj))  <span class="comment"># Output: 3</span></pre>
+            </div>
+        </div>
+
+        <h2>Hungarian Algorithm (Weighted Matching)</h2>
+        <p>When edges have weights and we want to find the <strong>maximum weight perfect matching</strong> (or minimum cost assignment), we use the Hungarian algorithm.</p>
+        <ul>
+            <li>Works on a cost matrix where cost[i][j] = cost of assigning worker i to job j.</li>
+            <li>Finds the assignment that minimizes (or maximizes) total cost.</li>
+            <li>Time complexity: O(n^3) for n x n matrix.</li>
+        </ul>
+
+        <h2>Konig's Theorem</h2>
+        <div class="note">
+            <strong>Konig's Theorem:</strong> In any bipartite graph, the size of the maximum matching equals the size of the minimum vertex cover.
+            <ul>
+                <li><strong>Minimum Vertex Cover:</strong> Smallest set of vertices that touches every edge.</li>
+                <li><strong>Maximum Independent Set</strong> = Total vertices - Minimum Vertex Cover.</li>
+                <li>This does NOT hold for general (non-bipartite) graphs!</li>
+            </ul>
+        </div>
+
+        <h2>Complexity Analysis</h2>
+        <table>
+            <tr>
+                <th>Algorithm</th>
+                <th>Time</th>
+                <th>Space</th>
+                <th>Use Case</th>
+            </tr>
+            <tr>
+                <td>Kuhn's (DFS)</td>
+                <td>O(V * E)</td>
+                <td>O(V + E)</td>
+                <td>Simple unweighted matching</td>
+            </tr>
+            <tr>
+                <td>Hopcroft-Karp</td>
+                <td>O(E * sqrt(V))</td>
+                <td>O(V + E)</td>
+                <td>Large unweighted graphs</td>
+            </tr>
+            <tr>
+                <td>Hungarian</td>
+                <td>O(n^3)</td>
+                <td>O(n^2)</td>
+                <td>Weighted perfect matching</td>
+            </tr>
+            <tr>
+                <td>Max Flow reduction</td>
+                <td>O(E * sqrt(V))</td>
+                <td>O(V + E)</td>
+                <td>Alternative via Dinic's</td>
+            </tr>
+        </table>
+
+        <h2>Applications</h2>
+        <ul>
+            <li><strong>Job assignment:</strong> Assign n workers to n jobs optimally.</li>
+            <li><strong>Stable matching:</strong> Foundation for Gale-Shapley algorithm.</li>
+            <li><strong>Vertex cover:</strong> Via Konig's theorem, find minimum vertex cover.</li>
+            <li><strong>Edge coloring:</strong> Bipartite edge coloring uses matching decomposition.</li>
+            <li><strong>Network design:</strong> Pairing servers to clients.</li>
+            <li><strong>Scheduling:</strong> Assign time slots to tasks with constraints.</li>
+        </ul>
+
+        <h2>Key Takeaways</h2>
+        <ol>
+            <li>Kuhn's algorithm is simple and sufficient for most problems.</li>
+            <li>Hopcroft-Karp is better for large graphs (competitive programming).</li>
+            <li>Bipartite matching can be reduced to max flow (source -> L -> R -> sink).</li>
+            <li>Konig's theorem links matching to vertex cover in bipartite graphs.</li>
+            <li>For weighted matching, use Hungarian algorithm O(n^3).</li>
+        </ol>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

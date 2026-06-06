@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max Flow / Min Cut</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6366f1;
+            text-decoration: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 32px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+        .back-link:hover { background: #eef2ff; }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 40px 0 16px;
+            letter-spacing: -0.02em;
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 24px 0 10px;
+        }
+        p, li {
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+        .visual {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .visual pre {
+            color: #334155;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            text-align: left;
+            line-height: 1.7;
+        }
+        .code-container {
+            margin: 24px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .code-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 8px;
+        }
+        .code-tab {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            background: white;
+        }
+        .code-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .code-content.active { display: block; }
+        .code-content pre {
+            color: #1e293b;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.82em;
+            line-height: 1.75;
+        }
+        .keyword { color: #7c3aed; }
+        .type { color: #2563eb; }
+        .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .number { color: #2563eb; }
+        .note {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .note ul { margin-bottom: 0; }
+        .note li:last-child { margin-bottom: 0; }
+        .step-box {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .step-box strong { color: #6366f1; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        th, td {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 600;
+        }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Graph Topics</a>
+
+        <h1>Max Flow / Min Cut</h1>
+        <p>The maximum flow problem asks: given a directed graph with edge capacities, a source <strong>s</strong>, and a sink <strong>t</strong>, what is the maximum amount of "flow" we can push from s to t without exceeding any edge's capacity?</p>
+
+        <h2>Key Concepts</h2>
+        <h3>Residual Graph</h3>
+        <p>For each edge (u, v) with capacity c and current flow f:</p>
+        <ul>
+            <li><strong>Forward edge:</strong> remaining capacity = c - f (can push more flow)</li>
+            <li><strong>Backward edge:</strong> capacity = f (can "undo" flow already sent)</li>
+        </ul>
+
+        <h3>Augmenting Path</h3>
+        <p>A path from s to t in the residual graph where every edge has positive remaining capacity. The flow can be increased along this path.</p>
+
+        <h3>Max-Flow Min-Cut Theorem</h3>
+        <p>The maximum flow from s to t equals the minimum capacity of an s-t cut (a partition of vertices into two sets S and T where s is in S and t is in T, and the cut capacity is the sum of capacities of edges from S to T).</p>
+
+        <h2>Visual: Augmenting Paths</h2>
+        <div class="visual">
+            <pre>
+    Network with capacities:
+                 10
+        S ────────────> A
+        |               |  \
+        |10             |4   \10
+        v               v     v
+        B ────────────> C ───> T
+             9          |  10
+                        |6
+                        v
+                        D ───> T
+                          10
+
+    Augmenting Path 1: S -> A -> T  (flow = 10)
+    Augmenting Path 2: S -> B -> C -> T  (flow = 9)
+    Augmenting Path 3: S -> A -> C -> D -> T (using residual)
+                        (flow = 4, via backward edge at A->T)
+
+    Residual graph after path 1 (S->A->T, flow=10):
+                  0/10
+        S ────────────> A
+        |               |  0/10
+        |10             |4    (10 backward)
+        v               v
+        B ────────────> C ───> T
+             9           10
+
+    Max Flow = 19
+            </pre>
+        </div>
+
+        <h2>Algorithms Overview</h2>
+        <table>
+            <tr>
+                <th>Algorithm</th>
+                <th>Method</th>
+                <th>Time Complexity</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td>Ford-Fulkerson</td>
+                <td>DFS to find augmenting paths</td>
+                <td>O(E * max_flow)</td>
+                <td>May not terminate with irrational capacities</td>
+            </tr>
+            <tr>
+                <td>Edmonds-Karp</td>
+                <td>BFS (shortest augmenting path)</td>
+                <td>O(V * E^2)</td>
+                <td>Always terminates, polynomial</td>
+            </tr>
+            <tr>
+                <td>Dinic's</td>
+                <td>BFS levels + blocking flow via DFS</td>
+                <td>O(V^2 * E)</td>
+                <td>Fast in practice, O(E*sqrt(V)) on unit graphs</td>
+            </tr>
+        </table>
+
+        <h2>Dinic's Algorithm</h2>
+        <div class="step-box">
+            <strong>Step 1 (BFS):</strong> Build level graph using BFS from source. Assign levels to each node (distance from source in residual graph).
+        </div>
+        <div class="step-box">
+            <strong>Step 2 (DFS):</strong> Find blocking flow using DFS. Only traverse edges going to the next level. Use "current arc" optimization to avoid re-exploring dead-end edges.
+        </div>
+        <div class="step-box">
+            <strong>Step 3:</strong> Repeat until BFS cannot reach sink (no augmenting path exists).
+        </div>
+
+        <div class="note">
+            <strong>Why Dinic's is faster:</strong> Each BFS phase increases the shortest path length by at least 1. Since the shortest path can be at most V-1, there are at most V-1 phases. Each phase finds a blocking flow in O(VE) time.
+        </div>
+
+        <h2>Implementation (Dinic's Algorithm)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'flow-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'flow-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'flow-python')">Python</button>
+            </div>
+            <div class="code-content active" id="flow-cpp">
+                <pre><span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> Edge {
+    <span class="keyword">int</span> to, rev;
+    <span class="keyword">long long</span> cap;
+};
+
+<span class="keyword">class</span> Dinic {
+    <span class="keyword">int</span> n;
+    vector&lt;vector&lt;Edge&gt;&gt; graph;
+    vector&lt;<span class="keyword">int</span>&gt; level, iter;
+
+    <span class="keyword">bool</span> bfs(<span class="keyword">int</span> s, <span class="keyword">int</span> t) {
+        level.assign(n, -<span class="number">1</span>);
+        queue&lt;<span class="keyword">int</span>&gt; q;
+        level[s] = <span class="number">0</span>;
+        q.push(s);
+        <span class="keyword">while</span> (!q.empty()) {
+            <span class="keyword">int</span> v = q.front(); q.pop();
+            <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; e : graph[v]) {
+                <span class="keyword">if</span> (e.cap &gt; <span class="number">0</span> &amp;&amp; level[e.to] &lt; <span class="number">0</span>) {
+                    level[e.to] = level[v] + <span class="number">1</span>;
+                    q.push(e.to);
+                }
+            }
+        }
+        <span class="keyword">return</span> level[t] &gt;= <span class="number">0</span>;
+    }
+
+    <span class="keyword">long long</span> dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> t, <span class="keyword">long long</span> f) {
+        <span class="keyword">if</span> (v == t) <span class="keyword">return</span> f;
+        <span class="keyword">for</span> (<span class="keyword">int</span>&amp; i = iter[v]; i &lt; graph[v].size(); i++) {
+            Edge&amp; e = graph[v][i];
+            <span class="keyword">if</span> (e.cap &gt; <span class="number">0</span> &amp;&amp; level[v] &lt; level[e.to]) {
+                <span class="keyword">long long</span> d = dfs(e.to, t, min(f, e.cap));
+                <span class="keyword">if</span> (d &gt; <span class="number">0</span>) {
+                    e.cap -= d;
+                    graph[e.to][e.rev].cap += d;
+                    <span class="keyword">return</span> d;
+                }
+            }
+        }
+        <span class="keyword">return</span> <span class="number">0</span>;
+    }
+
+<span class="keyword">public</span>:
+    Dinic(<span class="keyword">int</span> n) : n(n), graph(n), level(n), iter(n) {}
+
+    <span class="keyword">void</span> addEdge(<span class="keyword">int</span> from, <span class="keyword">int</span> to, <span class="keyword">long long</span> cap) {
+        graph[from].push_back({to, (<span class="keyword">int</span>)graph[to].size(), cap});
+        graph[to].push_back({from, (<span class="keyword">int</span>)graph[from].size() - <span class="number">1</span>, <span class="number">0</span>});
+    }
+
+    <span class="keyword">long long</span> maxflow(<span class="keyword">int</span> s, <span class="keyword">int</span> t) {
+        <span class="keyword">long long</span> flow = <span class="number">0</span>;
+        <span class="keyword">while</span> (bfs(s, t)) {
+            iter.assign(n, <span class="number">0</span>);
+            <span class="keyword">long long</span> d;
+            <span class="keyword">while</span> ((d = dfs(s, t, LLONG_MAX)) &gt; <span class="number">0</span>)
+                flow += d;
+        }
+        <span class="keyword">return</span> flow;
+    }
+};
+
+<span class="keyword">int</span> main() {
+    <span class="comment">// 4 nodes: 0=S, 1=A, 2=B, 3=T</span>
+    Dinic dinic(<span class="number">4</span>);
+    dinic.addEdge(<span class="number">0</span>, <span class="number">1</span>, <span class="number">10</span>); <span class="comment">// S->A cap 10</span>
+    dinic.addEdge(<span class="number">0</span>, <span class="number">2</span>, <span class="number">10</span>); <span class="comment">// S->B cap 10</span>
+    dinic.addEdge(<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>);  <span class="comment">// A->B cap 2</span>
+    dinic.addEdge(<span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>);  <span class="comment">// A->T cap 4</span>
+    dinic.addEdge(<span class="number">2</span>, <span class="number">3</span>, <span class="number">10</span>); <span class="comment">// B->T cap 10</span>
+
+    cout &lt;&lt; dinic.maxflow(<span class="number">0</span>, <span class="number">3</span>) &lt;&lt; endl; <span class="comment">// Output: 14</span>
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+            </div>
+            <div class="code-content" id="flow-java">
+                <pre><span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> Dinic {
+    <span class="keyword">static</span> <span class="keyword">int</span>[] to, rev, next;
+    <span class="keyword">static</span> <span class="keyword">long</span>[] cap;
+    <span class="keyword">static</span> <span class="keyword">int</span>[] head;
+    <span class="keyword">static</span> <span class="keyword">int</span> edgeCnt = <span class="number">0</span>;
+    <span class="keyword">static</span> <span class="keyword">int</span>[] level, iter;
+
+    <span class="keyword">static void</span> init(<span class="keyword">int</span> n, <span class="keyword">int</span> maxEdges) {
+        head = <span class="keyword">new</span> <span class="keyword">int</span>[n];
+        Arrays.fill(head, -<span class="number">1</span>);
+        to = <span class="keyword">new</span> <span class="keyword">int</span>[maxEdges];
+        rev = <span class="keyword">new</span> <span class="keyword">int</span>[maxEdges];
+        next = <span class="keyword">new</span> <span class="keyword">int</span>[maxEdges];
+        cap = <span class="keyword">new</span> <span class="keyword">long</span>[maxEdges];
+        level = <span class="keyword">new</span> <span class="keyword">int</span>[n];
+        iter = <span class="keyword">new</span> <span class="keyword">int</span>[n];
+    }
+
+    <span class="keyword">static void</span> addEdge(<span class="keyword">int</span> u, <span class="keyword">int</span> v, <span class="keyword">long</span> c) {
+        to[edgeCnt] = v; cap[edgeCnt] = c;
+        rev[edgeCnt] = edgeCnt + <span class="number">1</span>;
+        next[edgeCnt] = head[u]; head[u] = edgeCnt++;
+
+        to[edgeCnt] = u; cap[edgeCnt] = <span class="number">0</span>;
+        rev[edgeCnt] = edgeCnt - <span class="number">1</span>;
+        next[edgeCnt] = head[v]; head[v] = edgeCnt++;
+    }
+
+    <span class="keyword">static boolean</span> bfs(<span class="keyword">int</span> s, <span class="keyword">int</span> t, <span class="keyword">int</span> n) {
+        Arrays.fill(level, -<span class="number">1</span>);
+        Queue&lt;Integer&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();
+        level[s] = <span class="number">0</span>;
+        q.add(s);
+        <span class="keyword">while</span> (!q.isEmpty()) {
+            <span class="keyword">int</span> v = q.poll();
+            <span class="keyword">for</span> (<span class="keyword">int</span> e = head[v]; e != -<span class="number">1</span>; e = next[e]) {
+                <span class="keyword">if</span> (cap[e] &gt; <span class="number">0</span> &amp;&amp; level[to[e]] &lt; <span class="number">0</span>) {
+                    level[to[e]] = level[v] + <span class="number">1</span>;
+                    q.add(to[e]);
+                }
+            }
+        }
+        <span class="keyword">return</span> level[t] &gt;= <span class="number">0</span>;
+    }
+
+    <span class="keyword">static long</span> dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> t, <span class="keyword">long</span> f) {
+        <span class="keyword">if</span> (v == t) <span class="keyword">return</span> f;
+        <span class="keyword">for</span> (; iter[v] != -<span class="number">1</span>; iter[v] = next[iter[v]]) {
+            <span class="keyword">int</span> e = iter[v];
+            <span class="keyword">if</span> (cap[e] &gt; <span class="number">0</span> &amp;&amp; level[v] &lt; level[to[e]]) {
+                <span class="keyword">long</span> d = dfs(to[e], t, Math.min(f, cap[e]));
+                <span class="keyword">if</span> (d &gt; <span class="number">0</span>) {
+                    cap[e] -= d;
+                    cap[rev[e]] += d;
+                    <span class="keyword">return</span> d;
+                }
+            }
+        }
+        <span class="keyword">return</span> <span class="number">0</span>;
+    }
+
+    <span class="keyword">static long</span> maxflow(<span class="keyword">int</span> s, <span class="keyword">int</span> t, <span class="keyword">int</span> n) {
+        <span class="keyword">long</span> flow = <span class="number">0</span>;
+        <span class="keyword">while</span> (bfs(s, t, n)) {
+            System.arraycopy(head, <span class="number">0</span>, iter, <span class="number">0</span>, n);
+            <span class="keyword">long</span> d;
+            <span class="keyword">while</span> ((d = dfs(s, t, Long.MAX_VALUE)) &gt; <span class="number">0</span>)
+                flow += d;
+        }
+        <span class="keyword">return</span> flow;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span> n = <span class="number">4</span>;
+        init(n, <span class="number">20</span>); <span class="comment">// 10 edges * 2 (forward + backward)</span>
+
+        addEdge(<span class="number">0</span>, <span class="number">1</span>, <span class="number">10</span>); <span class="comment">// S->A cap 10</span>
+        addEdge(<span class="number">0</span>, <span class="number">2</span>, <span class="number">10</span>); <span class="comment">// S->B cap 10</span>
+        addEdge(<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>);  <span class="comment">// A->B cap 2</span>
+        addEdge(<span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>);  <span class="comment">// A->T cap 4</span>
+        addEdge(<span class="number">2</span>, <span class="number">3</span>, <span class="number">10</span>); <span class="comment">// B->T cap 10</span>
+
+        System.out.println(maxflow(<span class="number">0</span>, <span class="number">3</span>, n)); <span class="comment">// Output: 14</span>
+    }
+}</pre>
+            </div>
+            <div class="code-content" id="flow-python">
+                <pre><span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">class</span> Dinic:
+    <span class="keyword">def</span> __init__(self, n):
+        self.n = n
+        self.graph = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> range(n)]
+
+    <span class="keyword">def</span> add_edge(self, u, v, cap):
+        <span class="comment"># Forward edge</span>
+        self.graph[u].append([v, len(self.graph[v]), cap])
+        <span class="comment"># Backward edge (residual)</span>
+        self.graph[v].append([u, len(self.graph[u]) - <span class="number">1</span>, <span class="number">0</span>])
+
+    <span class="keyword">def</span> bfs(self, s, t):
+        <span class="comment">"""Build level graph using BFS"""</span>
+        self.level = [-<span class="number">1</span>] * self.n
+        self.level[s] = <span class="number">0</span>
+        q = deque([s])
+        <span class="keyword">while</span> q:
+            v = q.popleft()
+            <span class="keyword">for</span> to, rev, cap <span class="keyword">in</span> self.graph[v]:
+                <span class="keyword">if</span> cap &gt; <span class="number">0</span> <span class="keyword">and</span> self.level[to] &lt; <span class="number">0</span>:
+                    self.level[to] = self.level[v] + <span class="number">1</span>
+                    q.append(to)
+        <span class="keyword">return</span> self.level[t] &gt;= <span class="number">0</span>
+
+    <span class="keyword">def</span> dfs(self, v, t, f):
+        <span class="comment">"""Find blocking flow using DFS"""</span>
+        <span class="keyword">if</span> v == t:
+            <span class="keyword">return</span> f
+        <span class="keyword">while</span> self.iter[v] &lt; len(self.graph[v]):
+            e = self.graph[v][self.iter[v]]
+            to, rev, cap = e
+            <span class="keyword">if</span> cap &gt; <span class="number">0</span> <span class="keyword">and</span> self.level[v] &lt; self.level[to]:
+                d = self.dfs(to, t, min(f, cap))
+                <span class="keyword">if</span> d &gt; <span class="number">0</span>:
+                    e[<span class="number">2</span>] -= d
+                    self.graph[to][rev][<span class="number">2</span>] += d
+                    <span class="keyword">return</span> d
+            self.iter[v] += <span class="number">1</span>
+        <span class="keyword">return</span> <span class="number">0</span>
+
+    <span class="keyword">def</span> max_flow(self, s, t):
+        flow = <span class="number">0</span>
+        <span class="keyword">while</span> self.bfs(s, t):
+            self.iter = [<span class="number">0</span>] * self.n
+            <span class="keyword">while</span> <span class="keyword">True</span>:
+                d = self.dfs(s, t, float(<span class="string">'inf'</span>))
+                <span class="keyword">if</span> d == <span class="number">0</span>:
+                    <span class="keyword">break</span>
+                flow += d
+        <span class="keyword">return</span> flow
+
+<span class="comment"># Example: 4 nodes (0=S, 1=A, 2=B, 3=T)</span>
+dinic = Dinic(<span class="number">4</span>)
+dinic.add_edge(<span class="number">0</span>, <span class="number">1</span>, <span class="number">10</span>)  <span class="comment"># S->A cap 10</span>
+dinic.add_edge(<span class="number">0</span>, <span class="number">2</span>, <span class="number">10</span>)  <span class="comment"># S->B cap 10</span>
+dinic.add_edge(<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>)   <span class="comment"># A->B cap 2</span>
+dinic.add_edge(<span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>)   <span class="comment"># A->T cap 4</span>
+dinic.add_edge(<span class="number">2</span>, <span class="number">3</span>, <span class="number">10</span>)  <span class="comment"># B->T cap 10</span>
+
+print(dinic.max_flow(<span class="number">0</span>, <span class="number">3</span>))  <span class="comment"># Output: 14</span></pre>
+            </div>
+        </div>
+
+        <h2>Finding the Min Cut</h2>
+        <p>After running max flow, perform BFS from source in the residual graph (only edges with remaining capacity &gt; 0). The min cut consists of edges (u, v) where u is reachable from source but v is not.</p>
+
+        <h2>Applications</h2>
+        <ul>
+            <li><strong>Maximum bipartite matching:</strong> Add source connected to left vertices, sink connected to right vertices, all capacities 1.</li>
+            <li><strong>Minimum cut:</strong> By max-flow min-cut theorem, equals max flow.</li>
+            <li><strong>Edge-disjoint paths:</strong> Max number of edge-disjoint s-t paths = max flow with unit capacities.</li>
+            <li><strong>Project selection:</strong> Choose projects to maximize profit considering dependencies.</li>
+            <li><strong>Image segmentation:</strong> Min cut separates foreground from background.</li>
+        </ul>
+
+        <h2>Complexity Analysis</h2>
+        <table>
+            <tr>
+                <th>Algorithm</th>
+                <th>Time</th>
+                <th>Space</th>
+            </tr>
+            <tr>
+                <td>Ford-Fulkerson (DFS)</td>
+                <td>O(E * max_flow)</td>
+                <td>O(V + E)</td>
+            </tr>
+            <tr>
+                <td>Edmonds-Karp (BFS)</td>
+                <td>O(V * E^2)</td>
+                <td>O(V + E)</td>
+            </tr>
+            <tr>
+                <td>Dinic's</td>
+                <td>O(V^2 * E)</td>
+                <td>O(V + E)</td>
+            </tr>
+            <tr>
+                <td>Dinic's (unit capacity)</td>
+                <td>O(E * sqrt(V))</td>
+                <td>O(V + E)</td>
+            </tr>
+        </table>
+
+        <div class="note">
+            <strong>Practical tip:</strong> Dinic's algorithm is the go-to for competitive programming. It is simple to implement and fast enough for most problems. For very large graphs, push-relabel algorithms can be faster but are more complex to code.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
