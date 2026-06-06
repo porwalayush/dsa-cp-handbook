@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree DP - DP Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: center; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Tree DP Fundamentals</h1>
+        <p>Compute DP values on tree structures using DFS. Each node's answer is derived from its children's answers, computed bottom-up during post-order traversal.</p>
+
+        <h2>Core Concept</h2>
+        <div class="visual">
+<pre>
+Tree DP pattern:
+  1. Root the tree (pick any node as root)
+  2. DFS from root
+  3. For each node v, compute dp[v] from dp[children of v]
+  4. Process children BEFORE the parent (post-order)
+
+         1 (root)
+        / \
+       2   3
+      / \   \
+     4   5   6
+
+DFS order: 4 → 5 → 2 → 6 → 3 → 1
+dp computed: dp[4], dp[5] → dp[2], dp[6] → dp[3] → dp[1]
+
+Key: dp[v] = answer for the subtree rooted at v
+</pre>
+        </div>
+
+        <h2>Example 1: Tree Diameter</h2>
+        <p>Find the longest path between any two nodes in an unweighted tree.</p>
+
+        <div class="visual">
+<pre>
+         1
+        / \
+       2   3
+      / \   \
+     4   5   6
+    /
+   7
+
+Diameter = longest path = 7 → 4 → 2 → 1 → 3 → 6 (length 5)
+
+Idea: For each node v, track the longest path going DOWN through v.
+  depth[v] = longest downward path from v to any leaf in its subtree
+
+The diameter THROUGH node v:
+  = sum of the two longest downward paths among v's children
+  = top two values of (depth[child] + 1)
+
+Global answer = max over all nodes of diameter through that node
+</pre>
+        </div>
+
+        <h2>State & Transition (Diameter)</h2>
+        <div class="step-box">
+            <strong>State:</strong> depth[v] = length of longest path from v going downward<br><br>
+            <strong>Transition:</strong> depth[v] = max(depth[child] + 1) over all children<br><br>
+            <strong>Base Case:</strong> depth[leaf] = 0<br><br>
+            <strong>Answer:</strong> Maintain a global variable. For each node, the diameter through v = sum of the two largest (depth[child] + 1). Update global max.
+        </div>
+
+        <h2>Step-by-Step: Tree Diameter</h2>
+        <div class="step-box">
+            <strong>Step 1:</strong> DFS reaches leaves: depth[7]=0, depth[5]=0, depth[6]=0
+        </div>
+        <div class="step-box">
+            <strong>Step 2:</strong> Node 4: child is 7. depth[4] = depth[7]+1 = 1.<br>
+            Diameter through 4: only one child, so path = 1.
+        </div>
+        <div class="step-box">
+            <strong>Step 3:</strong> Node 2: children are 4 (depth 1) and 5 (depth 0).<br>
+            depth[2] = max(1+1, 0+1) = 2.<br>
+            Diameter through 2: (1+1) + (0+1) = 2+1 = 3. Global max = 3.
+        </div>
+        <div class="step-box">
+            <strong>Step 4:</strong> Node 3: child is 6 (depth 0). depth[3] = 1.
+        </div>
+        <div class="step-box">
+            <strong>Step 5:</strong> Node 1: children are 2 (depth 2) and 3 (depth 1).<br>
+            depth[1] = max(2+1, 1+1) = 3.<br>
+            Diameter through 1: (2+1) + (1+1) = 3+2 = 5. Global max = 5.
+        </div>
+
+        <h2>Code: Tree Diameter</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="comment">// Tree Diameter using Tree DP</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+<span class="keyword">int</span> diameter = <span class="number">0</span>;
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj;
+
+<span class="keyword">int</span> dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> parent) {
+    <span class="keyword">int</span> maxDepth1 = <span class="number">0</span>, maxDepth2 = <span class="number">0</span>; <span class="comment">// top two depths</span>
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[v]) {
+        <span class="keyword">if</span> (u == parent) <span class="keyword">continue</span>;
+        <span class="keyword">int</span> d = dfs(u, v) + <span class="number">1</span>;
+        <span class="keyword">if</span> (d >= maxDepth1) {
+            maxDepth2 = maxDepth1;
+            maxDepth1 = d;
+        } <span class="keyword">else if</span> (d > maxDepth2) {
+            maxDepth2 = d;
+        }
+    }
+
+    <span class="comment">// Diameter through v = sum of two longest arms</span>
+    diameter = max(diameter, maxDepth1 + maxDepth2);
+
+    <span class="keyword">return</span> maxDepth1; <span class="comment">// return longest downward path</span>
+}
+
+<span class="comment">// Call: dfs(0, -1); answer is in 'diameter'</span>
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="comment">// Tree Diameter using Tree DP</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+<span class="keyword">static int</span> diameter = <span class="number">0</span>;
+<span class="keyword">static</span> List&lt;List&lt;Integer&gt;&gt; adj;
+
+<span class="keyword">static int</span> dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> parent) {
+    <span class="keyword">int</span> maxDepth1 = <span class="number">0</span>, maxDepth2 = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj.get(v)) {
+        <span class="keyword">if</span> (u == parent) <span class="keyword">continue</span>;
+        <span class="keyword">int</span> d = dfs(u, v) + <span class="number">1</span>;
+        <span class="keyword">if</span> (d >= maxDepth1) {
+            maxDepth2 = maxDepth1;
+            maxDepth1 = d;
+        } <span class="keyword">else if</span> (d > maxDepth2) {
+            maxDepth2 = d;
+        }
+    }
+
+    diameter = Math.max(diameter, maxDepth1 + maxDepth2);
+    <span class="keyword">return</span> maxDepth1;
+}
+
+<span class="comment">// Call: dfs(0, -1); answer is in 'diameter'</span>
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="comment"># Tree Diameter using Tree DP</span>
+<span class="comment"># Time: O(n), Space: O(n)</span>
+<span class="keyword">import</span> sys
+sys.setrecursionlimit(<span class="number">200000</span>)
+
+<span class="keyword">def</span> tree_diameter(adj, n):
+    diameter = [<span class="number">0</span>]
+
+    <span class="keyword">def</span> dfs(v, parent):
+        max1 = max2 = <span class="number">0</span>  <span class="comment"># top two depths</span>
+
+        <span class="keyword">for</span> u <span class="keyword">in</span> adj[v]:
+            <span class="keyword">if</span> u == parent:
+                <span class="keyword">continue</span>
+            d = dfs(u, v) + <span class="number">1</span>
+            <span class="keyword">if</span> d >= max1:
+                max2 = max1
+                max1 = d
+            <span class="keyword">elif</span> d > max2:
+                max2 = d
+
+        diameter[<span class="number">0</span>] = max(diameter[<span class="number">0</span>], max1 + max2)
+        <span class="keyword">return</span> max1
+
+    dfs(<span class="number">0</span>, -<span class="number">1</span>)
+    <span class="keyword">return</span> diameter[<span class="number">0</span>]
+</pre>
+            </div>
+        </div>
+
+        <h2>Example 2: House Robber on Tree</h2>
+        <p>Each node has a value. You cannot rob two adjacent nodes (connected by an edge). Find the maximum total value you can rob.</p>
+
+        <div class="visual">
+<pre>
+        3
+       / \
+      2   3
+       \   \
+        3   1
+
+If we rob node 3 (root): cannot rob children 2 and 3
+  Rob root(3) + grandchildren(3 + 1) = 7
+
+If we skip root: rob children
+  Rob child 2's subtree optimally + child 3's subtree optimally
+
+State: dp[v][0] = max rob from subtree v, NOT robbing v
+       dp[v][1] = max rob from subtree v, ROBBING v
+
+Transition:
+  dp[v][0] = sum of max(dp[child][0], dp[child][1]) for all children
+  dp[v][1] = val[v] + sum of dp[child][0] for all children
+
+Answer: max(dp[root][0], dp[root][1])
+</pre>
+        </div>
+
+        <h2>Code: House Robber on Tree</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="comment">// House Robber III - Tree DP</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj;
+vector&lt;<span class="keyword">int</span>&gt; val;
+
+<span class="comment">// Returns {not_rob, rob} for node v</span>
+pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt; dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> parent) {
+    <span class="keyword">int</span> notRob = <span class="number">0</span>, rob = val[v];
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[v]) {
+        <span class="keyword">if</span> (u == parent) <span class="keyword">continue</span>;
+        <span class="keyword">auto</span> [childNot, childRob] = dfs(u, v);
+        notRob += max(childNot, childRob); <span class="comment">// skip v: children free</span>
+        rob += childNot;                   <span class="comment">// rob v: children skipped</span>
+    }
+
+    <span class="keyword">return</span> {notRob, rob};
+}
+
+<span class="comment">// Call:</span>
+<span class="keyword">auto</span> [notRob, rob] = dfs(<span class="number">0</span>, -<span class="number">1</span>);
+<span class="keyword">int</span> answer = max(notRob, rob);
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="comment">// House Robber III - Tree DP</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+<span class="keyword">static</span> List&lt;List&lt;Integer&gt;&gt; adj;
+<span class="keyword">static int</span>[] val;
+
+<span class="comment">// Returns int[]{not_rob, rob} for node v</span>
+<span class="keyword">static int</span>[] dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> parent) {
+    <span class="keyword">int</span> notRob = <span class="number">0</span>, rob = val[v];
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj.get(v)) {
+        <span class="keyword">if</span> (u == parent) <span class="keyword">continue</span>;
+        <span class="keyword">int</span>[] child = dfs(u, v);
+        notRob += Math.max(child[<span class="number">0</span>], child[<span class="number">1</span>]);
+        rob += child[<span class="number">0</span>];
+    }
+
+    <span class="keyword">return new int</span>[]{notRob, rob};
+}
+
+<span class="comment">// Call:</span>
+<span class="keyword">int</span>[] res = dfs(<span class="number">0</span>, -<span class="number">1</span>);
+<span class="keyword">int</span> answer = Math.max(res[<span class="number">0</span>], res[<span class="number">1</span>]);
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="comment"># House Robber III - Tree DP</span>
+<span class="comment"># Time: O(n), Space: O(n)</span>
+<span class="keyword">def</span> tree_rob(adj, val, root=<span class="number">0</span>):
+    <span class="keyword">def</span> dfs(v, parent):
+        not_rob = <span class="number">0</span>
+        rob = val[v]
+
+        <span class="keyword">for</span> u <span class="keyword">in</span> adj[v]:
+            <span class="keyword">if</span> u == parent:
+                <span class="keyword">continue</span>
+            child_not, child_rob = dfs(u, v)
+            not_rob += max(child_not, child_rob)
+            rob += child_not
+
+        <span class="keyword">return</span> not_rob, rob
+
+    not_rob, rob = dfs(root, -<span class="number">1</span>)
+    <span class="keyword">return</span> max(not_rob, rob)
+</pre>
+            </div>
+        </div>
+
+        <h2>Example 3: Maximum Path Sum</h2>
+        <p>Find the path in a weighted tree with maximum total node value (path can start and end at any nodes).</p>
+
+        <div class="step-box">
+            <strong>State:</strong> maxDown[v] = maximum sum path starting at v going downward<br><br>
+            <strong>Transition:</strong> maxDown[v] = val[v] + max(0, max(maxDown[child]) for child in children)<br>
+            (Take 0 if all children are negative — path can just be node v)<br><br>
+            <strong>Answer update:</strong> For each node v, best path through v = val[v] + sum of top 2 positive maxDown[child] values. Update global max.<br><br>
+            <strong>Base Case:</strong> maxDown[leaf] = val[leaf]
+        </div>
+
+        <h2>Code: Maximum Path Sum in Tree</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="comment">// Maximum Path Sum in Tree</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj;
+vector&lt;<span class="keyword">int</span>&gt; val;
+<span class="keyword">int</span> maxSum;
+
+<span class="keyword">int</span> dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> parent) {
+    <span class="keyword">int</span> best = val[v]; <span class="comment">// max path sum going down from v</span>
+    <span class="keyword">int</span> top1 = <span class="number">0</span>, top2 = <span class="number">0</span>; <span class="comment">// top two child contributions</span>
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj[v]) {
+        <span class="keyword">if</span> (u == parent) <span class="keyword">continue</span>;
+        <span class="keyword">int</span> d = dfs(u, v);
+        <span class="keyword">if</span> (d > <span class="number">0</span>) { <span class="comment">// only include positive contributions</span>
+            <span class="keyword">if</span> (d >= top1) { top2 = top1; top1 = d; }
+            <span class="keyword">else if</span> (d > top2) { top2 = d; }
+        }
+    }
+
+    <span class="comment">// Path through v using top two children</span>
+    maxSum = max(maxSum, val[v] + top1 + top2);
+
+    <span class="keyword">return</span> val[v] + top1; <span class="comment">// return best single-direction path</span>
+}
+
+<span class="comment">// Call: maxSum = INT_MIN; dfs(0, -1);</span>
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="comment">// Maximum Path Sum in Tree</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+<span class="keyword">static</span> List&lt;List&lt;Integer&gt;&gt; adj;
+<span class="keyword">static int</span>[] val;
+<span class="keyword">static int</span> maxSum;
+
+<span class="keyword">static int</span> dfs(<span class="keyword">int</span> v, <span class="keyword">int</span> parent) {
+    <span class="keyword">int</span> top1 = <span class="number">0</span>, top2 = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> u : adj.get(v)) {
+        <span class="keyword">if</span> (u == parent) <span class="keyword">continue</span>;
+        <span class="keyword">int</span> d = dfs(u, v);
+        <span class="keyword">if</span> (d > <span class="number">0</span>) {
+            <span class="keyword">if</span> (d >= top1) { top2 = top1; top1 = d; }
+            <span class="keyword">else if</span> (d > top2) { top2 = d; }
+        }
+    }
+
+    maxSum = Math.max(maxSum, val[v] + top1 + top2);
+    <span class="keyword">return</span> val[v] + top1;
+}
+
+<span class="comment">// Call: maxSum = Integer.MIN_VALUE; dfs(0, -1);</span>
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="comment"># Maximum Path Sum in Tree</span>
+<span class="comment"># Time: O(n), Space: O(n)</span>
+<span class="keyword">def</span> max_path_sum(adj, val):
+    max_sum = [float(<span class="string">'-inf'</span>)]
+
+    <span class="keyword">def</span> dfs(v, parent):
+        top1 = top2 = <span class="number">0</span>
+
+        <span class="keyword">for</span> u <span class="keyword">in</span> adj[v]:
+            <span class="keyword">if</span> u == parent:
+                <span class="keyword">continue</span>
+            d = dfs(u, v)
+            <span class="keyword">if</span> d > <span class="number">0</span>:
+                <span class="keyword">if</span> d >= top1:
+                    top2 = top1
+                    top1 = d
+                <span class="keyword">elif</span> d > top2:
+                    top2 = d
+
+        max_sum[<span class="number">0</span>] = max(max_sum[<span class="number">0</span>], val[v] + top1 + top2)
+        <span class="keyword">return</span> val[v] + top1
+
+    dfs(<span class="number">0</span>, -<span class="number">1</span>)
+    <span class="keyword">return</span> max_sum[<span class="number">0</span>]
+</pre>
+            </div>
+        </div>
+
+        <h2>Visual: DFS Order and Bottom-Up Computation</h2>
+        <div class="visual">
+<pre>
+Tree with values:
+        [5]
+       /   \
+     [3]   [4]
+     / \     \
+   [2] [1]   [6]
+
+DFS traversal (post-order): 2, 1, 3, 6, 4, 5
+
+Computation order:
+  dp[2] = computed (leaf)          → depth=0
+  dp[1] = computed (leaf)          → depth=0
+  dp[3] = f(dp[2], dp[1])         → uses children
+  dp[6] = computed (leaf)          → depth=0
+  dp[4] = f(dp[6])                → uses child
+  dp[5] = f(dp[3], dp[4])         → uses children (LAST)
+
+Key property: When we compute dp[v], ALL descendants
+of v have already been computed!
+</pre>
+        </div>
+
+        <h2>Complexity</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Time:</strong> O(n) - each node visited exactly once during DFS</li>
+                <li><strong>Space:</strong> O(n) - recursion stack + dp array</li>
+                <li><strong>Why O(n):</strong> Tree has exactly n-1 edges, each traversed twice (down and up)</li>
+                <li><strong>Stack depth:</strong> O(n) worst case (path graph), O(log n) for balanced tree</li>
+            </ul>
+        </div>
+
+        <h2>Re-rooting Technique (Brief)</h2>
+        <div class="step-box">
+            <strong>Problem:</strong> Find dp[v] for EVERY node as root, not just one fixed root.<br><br>
+            <strong>Naive:</strong> Run DFS from each node = O(n^2).<br><br>
+            <strong>Re-rooting:</strong> O(n) total with two passes:<br>
+            <ol>
+                <li><strong>First DFS:</strong> Compute dp[v] with node 0 as root (standard tree DP)</li>
+                <li><strong>Second DFS:</strong> For each edge (parent, child), "move" the root from parent to child. Update dp[child] using dp[parent] and the contribution from child's subtree.</li>
+            </ol><br>
+            <strong>Key idea:</strong> When re-rooting from parent to child, child gains the "rest of tree" contribution that was previously the parent's answer minus child's contribution.
+        </div>
+
+        <div class="visual">
+<pre>
+Re-rooting example (sum of distances to all nodes):
+
+First pass (root at 1):      Second pass (re-root):
+  dp[1] = 8                    dp[1] = 8 (base)
+  dp[2] = computed as child    dp[2] = dp[1] - subtree_size[2]
+  dp[3] = computed as child              + (n - subtree_size[2])
+  ...                          ...
+
+The "contribution flip": subtree of child becomes
+the "rest of tree" from child's perspective.
+</pre>
+        </div>
+
+        <h2>Common Tree DP Problems</h2>
+        <table>
+            <tr><th>Problem</th><th>State</th><th>Key Idea</th></tr>
+            <tr><td>Tree Diameter</td><td>depth[v]</td><td>Two longest paths through v</td></tr>
+            <tr><td>House Robber III</td><td>dp[v][0/1]</td><td>Rob v or not, constrain children</td></tr>
+            <tr><td>Max Path Sum</td><td>maxDown[v]</td><td>Best single-direction path from v</td></tr>
+            <tr><td>Subtree Size</td><td>size[v]</td><td>size[v] = 1 + sum(size[child])</td></tr>
+            <tr><td>Tree Coloring</td><td>dp[v][color]</td><td>Color v, children get other colors</td></tr>
+            <tr><td>Centroid</td><td>size[v]</td><td>Find v where max subtree &le; n/2</td></tr>
+            <tr><td>Sum of Distances</td><td>Re-rooting</td><td>Two-pass: root then re-root</td></tr>
+        </table>
+
+        <h2>Key Insights</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Always use parent tracking:</strong> Pass parent parameter in DFS to avoid revisiting the parent as a "child"</li>
+                <li><strong>Post-order = bottom-up:</strong> Children are computed before parent, which is what we need</li>
+                <li><strong>Multiple states per node:</strong> Often need dp[v][0] and dp[v][1] (e.g., include/exclude node v)</li>
+                <li><strong>Global answer vs return value:</strong> The answer might not be dp[root] but max over all nodes (like diameter)</li>
+                <li><strong>Iterative DFS:</strong> For very deep trees, convert recursion to iterative with explicit stack to avoid stack overflow</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

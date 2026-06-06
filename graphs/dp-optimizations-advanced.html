@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced DP Optimizations - DP Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: center; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Advanced DP Optimizations</h1>
+        <p>Techniques to speed up DP transitions from O(n^2) or O(n^3) to O(n log n) or O(n). These apply when the DP recurrence has special structure that can be exploited.</p>
+
+        <h2>Overview of Techniques</h2>
+        <table>
+            <tr><th>Technique</th><th>Reduces From</th><th>Reduces To</th><th>Condition</th></tr>
+            <tr><td>Divide & Conquer</td><td>O(kn^2)</td><td>O(kn log n)</td><td>opt(i) &le; opt(i+1)</td></tr>
+            <tr><td>Knuth's Optimization</td><td>O(n^3)</td><td>O(n^2)</td><td>Quadrangle inequality</td></tr>
+            <tr><td>Convex Hull Trick</td><td>O(n^2)</td><td>O(n) or O(n log n)</td><td>Linear transition form</td></tr>
+            <tr><td>Monotone Queue</td><td>O(n*W)</td><td>O(n)</td><td>Sliding window constraint</td></tr>
+        </table>
+
+        <h2>1. Divide and Conquer Optimization</h2>
+        <p>Applies when computing <code>dp[k][i] = min over j&lt;i of (dp[k-1][j] + cost(j+1, i))</code> and the optimal split point <code>opt(i)</code> is monotone: opt(i) &le; opt(i+1).</p>
+
+        <div class="visual">
+<pre>
+Standard DP: dp[k][i] = min { dp[k-1][j] + cost(j+1, i) } for j < i
+Naive: O(kn^2) - for each of kn states, try all n splits
+
+Monotonicity condition:
+  Let opt(i) = the j that minimizes dp[k-1][j] + cost(j+1, i)
+  If opt(i) <= opt(i+1) for all i, we can use D&C!
+
+Divide & Conquer idea:
+  To compute dp[k][lo..hi]:
+    1. Find opt(mid) by trying all valid j values
+    2. Recurse on dp[k][lo..mid-1] with j in [jlo..opt(mid)]
+    3. Recurse on dp[k][mid+1..hi] with j in [opt(mid)..jhi]
+
+  Each level of recursion does O(n) total work
+  Depth = O(log n)
+  Total: O(kn log n)
+
+Example problem: Divide n items into k groups to minimize total cost.
+</pre>
+        </div>
+
+        <h2>When Does D&C Optimization Apply?</h2>
+        <div class="step-box">
+            <strong>Condition:</strong> The cost function satisfies the "monotone minima" property. This holds when:<br>
+            - cost(a, c) + cost(b, d) &le; cost(a, d) + cost(b, c) for a &le; b &le; c &le; d<br>
+            - This is the "inverse quadrangle inequality" or "concave SMAWK" condition<br><br>
+            <strong>Common examples:</strong><br>
+            - cost(i, j) = (prefix_sum[j] - prefix_sum[i])^2<br>
+            - cost(i, j) = sum of squared deviations in range [i, j]<br><br>
+            <strong>How to verify:</strong> If cost satisfies the quadrangle inequality, then opt(i) is monotone.
+        </div>
+
+        <h2>Code: Divide and Conquer Optimization</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="comment">// Divide and Conquer DP Optimization</span>
+<span class="comment">// dp[k][i] = min { dp[k-1][j] + cost(j+1, i) } for j < i</span>
+<span class="comment">// Time: O(k * n * log n)</span>
+
+<span class="keyword">const int</span> INF = <span class="number">1e18</span>;
+vector&lt;vector&lt;<span class="keyword">long long</span>&gt;&gt; dp;
+<span class="comment">// cost(l, r) = cost of putting elements l..r in one group</span>
+
+<span class="keyword">long long</span> cost(<span class="keyword">int</span> l, <span class="keyword">int</span> r); <span class="comment">// problem-specific</span>
+
+<span class="keyword">void</span> solve(<span class="keyword">int</span> k, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi, <span class="keyword">int</span> jlo, <span class="keyword">int</span> jhi) {
+    <span class="keyword">if</span> (lo > hi) <span class="keyword">return</span>;
+
+    <span class="keyword">int</span> mid = (lo + hi) / <span class="number">2</span>;
+    <span class="keyword">int</span> opt = jlo;
+    dp[k][mid] = INF;
+
+    <span class="comment">// Find optimal split point for mid</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> j = jlo; j &lt;= min(mid - <span class="number">1</span>, jhi); j++) {
+        <span class="keyword">long long</span> val = dp[k - <span class="number">1</span>][j] + cost(j + <span class="number">1</span>, mid);
+        <span class="keyword">if</span> (val &lt; dp[k][mid]) {
+            dp[k][mid] = val;
+            opt = j;
+        }
+    }
+
+    <span class="comment">// Recurse: left half uses j in [jlo, opt]</span>
+    <span class="comment">//          right half uses j in [opt, jhi]</span>
+    solve(k, lo, mid - <span class="number">1</span>, jlo, opt);
+    solve(k, mid + <span class="number">1</span>, hi, opt, jhi);
+}
+
+<span class="comment">// Usage:</span>
+<span class="keyword">void</span> computeDP(<span class="keyword">int</span> n, <span class="keyword">int</span> K) {
+    dp.assign(K + <span class="number">1</span>, vector&lt;<span class="keyword">long long</span>&gt;(n + <span class="number">1</span>, INF));
+    dp[<span class="number">0</span>][<span class="number">0</span>] = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">1</span>; k &lt;= K; k++) {
+        solve(k, <span class="number">1</span>, n, <span class="number">0</span>, n - <span class="number">1</span>);
+    }
+    <span class="comment">// Answer: dp[K][n]</span>
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="comment">// Divide and Conquer DP Optimization</span>
+<span class="comment">// Time: O(k * n * log n)</span>
+<span class="keyword">static long</span>[][] dp;
+<span class="keyword">static final long</span> INF = Long.MAX_VALUE / <span class="number">2</span>;
+
+<span class="keyword">static long</span> cost(<span class="keyword">int</span> l, <span class="keyword">int</span> r) { <span class="comment">/* problem-specific */</span> }
+
+<span class="keyword">static void</span> solve(<span class="keyword">int</span> k, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi, <span class="keyword">int</span> jlo, <span class="keyword">int</span> jhi) {
+    <span class="keyword">if</span> (lo > hi) <span class="keyword">return</span>;
+
+    <span class="keyword">int</span> mid = (lo + hi) / <span class="number">2</span>;
+    <span class="keyword">int</span> opt = jlo;
+    dp[k][mid] = INF;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> j = jlo; j &lt;= Math.min(mid - <span class="number">1</span>, jhi); j++) {
+        <span class="keyword">long</span> val = dp[k - <span class="number">1</span>][j] + cost(j + <span class="number">1</span>, mid);
+        <span class="keyword">if</span> (val &lt; dp[k][mid]) {
+            dp[k][mid] = val;
+            opt = j;
+        }
+    }
+
+    solve(k, lo, mid - <span class="number">1</span>, jlo, opt);
+    solve(k, mid + <span class="number">1</span>, hi, opt, jhi);
+}
+
+<span class="keyword">static void</span> computeDP(<span class="keyword">int</span> n, <span class="keyword">int</span> K) {
+    dp = <span class="keyword">new long</span>[K + <span class="number">1</span>][n + <span class="number">1</span>];
+    <span class="keyword">for</span> (<span class="keyword">long</span>[] row : dp) Arrays.fill(row, INF);
+    dp[<span class="number">0</span>][<span class="number">0</span>] = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">1</span>; k &lt;= K; k++)
+        solve(k, <span class="number">1</span>, n, <span class="number">0</span>, n - <span class="number">1</span>);
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="comment"># Divide and Conquer DP Optimization</span>
+<span class="comment"># Time: O(k * n * log n)</span>
+<span class="keyword">import</span> sys
+sys.setrecursionlimit(<span class="number">500000</span>)
+
+INF = float(<span class="string">'inf'</span>)
+
+<span class="keyword">def</span> compute_dp(n, K, cost_fn):
+    <span class="comment"># cost_fn(l, r) = cost of group [l, r]</span>
+    dp = [[INF] * (n + <span class="number">1</span>) <span class="keyword">for</span> _ <span class="keyword">in</span> range(K + <span class="number">1</span>)]
+    dp[<span class="number">0</span>][<span class="number">0</span>] = <span class="number">0</span>
+
+    <span class="keyword">def</span> solve(k, lo, hi, jlo, jhi):
+        <span class="keyword">if</span> lo > hi:
+            <span class="keyword">return</span>
+
+        mid = (lo + hi) // <span class="number">2</span>
+        opt = jlo
+        dp[k][mid] = INF
+
+        <span class="keyword">for</span> j <span class="keyword">in</span> range(jlo, min(mid, jhi + <span class="number">1</span>)):
+            val = dp[k - <span class="number">1</span>][j] + cost_fn(j + <span class="number">1</span>, mid)
+            <span class="keyword">if</span> val &lt; dp[k][mid]:
+                dp[k][mid] = val
+                opt = j
+
+        solve(k, lo, mid - <span class="number">1</span>, jlo, opt)
+        solve(k, mid + <span class="number">1</span>, hi, opt, jhi)
+
+    <span class="keyword">for</span> k <span class="keyword">in</span> range(<span class="number">1</span>, K + <span class="number">1</span>):
+        solve(k, <span class="number">1</span>, n, <span class="number">0</span>, n - <span class="number">1</span>)
+
+    <span class="keyword">return</span> dp[K][n]
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Knuth's Optimization</h2>
+        <p>Applies to interval DP of the form <code>dp[i][j] = min over i&le;k&lt;j of (dp[i][k] + dp[k+1][j] + cost(i,j))</code> when the cost satisfies the quadrangle inequality.</p>
+
+        <div class="visual">
+<pre>
+Standard interval DP:
+  dp[i][j] = min { dp[i][k] + dp[k+1][j] + cost(i,j) } for i <= k < j
+  Naive: O(n^3)
+
+Knuth's condition (quadrangle inequality):
+  cost(a,c) + cost(b,d) <= cost(a,d) + cost(b,c)  for a <= b <= c <= d
+  AND cost is monotone: cost(a,d) >= cost(b,c) for a <= b <= c <= d
+
+If these hold, then:
+  opt[i][j-1] <= opt[i][j] <= opt[i+1][j]
+
+This bounds the search range for k, reducing O(n^3) to O(n^2)!
+
+Proof sketch: Over all (i,j), total work =
+  sum of (opt[i+1][j] - opt[i][j-1] + 1) which telescopes to O(n^2)
+
+Example problems:
+  - Optimal Binary Search Tree
+  - Minimum cost to merge stones
+  - Breaking a stick optimally
+</pre>
+        </div>
+
+        <h2>Code: Knuth's Optimization</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="comment">// Knuth's Optimization</span>
+<span class="comment">// dp[i][j] = min { dp[i][k] + dp[k+1][j] + cost(i,j) }</span>
+<span class="comment">// Time: O(n^2) instead of O(n^3)</span>
+
+<span class="keyword">const int</span> MAXN = <span class="number">5005</span>;
+<span class="keyword">long long</span> dp[MAXN][MAXN];
+<span class="keyword">int</span> opt[MAXN][MAXN]; <span class="comment">// optimal split point</span>
+<span class="keyword">long long</span> prefix[MAXN]; <span class="comment">// for computing cost(i,j)</span>
+
+<span class="comment">// cost(i,j) = prefix[j] - prefix[i-1] (example: sum of range)</span>
+<span class="keyword">long long</span> cost(<span class="keyword">int</span> i, <span class="keyword">int</span> j) {
+    <span class="keyword">return</span> prefix[j] - prefix[i - <span class="number">1</span>];
+}
+
+<span class="keyword">void</span> knuthDP(<span class="keyword">int</span> n) {
+    <span class="comment">// Base case: single elements</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; i++) {
+        dp[i][i] = <span class="number">0</span>;
+        opt[i][i] = i;
+    }
+
+    <span class="comment">// Fill by increasing interval length</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt;= n; len++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i + len - <span class="number">1</span> &lt;= n; i++) {
+            <span class="keyword">int</span> j = i + len - <span class="number">1</span>;
+            dp[i][j] = <span class="number">1e18</span>;
+
+            <span class="comment">// Key: only search k in [opt[i][j-1], opt[i+1][j]]</span>
+            <span class="keyword">int</span> lo = opt[i][j - <span class="number">1</span>];
+            <span class="keyword">int</span> hi = (i + <span class="number">1</span> &lt;= j) ? opt[i + <span class="number">1</span>][j] : j;
+
+            <span class="keyword">for</span> (<span class="keyword">int</span> k = lo; k &lt;= min(hi, j - <span class="number">1</span>); k++) {
+                <span class="keyword">long long</span> val = dp[i][k] + dp[k + <span class="number">1</span>][j] + cost(i, j);
+                <span class="keyword">if</span> (val &lt; dp[i][j]) {
+                    dp[i][j] = val;
+                    opt[i][j] = k;
+                }
+            }
+        }
+    }
+    <span class="comment">// Answer: dp[1][n]</span>
+}
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="comment">// Knuth's Optimization</span>
+<span class="comment">// Time: O(n^2) instead of O(n^3)</span>
+<span class="keyword">static long</span>[][] dp;
+<span class="keyword">static int</span>[][] opt;
+<span class="keyword">static long</span>[] prefix;
+
+<span class="keyword">static long</span> cost(<span class="keyword">int</span> i, <span class="keyword">int</span> j) {
+    <span class="keyword">return</span> prefix[j] - prefix[i - <span class="number">1</span>];
+}
+
+<span class="keyword">static void</span> knuthDP(<span class="keyword">int</span> n) {
+    dp = <span class="keyword">new long</span>[n + <span class="number">1</span>][n + <span class="number">1</span>];
+    opt = <span class="keyword">new int</span>[n + <span class="number">1</span>][n + <span class="number">1</span>];
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; i++) {
+        dp[i][i] = <span class="number">0</span>;
+        opt[i][i] = i;
+    }
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> len = <span class="number">2</span>; len &lt;= n; len++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i + len - <span class="number">1</span> &lt;= n; i++) {
+            <span class="keyword">int</span> j = i + len - <span class="number">1</span>;
+            dp[i][j] = Long.MAX_VALUE / <span class="number">2</span>;
+
+            <span class="keyword">int</span> lo = opt[i][j - <span class="number">1</span>];
+            <span class="keyword">int</span> hi = (i + <span class="number">1</span> &lt;= j) ? opt[i + <span class="number">1</span>][j] : j;
+
+            <span class="keyword">for</span> (<span class="keyword">int</span> k = lo; k &lt;= Math.min(hi, j - <span class="number">1</span>); k++) {
+                <span class="keyword">long</span> val = dp[i][k] + dp[k + <span class="number">1</span>][j] + cost(i, j);
+                <span class="keyword">if</span> (val &lt; dp[i][j]) {
+                    dp[i][j] = val;
+                    opt[i][j] = k;
+                }
+            }
+        }
+    }
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="comment"># Knuth's Optimization</span>
+<span class="comment"># Time: O(n^2) instead of O(n^3)</span>
+<span class="keyword">def</span> knuth_dp(n, prefix):
+    INF = float(<span class="string">'inf'</span>)
+    dp = [[<span class="number">0</span>] * (n + <span class="number">1</span>) <span class="keyword">for</span> _ <span class="keyword">in</span> range(n + <span class="number">1</span>)]
+    opt = [[<span class="number">0</span>] * (n + <span class="number">1</span>) <span class="keyword">for</span> _ <span class="keyword">in</span> range(n + <span class="number">1</span>)]
+
+    <span class="keyword">def</span> cost(i, j):
+        <span class="keyword">return</span> prefix[j] - prefix[i - <span class="number">1</span>]
+
+    <span class="comment"># Base case</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, n + <span class="number">1</span>):
+        dp[i][i] = <span class="number">0</span>
+        opt[i][i] = i
+
+    <span class="comment"># Fill by increasing length</span>
+    <span class="keyword">for</span> length <span class="keyword">in</span> range(<span class="number">2</span>, n + <span class="number">1</span>):
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, n - length + <span class="number">2</span>):
+            j = i + length - <span class="number">1</span>
+            dp[i][j] = INF
+
+            lo = opt[i][j - <span class="number">1</span>]
+            hi = opt[i + <span class="number">1</span>][j] <span class="keyword">if</span> i + <span class="number">1</span> &lt;= j <span class="keyword">else</span> j
+
+            <span class="keyword">for</span> k <span class="keyword">in</span> range(lo, min(hi, j - <span class="number">1</span>) + <span class="number">1</span>):
+                val = dp[i][k] + dp[k + <span class="number">1</span>][j] + cost(i, j)
+                <span class="keyword">if</span> val &lt; dp[i][j]:
+                    dp[i][j] = val
+                    opt[i][j] = k
+
+    <span class="keyword">return</span> dp[<span class="number">1</span>][n]
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Convex Hull Trick (CHT)</h2>
+        <p>Applies when the DP transition has the form <code>dp[i] = min/max over j of (dp[j] + b[j] * a[i])</code> where the "lines" dp[j] + b[j]*x can be maintained on a convex hull.</p>
+
+        <div class="visual">
+<pre>
+Standard form:
+  dp[i] = min { dp[j] + b[j] * a[i] + c[i] }  for j < i
+         = min { (b[j] * a[i] + dp[j]) } + c[i]
+
+Think of it as:  dp[i] = min over lines y = b[j]*x + dp[j]
+                 evaluated at x = a[i], then add c[i]
+
+Each j defines a LINE: slope = b[j], intercept = dp[j]
+Query: find the line with minimum value at x = a[i]
+
+Convex Hull Trick:
+  Maintain lines on lower convex hull
+  Query in O(1) if x values are monotone (pointer trick)
+  Query in O(log n) otherwise (binary search)
+
+Example: dp[i] = min { dp[j] + (prefix[i] - prefix[j])^2 }
+  Expand: dp[j] + prefix[i]^2 - 2*prefix[i]*prefix[j] + prefix[j]^2
+  = (dp[j] + prefix[j]^2) + (-2*prefix[j]) * prefix[i] + prefix[i]^2
+  = intercept[j] + slope[j] * x_i + constant_i
+
+  slope = -2*prefix[j], intercept = dp[j] + prefix[j]^2
+  Query at x = prefix[i]
+</pre>
+        </div>
+
+        <h2>When Does CHT Apply?</h2>
+        <div class="step-box">
+            <strong>Requirements:</strong><br>
+            1. Transition can be rewritten as: dp[i] = min/max of (m_j * x_i + b_j) + stuff independent of j<br>
+            2. Where m_j (slopes) depends only on j, and x_i depends only on i<br><br>
+            <strong>Variants:</strong><br>
+            - If slopes are monotone (sorted): Use deque, O(n) total (amortized O(1) per query)<br>
+            - If query x values are monotone: Use pointer on hull, O(n) total<br>
+            - General case: Use Li Chao tree or binary search on hull, O(n log n)<br><br>
+            <strong>Common patterns:</strong><br>
+            - dp[i] = min(dp[j] + (a[i] - b[j])^2) -- expand the square<br>
+            - dp[i] = min(dp[j] + cost[j] * weight[i]) -- already in linear form
+        </div>
+
+        <h2>Code: Convex Hull Trick</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="comment">// Convex Hull Trick (minimum query, slopes decreasing)</span>
+<span class="comment">// Time: O(n) amortized with monotone queries</span>
+<span class="keyword">struct</span> Line {
+    <span class="keyword">long long</span> m, b; <span class="comment">// y = m*x + b</span>
+    <span class="keyword">long long</span> eval(<span class="keyword">long long</span> x) { <span class="keyword">return</span> m * x + b; }
+};
+
+<span class="keyword">struct</span> ConvexHullTrick {
+    deque&lt;Line&gt; hull;
+
+    <span class="comment">// Check if line b is unnecessary (dominated by a and c)</span>
+    <span class="keyword">bool</span> bad(Line a, Line b, Line c) {
+        <span class="comment">// Intersection of a,c is to the left of intersection of a,b</span>
+        <span class="keyword">return</span> (__int128)(c.b - a.b) * (a.m - b.m)
+            &lt;= (__int128)(b.b - a.b) * (a.m - c.m);
+    }
+
+    <span class="comment">// Add line with slope m, intercept b</span>
+    <span class="comment">// Requirement: slopes added in decreasing order for min query</span>
+    <span class="keyword">void</span> addLine(<span class="keyword">long long</span> m, <span class="keyword">long long</span> b) {
+        Line l = {m, b};
+        <span class="keyword">while</span> (hull.size() >= <span class="number">2</span> &amp;&amp; bad(hull[hull.size()-<span class="number">2</span>], hull.back(), l))
+            hull.pop_back();
+        hull.push_back(l);
+    }
+
+    <span class="comment">// Query minimum at x (x values must be increasing)</span>
+    <span class="keyword">long long</span> query(<span class="keyword">long long</span> x) {
+        <span class="keyword">while</span> (hull.size() >= <span class="number">2</span> &amp;&amp; hull[<span class="number">0</span>].eval(x) >= hull[<span class="number">1</span>].eval(x))
+            hull.pop_front();
+        <span class="keyword">return</span> hull.front().eval(x);
+    }
+};
+
+<span class="comment">// Example: dp[i] = min { dp[j] + (prefix[i] - prefix[j])^2 }</span>
+<span class="keyword">void</span> solve(vector&lt;<span class="keyword">long long</span>&gt;&amp; prefix, <span class="keyword">int</span> n) {
+    vector&lt;<span class="keyword">long long</span>&gt; dp(n + <span class="number">1</span>);
+    ConvexHullTrick cht;
+
+    <span class="comment">// Line for j: slope = -2*prefix[j], intercept = dp[j] + prefix[j]^2</span>
+    cht.addLine(-<span class="number">2</span> * prefix[<span class="number">0</span>], dp[<span class="number">0</span>] + prefix[<span class="number">0</span>] * prefix[<span class="number">0</span>]);
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; i++) {
+        <span class="comment">// Query at x = prefix[i]</span>
+        dp[i] = cht.query(prefix[i]) + prefix[i] * prefix[i];
+        <span class="comment">// Add line for i</span>
+        cht.addLine(-<span class="number">2</span> * prefix[i], dp[i] + prefix[i] * prefix[i]);
+    }
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="comment">// Convex Hull Trick (minimum query)</span>
+<span class="comment">// Time: O(n) with monotone slopes and queries</span>
+<span class="keyword">static long</span>[] hullM, hullB; <span class="comment">// slopes and intercepts</span>
+<span class="keyword">static int</span> head, tail;
+
+<span class="keyword">static long</span> eval(<span class="keyword">int</span> idx, <span class="keyword">long</span> x) {
+    <span class="keyword">return</span> hullM[idx] * x + hullB[idx];
+}
+
+<span class="keyword">static boolean</span> bad(<span class="keyword">int</span> a, <span class="keyword">int</span> b, <span class="keyword">long</span> m, <span class="keyword">long</span> bNew) {
+    <span class="comment">// Check if line b is dominated by lines a and new</span>
+    <span class="keyword">return</span> (<span class="keyword">double</span>)(bNew - hullB[a]) * (hullM[a] - hullM[b])
+        &lt;= (<span class="keyword">double</span>)(hullB[b] - hullB[a]) * (hullM[a] - m);
+}
+
+<span class="keyword">static void</span> addLine(<span class="keyword">long</span> m, <span class="keyword">long</span> b) {
+    <span class="keyword">while</span> (tail - head >= <span class="number">2</span> &amp;&amp; bad(tail - <span class="number">2</span>, tail - <span class="number">1</span>, m, b))
+        tail--;
+    hullM[tail] = m;
+    hullB[tail] = b;
+    tail++;
+}
+
+<span class="keyword">static long</span> query(<span class="keyword">long</span> x) {
+    <span class="keyword">while</span> (tail - head >= <span class="number">2</span> &amp;&amp; eval(head, x) >= eval(head + <span class="number">1</span>, x))
+        head++;
+    <span class="keyword">return</span> eval(head, x);
+}
+
+<span class="keyword">static long</span>[] solve(<span class="keyword">long</span>[] prefix, <span class="keyword">int</span> n) {
+    hullM = <span class="keyword">new long</span>[n + <span class="number">1</span>];
+    hullB = <span class="keyword">new long</span>[n + <span class="number">1</span>];
+    head = <span class="number">0</span>; tail = <span class="number">0</span>;
+    <span class="keyword">long</span>[] dp = <span class="keyword">new long</span>[n + <span class="number">1</span>];
+
+    addLine(-<span class="number">2</span> * prefix[<span class="number">0</span>], dp[<span class="number">0</span>] + prefix[<span class="number">0</span>] * prefix[<span class="number">0</span>]);
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; i++) {
+        dp[i] = query(prefix[i]) + prefix[i] * prefix[i];
+        addLine(-<span class="number">2</span> * prefix[i], dp[i] + prefix[i] * prefix[i]);
+    }
+    <span class="keyword">return</span> dp;
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="comment"># Convex Hull Trick (minimum query, monotone)</span>
+<span class="comment"># Time: O(n) amortized</span>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">class</span> ConvexHullTrick:
+    <span class="keyword">def</span> __init__(self):
+        self.hull = deque()  <span class="comment"># list of (slope, intercept)</span>
+
+    <span class="keyword">def</span> bad(self, a, b, c):
+        <span class="comment"># Is line b unnecessary given lines a and c?</span>
+        <span class="keyword">return</span> (c[<span class="number">1</span>] - a[<span class="number">1</span>]) * (a[<span class="number">0</span>] - b[<span class="number">0</span>]) \
+            &lt;= (b[<span class="number">1</span>] - a[<span class="number">1</span>]) * (a[<span class="number">0</span>] - c[<span class="number">0</span>])
+
+    <span class="keyword">def</span> add_line(self, m, b):
+        <span class="comment"># Add line y = m*x + b (slopes must be decreasing for min)</span>
+        line = (m, b)
+        <span class="keyword">while</span> len(self.hull) >= <span class="number">2</span> <span class="keyword">and</span> self.bad(self.hull[-<span class="number">2</span>], self.hull[-<span class="number">1</span>], line):
+            self.hull.pop()
+        self.hull.append(line)
+
+    <span class="keyword">def</span> query(self, x):
+        <span class="comment"># Query minimum at x (x must be increasing)</span>
+        <span class="keyword">while</span> len(self.hull) >= <span class="number">2</span>:
+            m0, b0 = self.hull[<span class="number">0</span>]
+            m1, b1 = self.hull[<span class="number">1</span>]
+            <span class="keyword">if</span> m0 * x + b0 >= m1 * x + b1:
+                self.hull.popleft()
+            <span class="keyword">else</span>:
+                <span class="keyword">break</span>
+        m, b = self.hull[<span class="number">0</span>]
+        <span class="keyword">return</span> m * x + b
+
+<span class="comment"># Example: dp[i] = min { dp[j] + (prefix[i] - prefix[j])^2 }</span>
+<span class="keyword">def</span> solve(prefix, n):
+    dp = [<span class="number">0</span>] * (n + <span class="number">1</span>)
+    cht = ConvexHullTrick()
+    cht.add_line(-<span class="number">2</span> * prefix[<span class="number">0</span>], dp[<span class="number">0</span>] + prefix[<span class="number">0</span>] ** <span class="number">2</span>)
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, n + <span class="number">1</span>):
+        dp[i] = cht.query(prefix[i]) + prefix[i] ** <span class="number">2</span>
+        cht.add_line(-<span class="number">2</span> * prefix[i], dp[i] + prefix[i] ** <span class="number">2</span>)
+
+    <span class="keyword">return</span> dp[n]
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Monotone Queue (Deque) Optimization</h2>
+        <p>Applies when the DP transition looks at a sliding window: <code>dp[i] = min/max over j in [i-W, i-1] of (dp[j] + something)</code>.</p>
+
+        <div class="visual">
+<pre>
+Standard form:
+  dp[i] = min { dp[j] + cost(i) }  for  i-W <= j <= i-1
+
+Without optimization: O(n*W) - check W candidates for each i
+With monotone deque:  O(n)   - each element enters/leaves deque once
+
+How it works:
+  Maintain a deque of candidate j values
+  Front of deque = current best j for the minimum
+
+  For each i:
+    1. Remove expired indices from front (j < i-W)
+    2. Answer: dp[i] = dp[deque.front()] + cost(i)
+    3. Remove from back while dp[j] >= dp[i] (they will never be optimal)
+    4. Push i to back
+
+Example: Maximum sum subarray of length at most W
+  dp[i] = prefix[i] - min(prefix[j]) for j in [i-W, i-1]
+  Use deque to maintain minimum of prefix sums in sliding window
+
+Example: Jump Game with limited jump length
+  dp[i] = min(dp[j]) + cost[i]  for  max(0, i-K) <= j < i
+</pre>
+        </div>
+
+        <h2>Code: Monotone Queue Optimization</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp4')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java4')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python4')">Python</button>
+            </div>
+            <div id="cpp4" class="code-content active">
+<pre>
+<span class="comment">// Monotone Queue DP Optimization</span>
+<span class="comment">// dp[i] = min { dp[j] } + cost[i]  for j in [i-W, i-1]</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+
+vector&lt;<span class="keyword">int</span>&gt; solve(vector&lt;<span class="keyword">int</span>&gt;&amp; cost, <span class="keyword">int</span> n, <span class="keyword">int</span> W) {
+    vector&lt;<span class="keyword">int</span>&gt; dp(n, <span class="number">0</span>);
+    deque&lt;<span class="keyword">int</span>&gt; dq; <span class="comment">// stores indices, front = index of min dp value</span>
+
+    dp[<span class="number">0</span>] = cost[<span class="number">0</span>];
+    dq.push_back(<span class="number">0</span>);
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; n; i++) {
+        <span class="comment">// Remove expired indices (outside window)</span>
+        <span class="keyword">while</span> (!dq.empty() &amp;&amp; dq.front() &lt; i - W)
+            dq.pop_front();
+
+        <span class="comment">// Compute dp[i] using front of deque (minimum in window)</span>
+        dp[i] = dp[dq.front()] + cost[i];
+
+        <span class="comment">// Maintain monotonicity: remove from back if dp[back] >= dp[i]</span>
+        <span class="keyword">while</span> (!dq.empty() &amp;&amp; dp[dq.back()] >= dp[i])
+            dq.pop_back();
+
+        dq.push_back(i);
+    }
+
+    <span class="keyword">return</span> dp;
+}
+
+<span class="comment">// Maximum subarray sum of length at most W</span>
+<span class="keyword">long long</span> maxSubarrayW(vector&lt;<span class="keyword">int</span>&gt;&amp; arr, <span class="keyword">int</span> W) {
+    <span class="keyword">int</span> n = arr.size();
+    vector&lt;<span class="keyword">long long</span>&gt; prefix(n + <span class="number">1</span>, <span class="number">0</span>);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+        prefix[i + <span class="number">1</span>] = prefix[i] + arr[i];
+
+    <span class="comment">// ans = max(prefix[i] - prefix[j]) for i-W <= j < i</span>
+    <span class="keyword">long long</span> ans = LLONG_MIN;
+    deque&lt;<span class="keyword">int</span>&gt; dq; <span class="comment">// min deque for prefix values</span>
+    dq.push_back(<span class="number">0</span>);
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; i++) {
+        <span class="comment">// Remove expired</span>
+        <span class="keyword">while</span> (!dq.empty() &amp;&amp; dq.front() &lt; i - W)
+            dq.pop_front();
+
+        <span class="comment">// Best = prefix[i] - min prefix in window</span>
+        ans = max(ans, prefix[i] - prefix[dq.front()]);
+
+        <span class="comment">// Maintain min deque</span>
+        <span class="keyword">while</span> (!dq.empty() &amp;&amp; prefix[dq.back()] >= prefix[i])
+            dq.pop_back();
+        dq.push_back(i);
+    }
+
+    <span class="keyword">return</span> ans;
+}
+</pre>
+            </div>
+            <div id="java4" class="code-content">
+<pre>
+<span class="comment">// Monotone Queue DP Optimization</span>
+<span class="comment">// Time: O(n), Space: O(n)</span>
+<span class="keyword">static int</span>[] solve(<span class="keyword">int</span>[] cost, <span class="keyword">int</span> n, <span class="keyword">int</span> W) {
+    <span class="keyword">int</span>[] dp = <span class="keyword">new int</span>[n];
+    Deque&lt;Integer&gt; dq = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+
+    dp[<span class="number">0</span>] = cost[<span class="number">0</span>];
+    dq.addLast(<span class="number">0</span>);
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; n; i++) {
+        <span class="comment">// Remove expired indices</span>
+        <span class="keyword">while</span> (!dq.isEmpty() &amp;&amp; dq.peekFirst() &lt; i - W)
+            dq.pollFirst();
+
+        <span class="comment">// dp[i] = min in window + cost[i]</span>
+        dp[i] = dp[dq.peekFirst()] + cost[i];
+
+        <span class="comment">// Maintain monotonicity</span>
+        <span class="keyword">while</span> (!dq.isEmpty() &amp;&amp; dp[dq.peekLast()] >= dp[i])
+            dq.pollLast();
+
+        dq.addLast(i);
+    }
+
+    <span class="keyword">return</span> dp;
+}
+</pre>
+            </div>
+            <div id="python4" class="code-content">
+<pre>
+<span class="comment"># Monotone Queue DP Optimization</span>
+<span class="comment"># Time: O(n), Space: O(n)</span>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> solve(cost, n, W):
+    <span class="comment"># dp[i] = min(dp[j] for j in [i-W, i-1]) + cost[i]</span>
+    dp = [<span class="number">0</span>] * n
+    dq = deque()  <span class="comment"># indices, front = min dp value in window</span>
+
+    dp[<span class="number">0</span>] = cost[<span class="number">0</span>]
+    dq.append(<span class="number">0</span>)
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, n):
+        <span class="comment"># Remove expired indices</span>
+        <span class="keyword">while</span> dq <span class="keyword">and</span> dq[<span class="number">0</span>] &lt; i - W:
+            dq.popleft()
+
+        <span class="comment"># Compute dp[i]</span>
+        dp[i] = dp[dq[<span class="number">0</span>]] + cost[i]
+
+        <span class="comment"># Maintain monotonicity: remove dominated elements from back</span>
+        <span class="keyword">while</span> dq <span class="keyword">and</span> dp[dq[-<span class="number">1</span>]] >= dp[i]:
+            dq.pop()
+
+        dq.append(i)
+
+    <span class="keyword">return</span> dp
+
+<span class="comment"># Max subarray sum with length at most W</span>
+<span class="keyword">def</span> max_subarray_w(arr, W):
+    n = len(arr)
+    prefix = [<span class="number">0</span>] * (n + <span class="number">1</span>)
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+        prefix[i + <span class="number">1</span>] = prefix[i] + arr[i]
+
+    ans = float(<span class="string">'-inf'</span>)
+    dq = deque([<span class="number">0</span>])  <span class="comment"># min deque for prefix</span>
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, n + <span class="number">1</span>):
+        <span class="keyword">while</span> dq <span class="keyword">and</span> dq[<span class="number">0</span>] &lt; i - W:
+            dq.popleft()
+
+        ans = max(ans, prefix[i] - prefix[dq[<span class="number">0</span>]])
+
+        <span class="keyword">while</span> dq <span class="keyword">and</span> prefix[dq[-<span class="number">1</span>]] >= prefix[i]:
+            dq.pop()
+        dq.append(i)
+
+    <span class="keyword">return</span> ans
+</pre>
+            </div>
+        </div>
+
+        <h2>Summary: When to Apply Each Technique</h2>
+        <div class="visual">
+<pre>
+Decision flowchart:
+
+1. Is the transition: dp[i] = min/max over j in [i-W, i-1]?
+   -> Monotone Queue (deque), O(n)
+
+2. Can the transition be written as dp[i] = min(slope_j * x_i + intercept_j)?
+   -> Convex Hull Trick
+   -> O(n) if slopes and queries are monotone
+   -> O(n log n) otherwise (binary search or Li Chao tree)
+
+3. Is it interval DP: dp[i][j] = min_k(dp[i][k] + dp[k+1][j] + cost(i,j))?
+   AND cost satisfies quadrangle inequality?
+   -> Knuth's Optimization, O(n^2)
+
+4. Is it: dp[k][i] = min_j(dp[k-1][j] + cost(j+1,i))?
+   AND opt(i) is monotone in i?
+   -> Divide & Conquer Optimization, O(kn log n)
+
+5. None of the above? -> Check for SMAWK, Aliens trick, or lambda optimization
+</pre>
+        </div>
+
+        <h2>Complexity Improvements</h2>
+        <table>
+            <tr><th>Technique</th><th>Before</th><th>After</th><th>Improvement</th></tr>
+            <tr><td>Divide & Conquer</td><td>O(kn^2)</td><td>O(kn log n)</td><td>n / log n</td></tr>
+            <tr><td>Knuth's</td><td>O(n^3)</td><td>O(n^2)</td><td>n</td></tr>
+            <tr><td>CHT (monotone)</td><td>O(n^2)</td><td>O(n)</td><td>n</td></tr>
+            <tr><td>CHT (general)</td><td>O(n^2)</td><td>O(n log n)</td><td>n / log n</td></tr>
+            <tr><td>Monotone Queue</td><td>O(n * W)</td><td>O(n)</td><td>W</td></tr>
+        </table>
+
+        <div class="note">
+            <ul>
+                <li><strong>Divide & Conquer:</strong> Most general. Works whenever optimal split point is monotone. Relatively easy to implement.</li>
+                <li><strong>Knuth's:</strong> Specific to interval DP. Needs both quadrangle inequality and monotonicity of cost. Tricky to verify conditions.</li>
+                <li><strong>Convex Hull Trick:</strong> Very powerful for 1D DP with linear transitions. The key step is algebraic manipulation to extract slopes and intercepts.</li>
+                <li><strong>Monotone Queue:</strong> Simplest of the four. Applies whenever there is a fixed-size sliding window constraint on the DP transition.</li>
+                <li><strong>Verification:</strong> When unsure if an optimization applies, compare results with the brute-force O(n^2) or O(n^3) solution on small inputs.</li>
+            </ul>
+        </div>
+
+        <h2>Key Insights</h2>
+        <div class="step-box">
+            <strong>Algebraic manipulation is key:</strong> For CHT, you need to expand and rearrange the DP transition to isolate the linear form. Practice expanding squares and grouping terms by j vs i.<br><br>
+            <strong>Monotonicity is the core insight:</strong> D&C optimization and Knuth's both exploit that the "best decision" moves rightward as we move to larger subproblems.<br><br>
+            <strong>Amortization argument:</strong> Monotone queue and CHT are O(n) because each element enters and leaves the deque/hull at most once. The total work across all iterations is O(n), not O(n) per iteration.<br><br>
+            <strong>Implementation tip:</strong> Use long long for all intermediate computations. These optimizations are typically applied to problems with large values where overflow is a real concern.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

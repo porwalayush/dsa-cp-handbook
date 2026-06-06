@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Change - DP Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .dp-grid { display: grid; gap: 2px; margin: 16px 0; overflow-x: auto; }
+        .dp-grid-cell {
+            min-width: 40px; height: 36px; border: 1px solid #e2e8f0; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.72em; font-weight: 500;
+            transition: all 0.3s ease; background: white; color: #475569;
+        }
+        .dp-grid-cell.header { background: #f8fafc; font-weight: 700; color: #0f172a; }
+        .dp-grid-cell.filled { background: #eef2ff; border-color: #c7d2fe; color: #6366f1; }
+        .dp-grid-cell.current { background: #6366f1; border-color: #4f46e5; color: white; transform: scale(1.05); }
+        .dp-grid-cell.optimal { background: #10b981; border-color: #059669; color: white; }
+        .dp-grid-cell.inf { background: #fef2f2; border-color: #fecaca; color: #ef4444; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: center; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Coin Change</h1>
+        <p>Given a set of coin denominations and a target amount, find the <strong>minimum number of coins</strong> needed to make that amount, and count the <strong>number of ways</strong> to make change.</p>
+
+        <h2>Problem Formulation</h2>
+        <div class="visual">
+<pre>
+   Coins: [1, 3, 4]
+   Amount: 6
+
+   Minimum coins to make 6:
+   6 = 3 + 3           → 2 coins ✓ (optimal)
+   6 = 4 + 1 + 1       → 3 coins
+   6 = 3 + 1 + 1 + 1   → 4 coins
+   6 = 1+1+1+1+1+1     → 6 coins
+
+   Answer: 2 coins (using two 3s)
+
+   Number of ways (order doesn't matter):
+   {1,1,1,1,1,1}, {1,1,1,3}, {1,1,4}, {3,3}, {1,1,4} → ...
+</pre>
+        </div>
+
+        <h2>State & Transition</h2>
+        <div class="step-box">
+            <strong>State:</strong> dp[i] = minimum coins needed to make amount i<br><br>
+            <strong>Transition:</strong><br>
+            dp[i] = min(dp[i], dp[i - coin] + 1) for each coin where coin &le; i<br><br>
+            <strong>Base:</strong> dp[0] = 0 (zero coins needed for amount 0)<br>
+            <strong>Init:</strong> dp[1..amount] = infinity (not yet reachable)
+        </div>
+
+        <div class="note">
+            <ul>
+                <li><strong>Key insight:</strong> Each coin can be used <strong>unlimited times</strong> (unbounded). We iterate amounts left-to-right, the opposite of 0/1 knapsack.</li>
+                <li><strong>Relation to Knapsack:</strong> This is essentially an <strong>unbounded knapsack</strong> where we minimize count instead of maximizing value.</li>
+            </ul>
+        </div>
+
+        <h2>Interactive: Watch Table Fill (Min Coins)</h2>
+        <div class="visual">
+            <div style="margin-bottom:12px;">
+                <button class="viz-btn" onclick="animateCoinChange()">Animate</button>
+                <button class="viz-btn" onclick="resetCoinChange()">Reset</button>
+            </div>
+            <div id="coinGrid" style="overflow-x:auto;"></div>
+            <div id="coinLog" style="margin-top:12px; font-family:'JetBrains Mono',monospace; font-size:0.75em; color:#475569; min-height:24px;"></div>
+        </div>
+
+        <h2>Code: Minimum Coins</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="comment">// Minimum coins to make amount</span>
+<span class="comment">// O(n * amount) time, O(amount) space</span>
+<span class="keyword">int</span> coinChange(vector&lt;<span class="keyword">int</span>&gt;&amp; coins, <span class="keyword">int</span> amount) {
+    vector&lt;<span class="keyword">int</span>&gt; dp(amount + <span class="number">1</span>, INT_MAX);
+    dp[<span class="number">0</span>] = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= amount; i++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> coin : coins) {
+            <span class="keyword">if</span> (coin &lt;= i &amp;&amp; dp[i - coin] != INT_MAX) {
+                dp[i] = min(dp[i], dp[i - coin] + <span class="number">1</span>);
+            }
+        }
+    }
+    <span class="keyword">return</span> dp[amount] == INT_MAX ? -<span class="number">1</span> : dp[amount];
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="comment">// Minimum coins to make amount</span>
+<span class="comment">// O(n * amount) time, O(amount) space</span>
+<span class="keyword">static int</span> coinChange(<span class="keyword">int</span>[] coins, <span class="keyword">int</span> amount) {
+    <span class="keyword">int</span>[] dp = <span class="keyword">new int</span>[amount + <span class="number">1</span>];
+    Arrays.fill(dp, amount + <span class="number">1</span>); <span class="comment">// use amount+1 as infinity</span>
+    dp[<span class="number">0</span>] = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= amount; i++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> coin : coins) {
+            <span class="keyword">if</span> (coin &lt;= i) {
+                dp[i] = Math.min(dp[i], dp[i - coin] + <span class="number">1</span>);
+            }
+        }
+    }
+    <span class="keyword">return</span> dp[amount] &gt; amount ? -<span class="number">1</span> : dp[amount];
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="comment"># Minimum coins to make amount</span>
+<span class="comment"># O(n * amount) time, O(amount) space</span>
+<span class="keyword">def</span> coin_change(coins, amount):
+    dp = [float(<span class="string">'inf'</span>)] * (amount + <span class="number">1</span>)
+    dp[<span class="number">0</span>] = <span class="number">0</span>
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, amount + <span class="number">1</span>):
+        <span class="keyword">for</span> coin <span class="keyword">in</span> coins:
+            <span class="keyword">if</span> coin &lt;= i:
+                dp[i] = min(dp[i], dp[i - coin] + <span class="number">1</span>)
+
+    <span class="keyword">return</span> dp[amount] <span class="keyword">if</span> dp[amount] != float(<span class="string">'inf'</span>) <span class="keyword">else</span> -<span class="number">1</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Variant: Count Ways to Make Change</h2>
+        <div class="step-box">
+            <strong>State:</strong> dp[i] = number of ways to make amount i<br><br>
+            <strong>Transition:</strong> dp[i] += dp[i - coin] for each coin where coin &le; i<br><br>
+            <strong>Base:</strong> dp[0] = 1 (one way to make 0: use no coins)<br><br>
+            <strong>Important:</strong> To count <em>combinations</em> (not permutations), iterate coins in outer loop, amounts in inner loop.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="comment">// Count combinations (order doesn't matter)</span>
+<span class="keyword">int</span> countWays(vector&lt;<span class="keyword">int</span>&gt;&amp; coins, <span class="keyword">int</span> amount) {
+    vector&lt;<span class="keyword">int</span>&gt; dp(amount + <span class="number">1</span>, <span class="number">0</span>);
+    dp[<span class="number">0</span>] = <span class="number">1</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> coin : coins) {           <span class="comment">// outer: coins</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = coin; i &lt;= amount; i++) { <span class="comment">// inner: amount</span>
+            dp[i] += dp[i - coin];
+        }
+    }
+    <span class="keyword">return</span> dp[amount];
+}
+
+<span class="comment">// Count permutations (order matters)</span>
+<span class="keyword">int</span> countPerms(vector&lt;<span class="keyword">int</span>&gt;&amp; coins, <span class="keyword">int</span> amount) {
+    vector&lt;<span class="keyword">int</span>&gt; dp(amount + <span class="number">1</span>, <span class="number">0</span>);
+    dp[<span class="number">0</span>] = <span class="number">1</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= amount; i++) { <span class="comment">// outer: amount</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> coin : coins) {           <span class="comment">// inner: coins</span>
+            <span class="keyword">if</span> (coin &lt;= i) dp[i] += dp[i - coin];
+        }
+    }
+    <span class="keyword">return</span> dp[amount];
+}
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="comment">// Count combinations (order doesn't matter)</span>
+<span class="keyword">static int</span> countWays(<span class="keyword">int</span>[] coins, <span class="keyword">int</span> amount) {
+    <span class="keyword">int</span>[] dp = <span class="keyword">new int</span>[amount + <span class="number">1</span>];
+    dp[<span class="number">0</span>] = <span class="number">1</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> coin : coins) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = coin; i &lt;= amount; i++) {
+            dp[i] += dp[i - coin];
+        }
+    }
+    <span class="keyword">return</span> dp[amount];
+}
+
+<span class="comment">// Count permutations (order matters)</span>
+<span class="keyword">static int</span> countPerms(<span class="keyword">int</span>[] coins, <span class="keyword">int</span> amount) {
+    <span class="keyword">int</span>[] dp = <span class="keyword">new int</span>[amount + <span class="number">1</span>];
+    dp[<span class="number">0</span>] = <span class="number">1</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= amount; i++) {
+        <span class="keyword">for</span> (<span class="keyword">int</span> coin : coins) {
+            <span class="keyword">if</span> (coin &lt;= i) dp[i] += dp[i - coin];
+        }
+    }
+    <span class="keyword">return</span> dp[amount];
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="comment"># Count combinations (order doesn't matter)</span>
+<span class="keyword">def</span> count_ways(coins, amount):
+    dp = [<span class="number">0</span>] * (amount + <span class="number">1</span>)
+    dp[<span class="number">0</span>] = <span class="number">1</span>
+
+    <span class="keyword">for</span> coin <span class="keyword">in</span> coins:              <span class="comment"># outer: coins</span>
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(coin, amount + <span class="number">1</span>):  <span class="comment"># inner: amount</span>
+            dp[i] += dp[i - coin]
+    <span class="keyword">return</span> dp[amount]
+
+<span class="comment"># Count permutations (order matters)</span>
+<span class="keyword">def</span> count_perms(coins, amount):
+    dp = [<span class="number">0</span>] * (amount + <span class="number">1</span>)
+    dp[<span class="number">0</span>] = <span class="number">1</span>
+
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, amount + <span class="number">1</span>):  <span class="comment"># outer: amount</span>
+        <span class="keyword">for</span> coin <span class="keyword">in</span> coins:          <span class="comment"># inner: coins</span>
+            <span class="keyword">if</span> coin &lt;= i:
+                dp[i] += dp[i - coin]
+    <span class="keyword">return</span> dp[amount]
+</pre>
+            </div>
+        </div>
+
+        <h2>Combinations vs Permutations</h2>
+        <div class="visual">
+<pre>
+   Coins = [1, 2, 3], Amount = 4
+
+   Combinations (coins outer loop):
+   {1,1,1,1}, {1,1,2}, {2,2}, {1,3} → 4 ways
+
+   Permutations (amount outer loop):
+   [1,1,1,1], [1,1,2], [1,2,1], [2,1,1],
+   [2,2], [1,3], [3,1] → 7 ways
+
+   Why? Outer coin loop ensures each coin type is
+   "considered" only once → no duplicate orderings.
+</pre>
+        </div>
+
+        <h2>Complexity</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Time:</strong> O(n * amount) where n = number of coin denominations</li>
+                <li><strong>Space:</strong> O(amount)</li>
+                <li><strong>Greedy fails:</strong> coins = [1,3,4], amount = 6. Greedy picks 4+1+1 = 3 coins, but 3+3 = 2 coins is optimal</li>
+            </ul>
+        </div>
+
+        <h2>Related Problems</h2>
+        <table>
+            <tr><th>Problem</th><th>Relation</th></tr>
+            <tr><td>Unbounded Knapsack</td><td>Same structure: items reusable, iterate left-to-right</td></tr>
+            <tr><td>Climbing Stairs</td><td>Coin change with coins = [1, 2], counting permutations</td></tr>
+            <tr><td>Perfect Squares</td><td>Coins = [1, 4, 9, 16, ...], minimize count</td></tr>
+            <tr><td>Combination Sum IV</td><td>Coin change counting permutations</td></tr>
+        </table>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const coins = [1, 3, 4];
+        const amount = 6;
+        let coinInterval = null;
+
+        function renderCoinGrid(dp, currentIdx, currentCoin) {
+            const grid = document.getElementById('coinGrid');
+            let html = `<div class="dp-grid" style="grid-template-columns: repeat(${amount + 1}, 1fr);">`;
+            // Header row
+            for (let i = 0; i <= amount; i++) {
+                html += `<div class="dp-grid-cell header">dp[${i}]</div>`;
+            }
+            // Value row
+            for (let i = 0; i <= amount; i++) {
+                let cls = '';
+                if (i === currentIdx) cls = 'current';
+                else if (dp[i] === Infinity) cls = 'inf';
+                else if (dp[i] < Infinity) cls = 'filled';
+                let val = dp[i] === Infinity ? '∞' : dp[i];
+                html += `<div class="dp-grid-cell ${cls}">${val}</div>`;
+            }
+            html += '</div>';
+            grid.innerHTML = html;
+        }
+
+        function animateCoinChange() {
+            if (coinInterval) clearInterval(coinInterval);
+            const log = document.getElementById('coinLog');
+            let dp = new Array(amount + 1).fill(Infinity);
+            dp[0] = 0;
+
+            let i = 1;
+            let coinIdx = 0;
+
+            coinInterval = setInterval(() => {
+                if (i > amount) {
+                    clearInterval(coinInterval);
+                    renderCoinGrid(dp, -1, -1);
+                    let ans = dp[amount] === Infinity ? -1 : dp[amount];
+                    log.innerHTML = `<span style="color:#10b981;">Answer: dp[${amount}] = ${ans} coins</span>`;
+                    return;
+                }
+
+                let coin = coins[coinIdx];
+                if (coin <= i && dp[i - coin] !== Infinity) {
+                    let newVal = dp[i - coin] + 1;
+                    if (newVal < dp[i]) {
+                        dp[i] = newVal;
+                        log.textContent = `dp[${i}] = min(dp[${i}], dp[${i}-${coin}]+1) = min(old, ${dp[i-coin]}+1) = ${dp[i]}  [coin=${coin}]`;
+                    } else {
+                        log.textContent = `dp[${i}]: coin ${coin} gives ${newVal}, no improvement (current=${dp[i]})`;
+                    }
+                } else if (coin <= i) {
+                    log.textContent = `dp[${i}]: dp[${i-coin}] = INF, skip coin ${coin}`;
+                } else {
+                    log.textContent = `dp[${i}]: coin ${coin} > ${i}, skip`;
+                }
+
+                renderCoinGrid(dp, i, coin);
+
+                coinIdx++;
+                if (coinIdx >= coins.length) {
+                    coinIdx = 0;
+                    i++;
+                }
+            }, 300);
+        }
+
+        function resetCoinChange() {
+            if (coinInterval) clearInterval(coinInterval);
+            let dp = new Array(amount + 1).fill(Infinity);
+            dp[0] = 0;
+            renderCoinGrid(dp, -1, -1);
+            document.getElementById('coinLog').textContent = 'Click Animate to watch table fill (coins = [1, 3, 4], amount = 6)';
+        }
+
+        resetCoinChange();
+    </script>
+</body>
+</html>
