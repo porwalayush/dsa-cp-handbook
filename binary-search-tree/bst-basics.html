@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST Basics &amp; Operations - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Binary Search Tree: Basics &amp; Operations</h1>
+        <p>A <strong>Binary Search Tree</strong> (BST) is a binary tree that keeps its keys in sorted order, so search, insert, and delete all run in time proportional to the tree's <strong>height</strong>. When the tree stays balanced this is O(log n); when it degenerates into a chain it becomes O(n).</p>
+
+        <h2>1. The BST Ordering Invariant</h2>
+        <p>The defining property of a BST is its <strong>ordering invariant</strong>. For <em>every</em> node <code>x</code>:</p>
+        <ul>
+            <li>Every key in <code>x</code>'s <strong>left subtree</strong> is <strong>less than</strong> <code>x.key</code>.</li>
+            <li>Every key in <code>x</code>'s <strong>right subtree</strong> is <strong>greater than</strong> <code>x.key</code>.</li>
+        </ul>
+        <p>We assume <strong>distinct keys</strong> throughout this page. A useful consequence: an <strong>inorder traversal</strong> (left, node, right) visits the keys in strictly increasing order.</p>
+
+        <div class="visual">
+<pre>
+A valid BST (keys distinct):
+
+                 8
+               /   \
+              3      10
+            /   \      \
+           1     6      14
+                / \     /
+               4   7   13
+
+Check the invariant at node 8:
+  left subtree  {3,1,6,4,7} are all &lt; 8
+  right subtree {10,14,13}  are all &gt; 8
+
+Inorder traversal: 1 3 4 6 7 8 10 13 14   (sorted)
+</pre>
+        </div>
+
+        <div class="warn">
+            <strong>Common mistake:</strong> The invariant is about <em>entire subtrees</em>, not just the immediate children.
+            <ul>
+                <li>It is NOT enough that <code>left.key &lt; x.key &lt; right.key</code> for each node.</li>
+                <li><strong>Every</strong> descendant on the left must be smaller than <code>x</code>, and every descendant on the right larger. A node deep in the left subtree that exceeds an ancestor breaks the tree even if each local parent/child pair looks fine.</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>Duplicate-handling policy:</strong> Real BSTs must decide what to do with equal keys. Common policies: (a) <strong>disallow duplicates</strong> (insert is a no-op if the key exists) — the policy used on this page; (b) store a <strong>count</strong> per node; or (c) consistently send equal keys to one side (e.g. <code>&lt;=</code> goes left). Pick one and apply it everywhere — mixing policies corrupts the invariant.
+        </div>
+
+        <h2>2. Node Definition</h2>
+        <p>Each node stores a key plus pointers/references to its left and right children (null when absent).</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppNode')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaNode')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyNode')">Python</button>
+            </div>
+            <div id="cppNode" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode {
+    <span class="keyword">int</span> key;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(<span class="keyword">int</span> k) : key(k), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+</pre>
+            </div>
+            <div id="javaNode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> {
+    <span class="keyword">int</span> key;
+    TreeNode left, right;
+    TreeNode(<span class="keyword">int</span> k) {
+        key = k;
+        left = right = <span class="keyword">null</span>;
+    }
+}
+</pre>
+            </div>
+            <div id="pyNode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span>:
+    <span class="keyword">def</span> __init__(self, key):
+        self.key = key
+        self.left = <span class="keyword">None</span>
+        self.right = <span class="keyword">None</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Search</h2>
+        <p>Searching compares the target against the current node and walks left if smaller, right if larger, until found or it falls off the tree. Each step descends one level, so the cost is O(h) where <code>h</code> is the height.</p>
+
+        <div class="visual">
+<pre>
+search(13) in the tree from section 1:
+
+                 8        13 &gt; 8  -> go right
+               /   \
+              3      10     13 &gt; 10 -> go right
+            /   \      \
+           1     6      14   13 &lt; 14 -> go left
+                / \     /
+               4   7   13   13 == 13 -> FOUND
+
+Path: 8 -> 10 -> 14 -> 13   (4 comparisons, = height of path)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppSearch')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaSearch')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pySearch')">Python</button>
+            </div>
+            <div id="cppSearch" class="code-content active">
+<pre>
+<span class="comment">// Iterative search: returns the node or nullptr</span>
+TreeNode* searchIterative(TreeNode* root, <span class="keyword">int</span> key) {
+    <span class="keyword">while</span> (root != <span class="keyword">nullptr</span> &amp;&amp; root-&gt;key != key) {
+        <span class="keyword">if</span> (key &lt; root-&gt;key) root = root-&gt;left;
+        <span class="keyword">else</span>                 root = root-&gt;right;
+    }
+    <span class="keyword">return</span> root;  <span class="comment">// nullptr if not found</span>
+}
+
+<span class="comment">// Recursive search</span>
+TreeNode* searchRecursive(TreeNode* root, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (root == <span class="keyword">nullptr</span> || root-&gt;key == key) <span class="keyword">return</span> root;
+    <span class="keyword">if</span> (key &lt; root-&gt;key) <span class="keyword">return</span> searchRecursive(root-&gt;left, key);
+    <span class="keyword">return</span> searchRecursive(root-&gt;right, key);
+}
+</pre>
+            </div>
+            <div id="javaSearch" class="code-content">
+<pre>
+<span class="comment">// Iterative search: returns the node or null</span>
+TreeNode searchIterative(TreeNode root, <span class="keyword">int</span> key) {
+    <span class="keyword">while</span> (root != <span class="keyword">null</span> &amp;&amp; root.key != key) {
+        <span class="keyword">if</span> (key &lt; root.key) root = root.left;
+        <span class="keyword">else</span>                root = root.right;
+    }
+    <span class="keyword">return</span> root;  <span class="comment">// null if not found</span>
+}
+
+<span class="comment">// Recursive search</span>
+TreeNode searchRecursive(TreeNode root, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span> || root.key == key) <span class="keyword">return</span> root;
+    <span class="keyword">if</span> (key &lt; root.key) <span class="keyword">return</span> searchRecursive(root.left, key);
+    <span class="keyword">return</span> searchRecursive(root.right, key);
+}
+</pre>
+            </div>
+            <div id="pySearch" class="code-content">
+<pre>
+<span class="comment"># Iterative search: returns the node or None</span>
+<span class="keyword">def</span> search_iterative(root, key):
+    <span class="keyword">while</span> root <span class="keyword">is not</span> <span class="keyword">None</span> <span class="keyword">and</span> root.key != key:
+        <span class="keyword">if</span> key &lt; root.key:
+            root = root.left
+        <span class="keyword">else</span>:
+            root = root.right
+    <span class="keyword">return</span> root  <span class="comment"># None if not found</span>
+
+<span class="comment"># Recursive search</span>
+<span class="keyword">def</span> search_recursive(root, key):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> root.key == key:
+        <span class="keyword">return</span> root
+    <span class="keyword">if</span> key &lt; root.key:
+        <span class="keyword">return</span> search_recursive(root.left, key)
+    <span class="keyword">return</span> search_recursive(root.right, key)
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Insert</h2>
+        <p>Insertion follows the same descent as search. We walk down until we reach an empty (null) spot where the key belongs, then attach a new leaf there. With the no-duplicates policy, hitting an equal key is a no-op. Cost is O(h).</p>
+
+        <div class="visual">
+<pre>
+insert(5) into:                After attaching new leaf at the
+                               empty left child of 6:
+        8                            8
+      /   \                        /   \
+     3     10        ==&gt;          3     10
+   /   \                        /   \
+  1     6                      1     6
+       / \                          / \
+      4   7     5 &gt; 3, 5 &gt; 4,      4   7
+                5 &lt; 6 -> left      \
+                of 6 is empty       5   &lt;-- new leaf
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppInsert')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaInsert')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyInsert')">Python</button>
+            </div>
+            <div id="cppInsert" class="code-content active">
+<pre>
+<span class="comment">// Recursive insert: returns the (possibly new) subtree root</span>
+TreeNode* insert(TreeNode* root, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (root == <span class="keyword">nullptr</span>) <span class="keyword">return</span> <span class="keyword">new</span> TreeNode(key);
+    <span class="keyword">if</span> (key &lt; root-&gt;key)      root-&gt;left  = insert(root-&gt;left, key);
+    <span class="keyword">else if</span> (key &gt; root-&gt;key) root-&gt;right = insert(root-&gt;right, key);
+    <span class="comment">// key == root-&gt;key: duplicate, ignore (no-op policy)</span>
+    <span class="keyword">return</span> root;
+}
+
+<span class="comment">// Iterative insert</span>
+TreeNode* insertIterative(TreeNode* root, <span class="keyword">int</span> key) {
+    TreeNode* node = <span class="keyword">new</span> TreeNode(key);
+    <span class="keyword">if</span> (root == <span class="keyword">nullptr</span>) <span class="keyword">return</span> node;
+    TreeNode* cur = root;
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="keyword">if</span> (key == cur-&gt;key) { <span class="keyword">delete</span> node; <span class="keyword">return</span> root; }  <span class="comment">// duplicate</span>
+        <span class="keyword">if</span> (key &lt; cur-&gt;key) {
+            <span class="keyword">if</span> (cur-&gt;left == <span class="keyword">nullptr</span>) { cur-&gt;left = node; <span class="keyword">return</span> root; }
+            cur = cur-&gt;left;
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (cur-&gt;right == <span class="keyword">nullptr</span>) { cur-&gt;right = node; <span class="keyword">return</span> root; }
+            cur = cur-&gt;right;
+        }
+    }
+}
+</pre>
+            </div>
+            <div id="javaInsert" class="code-content">
+<pre>
+<span class="comment">// Recursive insert: returns the (possibly new) subtree root</span>
+TreeNode insert(TreeNode root, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return new</span> TreeNode(key);
+    <span class="keyword">if</span> (key &lt; root.key)      root.left  = insert(root.left, key);
+    <span class="keyword">else if</span> (key &gt; root.key) root.right = insert(root.right, key);
+    <span class="comment">// key == root.key: duplicate, ignore (no-op policy)</span>
+    <span class="keyword">return</span> root;
+}
+
+<span class="comment">// Iterative insert</span>
+TreeNode insertIterative(TreeNode root, <span class="keyword">int</span> key) {
+    TreeNode node = <span class="keyword">new</span> TreeNode(key);
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> node;
+    TreeNode cur = root;
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="keyword">if</span> (key == cur.key) <span class="keyword">return</span> root;  <span class="comment">// duplicate</span>
+        <span class="keyword">if</span> (key &lt; cur.key) {
+            <span class="keyword">if</span> (cur.left == <span class="keyword">null</span>) { cur.left = node; <span class="keyword">return</span> root; }
+            cur = cur.left;
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (cur.right == <span class="keyword">null</span>) { cur.right = node; <span class="keyword">return</span> root; }
+            cur = cur.right;
+        }
+    }
+}
+</pre>
+            </div>
+            <div id="pyInsert" class="code-content">
+<pre>
+<span class="comment"># Recursive insert: returns the (possibly new) subtree root</span>
+<span class="keyword">def</span> insert(root, key):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> TreeNode(key)
+    <span class="keyword">if</span> key &lt; root.key:
+        root.left = insert(root.left, key)
+    <span class="keyword">elif</span> key &gt; root.key:
+        root.right = insert(root.right, key)
+    <span class="comment"># key == root.key: duplicate, ignore (no-op policy)</span>
+    <span class="keyword">return</span> root
+
+<span class="comment"># Iterative insert</span>
+<span class="keyword">def</span> insert_iterative(root, key):
+    node = TreeNode(key)
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> node
+    cur = root
+    <span class="keyword">while</span> <span class="keyword">True</span>:
+        <span class="keyword">if</span> key == cur.key:
+            <span class="keyword">return</span> root  <span class="comment"># duplicate</span>
+        <span class="keyword">if</span> key &lt; cur.key:
+            <span class="keyword">if</span> cur.left <span class="keyword">is</span> <span class="keyword">None</span>:
+                cur.left = node
+                <span class="keyword">return</span> root
+            cur = cur.left
+        <span class="keyword">else</span>:
+            <span class="keyword">if</span> cur.right <span class="keyword">is</span> <span class="keyword">None</span>:
+                cur.right = node
+                <span class="keyword">return</span> root
+            cur = cur.right
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Find Min / Find Max</h2>
+        <p>Because of the ordering invariant, the <strong>minimum</strong> key is the <strong>leftmost</strong> node (keep going left) and the <strong>maximum</strong> is the <strong>rightmost</strong> node (keep going right). Both take O(h).</p>
+
+        <div class="visual">
+<pre>
+        8
+      /   \
+     3     10
+   /   \      \
+  1     6      14
+ ^leftmost     ^... 14 then no right child
+ = min = 1            = max = 14
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppMin')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaMin')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyMin')">Python</button>
+            </div>
+            <div id="cppMin" class="code-content active">
+<pre>
+TreeNode* findMin(TreeNode* root) {
+    <span class="keyword">while</span> (root != <span class="keyword">nullptr</span> &amp;&amp; root-&gt;left != <span class="keyword">nullptr</span>)
+        root = root-&gt;left;
+    <span class="keyword">return</span> root;
+}
+
+TreeNode* findMax(TreeNode* root) {
+    <span class="keyword">while</span> (root != <span class="keyword">nullptr</span> &amp;&amp; root-&gt;right != <span class="keyword">nullptr</span>)
+        root = root-&gt;right;
+    <span class="keyword">return</span> root;
+}
+</pre>
+            </div>
+            <div id="javaMin" class="code-content">
+<pre>
+TreeNode findMin(TreeNode root) {
+    <span class="keyword">while</span> (root != <span class="keyword">null</span> &amp;&amp; root.left != <span class="keyword">null</span>)
+        root = root.left;
+    <span class="keyword">return</span> root;
+}
+
+TreeNode findMax(TreeNode root) {
+    <span class="keyword">while</span> (root != <span class="keyword">null</span> &amp;&amp; root.right != <span class="keyword">null</span>)
+        root = root.right;
+    <span class="keyword">return</span> root;
+}
+</pre>
+            </div>
+            <div id="pyMin" class="code-content">
+<pre>
+<span class="keyword">def</span> find_min(root):
+    <span class="keyword">while</span> root <span class="keyword">is not</span> <span class="keyword">None</span> <span class="keyword">and</span> root.left <span class="keyword">is not</span> <span class="keyword">None</span>:
+        root = root.left
+    <span class="keyword">return</span> root
+
+<span class="keyword">def</span> find_max(root):
+    <span class="keyword">while</span> root <span class="keyword">is not</span> <span class="keyword">None</span> <span class="keyword">and</span> root.right <span class="keyword">is not</span> <span class="keyword">None</span>:
+        root = root.right
+    <span class="keyword">return</span> root
+</pre>
+            </div>
+        </div>
+
+        <h2>6. Delete</h2>
+        <p>Deletion is the trickiest operation. After locating the node, there are <strong>three cases</strong>:</p>
+        <ul>
+            <li><strong>(a) Leaf (no children):</strong> simply remove it — replace it with null.</li>
+            <li><strong>(b) One child:</strong> splice the node out — replace it with its single child.</li>
+            <li><strong>(c) Two children:</strong> replace the node's key with its <strong>inorder successor</strong> (the minimum of the right subtree) or <strong>inorder predecessor</strong> (max of the left subtree), then recursively delete that successor/predecessor from the subtree. The successor has at most one child, so it reduces to case (a) or (b).</li>
+        </ul>
+
+        <div class="visual">
+<pre>
+Case (a) - delete a LEAF: delete(4)
+
+        8                 8
+      /   \             /   \
+     3     10   ==&gt;    3     10
+   /   \             /   \
+  1     6           1     6
+       /                            (4's parent now points to null)
+      4   &lt;-- remove
+</pre>
+        </div>
+
+        <div class="visual">
+<pre>
+Case (b) - ONE child: delete(6)   (6 has only a left child, 4)
+
+        8                 8
+      /   \             /   \
+     3     10   ==&gt;    3     10
+   /   \             /   \
+  1     6           1     4    &lt;-- 6 replaced by its child 4
+       /
+      4
+</pre>
+        </div>
+
+        <div class="visual">
+<pre>
+Case (c) - TWO children: delete(3)
+
+        8                          8
+      /   \                      /   \
+     3     10                   4     10     &lt;-- 3's key overwritten
+   /   \      \      ==&gt;      /   \      \         with successor 4
+  1     6      14            1     6      14
+       / \     /                   \     /
+      4   7   13                    7   13
+   ^successor = min of                ^ old successor node (4)
+    right subtree {6,4,7} = 4           was a leaf -> removed (case a)
+
+Steps: 1) succ = findMin(3.right) = 4
+       2) copy succ.key (4) into the node being deleted
+       3) delete 4 from the right subtree (now a leaf / one-child case)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDel')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDel')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDel')">Python</button>
+            </div>
+            <div id="cppDel" class="code-content active">
+<pre>
+<span class="comment">// Recursive delete: returns the new root of this subtree</span>
+TreeNode* deleteNode(TreeNode* root, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (root == <span class="keyword">nullptr</span>) <span class="keyword">return</span> <span class="keyword">nullptr</span>;  <span class="comment">// not found</span>
+
+    <span class="keyword">if</span> (key &lt; root-&gt;key) {
+        root-&gt;left = deleteNode(root-&gt;left, key);
+    } <span class="keyword">else if</span> (key &gt; root-&gt;key) {
+        root-&gt;right = deleteNode(root-&gt;right, key);
+    } <span class="keyword">else</span> {
+        <span class="comment">// found the node to delete</span>
+        <span class="keyword">if</span> (root-&gt;left == <span class="keyword">nullptr</span>) {          <span class="comment">// case a/b: no left child</span>
+            TreeNode* r = root-&gt;right;
+            <span class="keyword">delete</span> root;
+            <span class="keyword">return</span> r;
+        } <span class="keyword">else if</span> (root-&gt;right == <span class="keyword">nullptr</span>) {  <span class="comment">// case b: no right child</span>
+            TreeNode* l = root-&gt;left;
+            <span class="keyword">delete</span> root;
+            <span class="keyword">return</span> l;
+        }
+        <span class="comment">// case c: two children -> inorder successor</span>
+        TreeNode* succ = root-&gt;right;
+        <span class="keyword">while</span> (succ-&gt;left != <span class="keyword">nullptr</span>) succ = succ-&gt;left;
+        root-&gt;key = succ-&gt;key;                         <span class="comment">// copy successor key up</span>
+        root-&gt;right = deleteNode(root-&gt;right, succ-&gt;key); <span class="comment">// remove successor</span>
+    }
+    <span class="keyword">return</span> root;
+}
+</pre>
+            </div>
+            <div id="javaDel" class="code-content">
+<pre>
+<span class="comment">// Recursive delete: returns the new root of this subtree</span>
+TreeNode deleteNode(TreeNode root, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;  <span class="comment">// not found</span>
+
+    <span class="keyword">if</span> (key &lt; root.key) {
+        root.left = deleteNode(root.left, key);
+    } <span class="keyword">else if</span> (key &gt; root.key) {
+        root.right = deleteNode(root.right, key);
+    } <span class="keyword">else</span> {
+        <span class="comment">// found the node to delete</span>
+        <span class="keyword">if</span> (root.left == <span class="keyword">null</span>)  <span class="keyword">return</span> root.right;  <span class="comment">// case a/b</span>
+        <span class="keyword">if</span> (root.right == <span class="keyword">null</span>) <span class="keyword">return</span> root.left;   <span class="comment">// case b</span>
+
+        <span class="comment">// case c: two children -> inorder successor</span>
+        TreeNode succ = root.right;
+        <span class="keyword">while</span> (succ.left != <span class="keyword">null</span>) succ = succ.left;
+        root.key = succ.key;                          <span class="comment">// copy successor key up</span>
+        root.right = deleteNode(root.right, succ.key); <span class="comment">// remove successor</span>
+    }
+    <span class="keyword">return</span> root;
+}
+</pre>
+            </div>
+            <div id="pyDel" class="code-content">
+<pre>
+<span class="comment"># Recursive delete: returns the new root of this subtree</span>
+<span class="keyword">def</span> delete_node(root, key):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="keyword">None</span>  <span class="comment"># not found</span>
+
+    <span class="keyword">if</span> key &lt; root.key:
+        root.left = delete_node(root.left, key)
+    <span class="keyword">elif</span> key &gt; root.key:
+        root.right = delete_node(root.right, key)
+    <span class="keyword">else</span>:
+        <span class="comment"># found the node to delete</span>
+        <span class="keyword">if</span> root.left <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> root.right   <span class="comment"># case a/b</span>
+        <span class="keyword">if</span> root.right <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> root.left    <span class="comment"># case b</span>
+
+        <span class="comment"># case c: two children -> inorder successor</span>
+        succ = root.right
+        <span class="keyword">while</span> succ.left <span class="keyword">is not</span> <span class="keyword">None</span>:
+            succ = succ.left
+        root.key = succ.key                            <span class="comment"># copy successor key up</span>
+        root.right = delete_node(root.right, succ.key) <span class="comment"># remove successor</span>
+    <span class="keyword">return</span> root
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why the successor works:</strong> the inorder successor is the smallest key larger than the deleted key, so substituting it preserves the ordering invariant. It lives in the right subtree and has no left child (it is that subtree's minimum), so deleting it only ever hits case (a) or (b) — no infinite recursion. Using the inorder predecessor (max of the left subtree) is equally valid.
+        </div>
+
+        <h2>7. Why Height Matters</h2>
+        <p>Every operation costs O(h). If the tree is <strong>balanced</strong>, h = O(log n) and everything is fast. But a plain BST has <strong>no self-balancing</strong>: inserting already-sorted data produces a <strong>degenerate</strong> tree — effectively a linked list — where h = n and operations degrade to O(n).</p>
+
+        <div class="visual">
+<pre>
+Inserting 1,2,3,4,5 in sorted order into a plain BST:
+
+  1
+   \
+    2
+     \
+      3            Height = n - 1
+       \           search/insert/delete = O(n)
+        4          (no better than a linked list)
+         \
+          5
+
+Compare to a balanced arrangement of the same keys:
+
+        3
+      /   \
+     2     4       Height = O(log n)
+    /       \      all operations = O(log n)
+   1         5
+</pre>
+        </div>
+
+        <div class="note">
+            <strong>This is the motivation for self-balancing trees.</strong> Structures like <strong>AVL trees</strong> and <strong>Red-Black trees</strong> perform rotations during insert/delete to guarantee h = O(log n) in the worst case. See the dedicated AVL and Red-Black pages for how rotations keep the height bounded.
+        </div>
+
+        <h2>8. Complexity Summary</h2>
+        <p>For a BST holding n keys, every core operation costs O(h):</p>
+        <table>
+            <tr><th>Operation</th><th>Balanced (h = log n)</th><th>Worst case / skewed (h = n)</th></tr>
+            <tr><td>Search</td><td>O(log n)</td><td>O(n)</td></tr>
+            <tr><td>Insert</td><td>O(log n)</td><td>O(n)</td></tr>
+            <tr><td>Delete</td><td>O(log n)</td><td>O(n)</td></tr>
+            <tr><td>Find min / max</td><td>O(log n)</td><td>O(n)</td></tr>
+            <tr><td>Space</td><td>O(n)</td><td>O(n)</td></tr>
+        </table>
+        <p>The takeaway: a BST is only as good as it is balanced. For guaranteed O(log n) behavior on adversarial or sorted input, reach for a self-balancing variant.</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

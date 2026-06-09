@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST Construction &amp; Conversion - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>BST Construction &amp; Conversion</h1>
+        <p>A family of closely related problems: turning sorted data into a <strong>height-balanced BST</strong>, converting a BST into a sorted linked list and back, rebuilding a tree from a single traversal, and repairing a corrupted BST. The unifying idea is that the <strong>inorder traversal of a BST is exactly the sorted order of its keys</strong>.</p>
+
+        <h2>1. Sorted Array &rarr; Height-Balanced BST</h2>
+        <p>Given a sorted array, build a BST of minimum possible height. The recipe: pick the <strong>middle element as the root</strong>, recursively build the left subtree from the left half and the right subtree from the right half. Each half has roughly half the elements, so the recursion depth is <code>O(log n)</code>.</p>
+
+        <div class="visual">
+<pre>
+Sorted array:  [-10, -3, 0, 5, 9, 12, 18]   (indices 0..6)
+
+mid = (0 + 6) / 2 = 3  -> root = 5
+  left half  [-10, -3, 0]   mid = 1 -> -3
+  right half [9, 12, 18]    mid = 5 -> 12
+
+                  5
+                /   \
+              -3     12
+             /  \    /  \
+          -10    0  9    18
+
+Height = 2  (minimum possible for 7 nodes: ceil(log2(7+1)) - 1)
+Inorder walk gives back: -10 -3 0 5 9 12 18  (the sorted array)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> val;
+    Node *left, *right;
+    Node(<span class="keyword">int</span> v) : val(v), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+
+<span class="comment">// Build a balanced BST from a[lo..hi] (inclusive)</span>
+Node* build(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">if</span> (lo &gt; hi) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;
+    Node* root = <span class="keyword">new</span> Node(a[mid]);
+    root-&gt;left  = build(a, lo, mid - <span class="number">1</span>);
+    root-&gt;right = build(a, mid + <span class="number">1</span>, hi);
+    <span class="keyword">return</span> root;
+}
+
+Node* sortedArrayToBST(vector&lt;<span class="keyword">int</span>&gt;&amp; a) {
+    <span class="keyword">return</span> build(a, <span class="number">0</span>, (<span class="keyword">int</span>)a.size() - <span class="number">1</span>);
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> {
+    <span class="keyword">int</span> val;
+    <span class="type">Node</span> left, right;
+    <span class="type">Node</span>(<span class="keyword">int</span> v) { val = v; }
+}
+
+<span class="comment">// Build a balanced BST from a[lo..hi] (inclusive)</span>
+<span class="type">Node</span> build(<span class="keyword">int</span>[] a, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">if</span> (lo &gt; hi) <span class="keyword">return</span> <span class="keyword">null</span>;
+    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;
+    <span class="type">Node</span> root = <span class="keyword">new</span> <span class="type">Node</span>(a[mid]);
+    root.left  = build(a, lo, mid - <span class="number">1</span>);
+    root.right = build(a, mid + <span class="number">1</span>, hi);
+    <span class="keyword">return</span> root;
+}
+
+<span class="type">Node</span> sortedArrayToBST(<span class="keyword">int</span>[] a) {
+    <span class="keyword">return</span> build(a, <span class="number">0</span>, a.length - <span class="number">1</span>);
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, v):
+        self.val = v
+        self.left = self.right = <span class="keyword">None</span>
+
+<span class="comment"># Build a balanced BST from a[lo..hi] (inclusive)</span>
+<span class="keyword">def</span> build(a, lo, hi):
+    <span class="keyword">if</span> lo &gt; hi:
+        <span class="keyword">return</span> <span class="keyword">None</span>
+    mid = (lo + hi) // <span class="number">2</span>
+    root = Node(a[mid])
+    root.left  = build(a, lo, mid - <span class="number">1</span>)
+    root.right = build(a, mid + <span class="number">1</span>, hi)
+    <span class="keyword">return</span> root
+
+<span class="keyword">def</span> sorted_array_to_bst(a):
+    <span class="keyword">return</span> build(a, <span class="number">0</span>, len(a) - <span class="number">1</span>)
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why the middle gives minimum height:</strong>
+            <ul>
+                <li>Choosing the middle splits the remaining keys into two parts whose sizes differ by at most one. The height satisfies <code>H(n) = 1 + H(n/2)</code>, which resolves to <code>O(log n)</code>.</li>
+                <li>Any choice off-center makes one subtree larger, which can only increase the maximum depth, never decrease it. The middle is therefore the height-minimizing pivot at every level.</li>
+            </ul>
+        </div>
+
+        <h2>2. Sorted Linked List &rarr; Balanced BST</h2>
+        <p>The same divide-and-conquer works on a sorted linked list, but a list has no <code>O(1)</code> random access, so locating the middle each time costs <code>O(n)</code> and the whole thing degrades to <code>O(n log n)</code>. The trick is to <strong>build the tree in inorder order while walking the list once</strong>.</p>
+        <p>Since an inorder traversal visits nodes in sorted order, and the list is already sorted, we can build the left subtree first, then <strong>consume the current list head as the root</strong> (advancing a shared pointer), then build the right subtree. Counting the number of nodes up front tells us how to split; the list pointer is consumed exactly in sorted order, giving <code>O(n)</code> total.</p>
+
+        <div class="visual">
+<pre>
+List:  1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7   (n = 7)
+
+convert(7):
+   left  = convert(3)        builds subtree over first 3 nodes
+   root  = take list head    (the 4th node, value 4)
+   right = convert(3)        builds subtree over last 3 nodes
+
+The moving pointer is consumed left-to-right: 1,2,3,4,5,6,7
+so each node is "placed" exactly when inorder reaches it.
+
+                  4
+                /   \
+               2     6
+              / \   / \
+             1   3 5   7
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="keyword">struct</span> ListNode { <span class="keyword">int</span> val; ListNode* next; };
+
+ListNode* head;  <span class="comment">// shared moving pointer</span>
+
+<span class="keyword">int</span> length(ListNode* h) {
+    <span class="keyword">int</span> n = <span class="number">0</span>;
+    <span class="keyword">for</span> (; h; h = h-&gt;next) n++;
+    <span class="keyword">return</span> n;
+}
+
+<span class="comment">// Build a balanced BST over the next `n` list nodes, inorder.</span>
+Node* convert(<span class="keyword">int</span> n) {
+    <span class="keyword">if</span> (n &lt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    Node* left = convert(n / <span class="number">2</span>);          <span class="comment">// left half first</span>
+    Node* root = <span class="keyword">new</span> Node(head-&gt;val);     <span class="comment">// consume head as root</span>
+    head = head-&gt;next;                       <span class="comment">// advance pointer</span>
+    root-&gt;left  = left;
+    root-&gt;right = convert(n - n / <span class="number">2</span> - <span class="number">1</span>);  <span class="comment">// remaining = right half</span>
+    <span class="keyword">return</span> root;
+}
+
+Node* sortedListToBST(ListNode* h) {
+    head = h;
+    <span class="keyword">return</span> convert(length(h));
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">ListNode</span>:
+    <span class="keyword">def</span> __init__(self, v, nxt=<span class="keyword">None</span>):
+        self.val, self.next = v, nxt
+
+<span class="keyword">def</span> sorted_list_to_bst(head):
+    <span class="keyword">def</span> length(h):
+        n = <span class="number">0</span>
+        <span class="keyword">while</span> h:
+            n += <span class="number">1</span>; h = h.next
+        <span class="keyword">return</span> n
+
+    cur = [head]  <span class="comment"># box so inner fn can mutate the pointer</span>
+
+    <span class="keyword">def</span> convert(n):
+        <span class="keyword">if</span> n &lt;= <span class="number">0</span>:
+            <span class="keyword">return</span> <span class="keyword">None</span>
+        left = convert(n // <span class="number">2</span>)            <span class="comment"># left half first</span>
+        root = Node(cur[<span class="number">0</span>].val)           <span class="comment"># consume head as root</span>
+        cur[<span class="number">0</span>] = cur[<span class="number">0</span>].next            <span class="comment"># advance pointer</span>
+        root.left  = left
+        root.right = convert(n - n // <span class="number">2</span> - <span class="number">1</span>)
+        <span class="keyword">return</span> root
+
+    <span class="keyword">return</span> convert(length(head))
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why this beats the repeated-middle approach:</strong> Finding the middle with slow/fast pointers and recursing costs <code>T(n) = 2T(n/2) + O(n)</code> = <code>O(n log n)</code>. The inorder-simulation visits each list node once and does <code>O(1)</code> work per node, so it is <code>O(n)</code> time with <code>O(log n)</code> recursion stack. A <strong>doubly</strong> linked list works identically; the <code>prev</code> pointers are simply ignored during the build.
+        </div>
+
+        <h2>3. BST &rarr; Sorted Doubly Linked List (in-place)</h2>
+        <p>The reverse direction: flatten a BST into a sorted doubly linked list <strong>reusing the existing nodes</strong> &mdash; <code>left</code> becomes <code>prev</code> and <code>right</code> becomes <code>next</code>. An inorder traversal visits keys in sorted order, so we keep a running <code>prev</code> pointer and thread each visited node onto the tail. In the <strong>circular</strong> variant we finally join <code>head</code> and <code>tail</code>.</p>
+
+        <div class="visual">
+<pre>
+BST:            4
+              /   \
+             2     6
+            / \   / \
+           1   3 5   7
+
+Inorder threading sets prev/next as nodes are visited:
+
+   head                                            tail
+    |                                                |
+    1 &lt;-&gt; 2 &lt;-&gt; 3 &lt;-&gt; 4 &lt;-&gt; 5 &lt;-&gt; 6 &lt;-&gt; 7
+
+Circular variant: also link  tail.next = head  and  head.prev = tail
+    +-----------------------------------------------+
+    |                                               |
+    v                                               |
+    1 &lt;-&gt; 2 &lt;-&gt; 3 &lt;-&gt; 4 &lt;-&gt; 5 &lt;-&gt; 6 &lt;-&gt; 7 ----------+
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="comment">// Uses left = prev, right = next. Returns the list head.</span>
+Node *head = <span class="keyword">nullptr</span>, *prev = <span class="keyword">nullptr</span>;
+
+<span class="keyword">void</span> inorder(Node* node) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span>;
+    inorder(node-&gt;left);
+    <span class="keyword">if</span> (!prev) head = node;          <span class="comment">// leftmost node = head</span>
+    <span class="keyword">else</span> { prev-&gt;right = node; node-&gt;left = prev; }
+    prev = node;                     <span class="comment">// node becomes new tail</span>
+    inorder(node-&gt;right);
+}
+
+Node* treeToDoublyList(Node* root, <span class="keyword">bool</span> circular) {
+    head = prev = <span class="keyword">nullptr</span>;
+    inorder(root);
+    <span class="keyword">if</span> (circular &amp;&amp; head) {           <span class="comment">// prev is now the tail</span>
+        prev-&gt;right = head;
+        head-&gt;left  = prev;
+    }
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="comment">// Uses left = prev, right = next. Returns the list head.</span>
+<span class="type">Node</span> head = <span class="keyword">null</span>, prev = <span class="keyword">null</span>;
+
+<span class="keyword">void</span> inorder(<span class="type">Node</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    inorder(node.left);
+    <span class="keyword">if</span> (prev == <span class="keyword">null</span>) head = node;   <span class="comment">// leftmost node = head</span>
+    <span class="keyword">else</span> { prev.right = node; node.left = prev; }
+    prev = node;                       <span class="comment">// node becomes new tail</span>
+    inorder(node.right);
+}
+
+<span class="type">Node</span> treeToDoublyList(<span class="type">Node</span> root, <span class="keyword">boolean</span> circular) {
+    head = prev = <span class="keyword">null</span>;
+    inorder(root);
+    <span class="keyword">if</span> (circular &amp;&amp; head != <span class="keyword">null</span>) {  <span class="comment">// prev is now the tail</span>
+        prev.right = head;
+        head.left  = prev;
+    }
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="comment"># Uses left = prev, right = next. Returns the list head.</span>
+<span class="keyword">def</span> tree_to_doubly_list(root, circular=<span class="keyword">False</span>):
+    state = {<span class="string">"head"</span>: <span class="keyword">None</span>, <span class="string">"prev"</span>: <span class="keyword">None</span>}
+
+    <span class="keyword">def</span> inorder(node):
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span>
+        inorder(node.left)
+        <span class="keyword">if</span> state[<span class="string">"prev"</span>] <span class="keyword">is</span> <span class="keyword">None</span>:
+            state[<span class="string">"head"</span>] = node        <span class="comment"># leftmost node = head</span>
+        <span class="keyword">else</span>:
+            state[<span class="string">"prev"</span>].right = node
+            node.left = state[<span class="string">"prev"</span>]
+        state[<span class="string">"prev"</span>] = node              <span class="comment"># node becomes new tail</span>
+        inorder(node.right)
+
+    inorder(root)
+    head, tail = state[<span class="string">"head"</span>], state[<span class="string">"prev"</span>]
+    <span class="keyword">if</span> circular <span class="keyword">and</span> head:
+        tail.right = head
+        head.left  = tail
+    <span class="keyword">return</span> head
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Construct BST from Preorder Traversal</h2>
+        <p>A preorder array <code>[root, ...left subtree..., ...right subtree...]</code> uniquely determines a BST (the BST property fills in the ambiguity). The naive split-by-search is <code>O(n^2)</code>; the <code>O(n)</code> approach passes an <strong>upper bound</strong> down the recursion: a node belongs to the current subtree only if its value is below the bound.</p>
+
+        <div class="visual">
+<pre>
+Preorder: [8, 5, 1, 7, 10, 12]
+
+build(bound = +inf):
+  take 8 -> root.        recurse left with bound = 8
+    take 5 -> 8.left.    recurse left with bound = 5
+      take 1 -> 5.left.  next is 7, 7 &gt; 5 -> stop left
+      next is 7, 7 &lt; 8 -> recurse right with bound = 8
+      take 7 -> 5.right. next is 10, 10 &gt; 8 -> stop
+    next is 10, 10 &lt; inf -> recurse right with bound = +inf
+    take 10 -> 8.right.  recurse right, take 12 -> 10.right
+
+                  8
+                /   \
+               5     10
+              / \      \
+             1   7      12
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp4')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java4')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python4')">Python</button>
+            </div>
+            <div id="cpp4" class="code-content active">
+<pre>
+<span class="keyword">int</span> idx;
+vector&lt;<span class="keyword">int</span>&gt; pre;
+
+Node* build(<span class="keyword">int</span> bound) {
+    <span class="keyword">if</span> (idx == (<span class="keyword">int</span>)pre.size() || pre[idx] &gt; bound)
+        <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    Node* root = <span class="keyword">new</span> Node(pre[idx++]);
+    root-&gt;left  = build(root-&gt;val);   <span class="comment">// left keys &lt; root</span>
+    root-&gt;right = build(bound);       <span class="comment">// right keys &lt; inherited bound</span>
+    <span class="keyword">return</span> root;
+}
+
+Node* bstFromPreorder(vector&lt;<span class="keyword">int</span>&gt;&amp; preorder) {
+    pre = preorder; idx = <span class="number">0</span>;
+    <span class="keyword">return</span> build(INT_MAX);
+}
+</pre>
+            </div>
+            <div id="java4" class="code-content">
+<pre>
+<span class="keyword">int</span> idx;
+<span class="keyword">int</span>[] pre;
+
+<span class="type">Node</span> build(<span class="keyword">int</span> bound) {
+    <span class="keyword">if</span> (idx == pre.length || pre[idx] &gt; bound)
+        <span class="keyword">return</span> <span class="keyword">null</span>;
+    <span class="type">Node</span> root = <span class="keyword">new</span> <span class="type">Node</span>(pre[idx++]);
+    root.left  = build(root.val);    <span class="comment">// left keys &lt; root</span>
+    root.right = build(bound);       <span class="comment">// right keys &lt; inherited bound</span>
+    <span class="keyword">return</span> root;
+}
+
+<span class="type">Node</span> bstFromPreorder(<span class="keyword">int</span>[] preorder) {
+    pre = preorder; idx = <span class="number">0</span>;
+    <span class="keyword">return</span> build(<span class="type">Integer</span>.MAX_VALUE);
+}
+</pre>
+            </div>
+            <div id="python4" class="code-content">
+<pre>
+<span class="keyword">def</span> bst_from_preorder(preorder):
+    idx = [<span class="number">0</span>]
+
+    <span class="keyword">def</span> build(bound):
+        <span class="keyword">if</span> idx[<span class="number">0</span>] == len(preorder) <span class="keyword">or</span> preorder[idx[<span class="number">0</span>]] &gt; bound:
+            <span class="keyword">return</span> <span class="keyword">None</span>
+        val = preorder[idx[<span class="number">0</span>]]
+        idx[<span class="number">0</span>] += <span class="number">1</span>
+        root = Node(val)
+        root.left  = build(val)        <span class="comment"># left keys &lt; root</span>
+        root.right = build(bound)      <span class="comment"># right keys &lt; inherited bound</span>
+        <span class="keyword">return</span> root
+
+    <span class="keyword">return</span> build(float(<span class="string">"inf"</span>))
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Monotonic-stack alternative:</strong> Maintain a stack of ancestors with decreasing values. For each value, while it exceeds the stack top, pop &mdash; the last popped node is its parent and the new node is that parent's right child; otherwise it is the left child of the current top. Each node is pushed and popped once, so this is also <code>O(n)</code>.
+        </div>
+
+        <h2>5. Recover a BST (Two Nodes Swapped)</h2>
+        <p>Exactly two nodes of a valid BST were swapped by mistake. An inorder traversal of a correct BST is strictly increasing, so the swap creates one or two <strong>descending adjacent pairs</strong>. Identify the offenders, then swap their values back (the structure is untouched).</p>
+        <ul>
+            <li><strong>first</strong> = the larger element of the <em>first</em> descending pair.</li>
+            <li><strong>second</strong> = the smaller element of the <em>last</em> descending pair.</li>
+            <li>If the two swapped nodes are adjacent in the inorder order there is only one descending pair, so <code>second</code> is set from that same pair.</li>
+        </ul>
+
+        <div class="visual">
+<pre>
+Correct inorder:  1  2  3  4  5  6  7
+Swap 2 and 6:     1  6  3  4  5  2  7
+                     ^--first         (6 &gt; 3: first descending pair)
+                                ^--second (5 &gt; 2: last descending pair)
+
+first  = 6  (larger of first dip),  second = 2 (smaller of last dip)
+Swap their values back -> 1 2 3 4 5 6 7   restored.
+
+Adjacent case, swap 3 and 4:  1 2 4 3 5 6 7
+Only one dip (4 &gt; 3): first = 4, second = 3.
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp5')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java5')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python5')">Python</button>
+            </div>
+            <div id="cpp5" class="code-content active">
+<pre>
+Node *first = <span class="keyword">nullptr</span>, *second = <span class="keyword">nullptr</span>, *prev = <span class="keyword">nullptr</span>;
+
+<span class="keyword">void</span> inorder(Node* node) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span>;
+    inorder(node-&gt;left);
+    <span class="keyword">if</span> (prev &amp;&amp; prev-&gt;val &gt; node-&gt;val) {  <span class="comment">// a descending pair</span>
+        <span class="keyword">if</span> (!first) first = prev;        <span class="comment">// larger of first dip</span>
+        second = node;                   <span class="comment">// smaller of last dip</span>
+    }
+    prev = node;
+    inorder(node-&gt;right);
+}
+
+<span class="keyword">void</span> recoverTree(Node* root) {
+    first = second = prev = <span class="keyword">nullptr</span>;
+    inorder(root);
+    <span class="keyword">if</span> (first &amp;&amp; second) swap(first-&gt;val, second-&gt;val);
+}
+</pre>
+            </div>
+            <div id="java5" class="code-content">
+<pre>
+<span class="type">Node</span> first = <span class="keyword">null</span>, second = <span class="keyword">null</span>, prev = <span class="keyword">null</span>;
+
+<span class="keyword">void</span> inorder(<span class="type">Node</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    inorder(node.left);
+    <span class="keyword">if</span> (prev != <span class="keyword">null</span> &amp;&amp; prev.val &gt; node.val) {  <span class="comment">// descending pair</span>
+        <span class="keyword">if</span> (first == <span class="keyword">null</span>) first = prev;       <span class="comment">// larger of first dip</span>
+        second = node;                          <span class="comment">// smaller of last dip</span>
+    }
+    prev = node;
+    inorder(node.right);
+}
+
+<span class="keyword">void</span> recoverTree(<span class="type">Node</span> root) {
+    first = second = prev = <span class="keyword">null</span>;
+    inorder(root);
+    <span class="keyword">if</span> (first != <span class="keyword">null</span> &amp;&amp; second != <span class="keyword">null</span>) {
+        <span class="keyword">int</span> t = first.val; first.val = second.val; second.val = t;
+    }
+}
+</pre>
+            </div>
+            <div id="python5" class="code-content">
+<pre>
+<span class="keyword">def</span> recover_tree(root):
+    state = {<span class="string">"first"</span>: <span class="keyword">None</span>, <span class="string">"second"</span>: <span class="keyword">None</span>, <span class="string">"prev"</span>: <span class="keyword">None</span>}
+
+    <span class="keyword">def</span> inorder(node):
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span>
+        inorder(node.left)
+        prev = state[<span class="string">"prev"</span>]
+        <span class="keyword">if</span> prev <span class="keyword">and</span> prev.val &gt; node.val:    <span class="comment"># descending pair</span>
+            <span class="keyword">if</span> state[<span class="string">"first"</span>] <span class="keyword">is</span> <span class="keyword">None</span>:
+                state[<span class="string">"first"</span>] = prev        <span class="comment"># larger of first dip</span>
+            state[<span class="string">"second"</span>] = node           <span class="comment"># smaller of last dip</span>
+        state[<span class="string">"prev"</span>] = node
+        inorder(node.right)
+
+    inorder(root)
+    f, s = state[<span class="string">"first"</span>], state[<span class="string">"second"</span>]
+    <span class="keyword">if</span> f <span class="keyword">and</span> s:
+        f.val, s.val = s.val, f.val
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>O(1) space &mdash; Morris traversal:</strong> The recursive/stack version uses <code>O(h)</code> space. A <strong>Morris inorder traversal</strong> temporarily threads each node's predecessor <code>right</code> pointer to itself, achieving constant extra space while applying the exact same first/second/prev logic. It is the canonical follow-up for this problem.
+        </div>
+
+        <h2>6. Balance an Unbalanced BST</h2>
+        <p>To rebalance any BST, combine the inorder traversal with section 1: walk the tree inorder to extract a sorted array, then rebuild a height-balanced BST from that array. Two linear passes give <code>O(n)</code> time and <code>O(n)</code> space.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp6')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'python6')">Python</button>
+            </div>
+            <div id="cpp6" class="code-content active">
+<pre>
+<span class="keyword">void</span> inorder(Node* n, vector&lt;<span class="keyword">int</span>&gt;&amp; out) {
+    <span class="keyword">if</span> (!n) <span class="keyword">return</span>;
+    inorder(n-&gt;left, out);
+    out.push_back(n-&gt;val);
+    inorder(n-&gt;right, out);
+}
+
+Node* balanceBST(Node* root) {
+    vector&lt;<span class="keyword">int</span>&gt; sorted;
+    inorder(root, sorted);             <span class="comment">// sorted keys</span>
+    <span class="keyword">return</span> build(sorted, <span class="number">0</span>, (<span class="keyword">int</span>)sorted.size() - <span class="number">1</span>);  <span class="comment">// reuse section 1</span>
+}
+</pre>
+            </div>
+            <div id="python6" class="code-content">
+<pre>
+<span class="keyword">def</span> balance_bst(root):
+    keys = []
+    <span class="keyword">def</span> inorder(n):
+        <span class="keyword">if</span> <span class="keyword">not</span> n:
+            <span class="keyword">return</span>
+        inorder(n.left)
+        keys.append(n.val)
+        inorder(n.right)
+    inorder(root)                      <span class="comment"># sorted keys</span>
+    <span class="keyword">return</span> build(keys, <span class="number">0</span>, len(keys) - <span class="number">1</span>)  <span class="comment"># reuse section 1</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Conversion</th><th>Time</th><th>Space (aux)</th></tr>
+            <tr><td>Sorted array &rarr; balanced BST</td><td>O(n)</td><td>O(log n) stack</td></tr>
+            <tr><td>Sorted list &rarr; BST (repeated middle)</td><td>O(n log n)</td><td>O(log n) stack</td></tr>
+            <tr><td>Sorted list &rarr; BST (inorder sim)</td><td>O(n)</td><td>O(log n) stack</td></tr>
+            <tr><td>BST &rarr; sorted doubly linked list</td><td>O(n)</td><td>O(h) stack, in-place nodes</td></tr>
+            <tr><td>Preorder &rarr; BST (bound / stack)</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Recover BST (recursive)</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Recover BST (Morris)</td><td>O(n)</td><td>O(1)</td></tr>
+            <tr><td>Balance an unbalanced BST</td><td>O(n)</td><td>O(n)</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>The unifying principle &mdash; inorder &harr; sorted bijection:</strong>
+            <ul>
+                <li>For any BST, the inorder traversal yields its keys in <strong>strictly sorted order</strong>, and conversely any sorted sequence laid out by inorder reconstructs a BST.</li>
+                <li>This bijection is why building from a sorted array, flattening to a sorted list, rebalancing, and detecting a corrupted node are all variations of "walk in inorder and either read or write the sorted stream."</li>
+                <li>Preorder reconstruction is the one outlier: it relies on the BST <em>ordering invariant</em> (via the upper bound) rather than the inorder stream, because preorder alone fixes the root-first shape.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

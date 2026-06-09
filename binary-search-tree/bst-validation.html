@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate BST &amp; Traversal - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>BST Validation &amp; Ordered Traversal</h1>
+        <p>A <strong>Binary Search Tree</strong> obeys a single global rule: for every node, <em>all</em> keys in its left subtree are smaller and <em>all</em> keys in its right subtree are larger. This page covers how to correctly validate that property, find inorder successors and predecessors, locate floor and ceil, and answer range queries &mdash; all of which flow from one idea: <strong>an inorder traversal of a BST is sorted.</strong></p>
+
+        <h2>1. Validating a BST: the WRONG Approach</h2>
+        <p>A tempting but <strong>incorrect</strong> idea is to only check each node against its two immediate children: <code>left.val &lt; node.val &lt; right.val</code>. This is a <em>local</em> check and it misses violations that occur deeper in the tree.</p>
+
+        <div class="visual">
+<pre>
+        5
+       / \
+      3   7
+     / \
+    2   6      &lt;-- 6 is in the LEFT subtree of 5!
+
+Local check at every node:
+  node 5: 3 &lt; 5 &lt; 7   OK
+  node 3: 2 &lt; 3 &lt; 6   OK   (6 &gt; 3, looks fine locally)
+  node 7: leaf        OK
+  node 2: leaf        OK
+  node 6: leaf        OK
+
+=&gt; Local check says "valid", but the tree is NOT a BST:
+   6 sits in the left subtree of 5, yet 6 &gt; 5.
+   Inorder traversal: 2, 3, 6, 5, 7  -- NOT sorted (6 before 5).
+</pre>
+        </div>
+
+        <div class="warn">
+            <strong>Why the local check fails:</strong>
+            <ul>
+                <li>The BST property is <strong>global</strong>, not local: a node must respect the bounds set by <em>every</em> ancestor, not just its parent.</li>
+                <li>Checking only direct children verifies parent-child order but ignores the constraint that the entire left subtree must be below the node and the entire right subtree above it.</li>
+                <li>Correct approaches carry an <strong>allowed range</strong> down the tree (Section 2) or compare against the <strong>previous inorder value</strong> (Section 3).</li>
+            </ul>
+        </div>
+
+        <h2>2. Validation via Min/Max Bounds</h2>
+        <p>Recurse from the root with an open interval <code>(low, high)</code>. Each node's key must satisfy <code>low &lt; key &lt; high</code> (strict &mdash; duplicates are not allowed in a standard BST). When you descend left, the node becomes the new upper bound; when you descend right, it becomes the new lower bound.</p>
+
+        <div class="visual">
+<pre>
+Bounds propagate down the tree as (low, high):
+
+                (-inf, +inf)
+                     5
+                    / \
+        (-inf, 5)  /   \  (5, +inf)
+                  3       8
+                 / \     / \
+      (-inf,3)  /   \   /   \  (8, +inf)
+               2    4  6      9
+                  (3,5) (5,8)
+
+  Check node 2: -inf &lt; 2 &lt; 3   OK
+  Check node 4:    3 &lt; 4 &lt; 5   OK
+  Check node 6:    5 &lt; 6 &lt; 8   OK
+  Check node 9:    8 &lt; 9 &lt; +inf OK   =&gt; valid BST
+
+Going LEFT  from node v: high becomes v.key (low unchanged)
+Going RIGHT from node v: low  becomes v.key (high unchanged)
+</pre>
+        </div>
+
+        <div class="warn">
+            <strong>Integer overflow caution:</strong> if node keys can be the full <code>int</code> range (e.g. <code>INT_MIN</code> / <code>INT_MAX</code>), passing the sentinel bounds as <code>int</code> breaks the strict comparison. Use a wider type such as <code>long</code> / <code>long long</code> for the bounds, or use <strong>nullable bounds</strong> (a <code>null</code> meaning "no constraint on this side") and skip the comparison when the bound is absent.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node { <span class="keyword">int</span> key; Node *left, *right; };
+
+<span class="comment">// Use long long bounds so INT_MIN / INT_MAX keys never overflow.</span>
+<span class="keyword">bool</span> validate(Node* node, <span class="keyword">long long</span> low, <span class="keyword">long long</span> high) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">true</span>;                 <span class="comment">// empty subtree is a valid BST</span>
+    <span class="keyword">if</span> (node-&gt;key &lt;= low || node-&gt;key &gt;= high)
+        <span class="keyword">return</span> <span class="keyword">false</span>;                          <span class="comment">// must lie strictly inside (low, high)</span>
+    <span class="keyword">return</span> validate(node-&gt;left, low, node-&gt;key) &amp;&amp;
+           validate(node-&gt;right, node-&gt;key, high);
+}
+
+<span class="keyword">bool</span> isValidBST(Node* root) {
+    <span class="comment">// LLONG_MIN / LLONG_MAX are safely outside any int key range.</span>
+    <span class="keyword">return</span> validate(root, LLONG_MIN, LLONG_MAX);
+}
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> { <span class="keyword">int</span> key; Node left, right; }
+
+<span class="comment">// Nullable Long bounds: null means "no constraint on this side".</span>
+<span class="keyword">boolean</span> validate(<span class="type">Node</span> node, <span class="type">Long</span> low, <span class="type">Long</span> high) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">true</span>;
+    <span class="keyword">if</span> (low != <span class="keyword">null</span> &amp;&amp; node.key &lt;= low) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">if</span> (high != <span class="keyword">null</span> &amp;&amp; node.key &gt;= high) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">return</span> validate(node.left, low, (<span class="keyword">long</span>) node.key) &amp;&amp;
+           validate(node.right, (<span class="keyword">long</span>) node.key, high);
+}
+
+<span class="keyword">boolean</span> isValidBST(<span class="type">Node</span> root) {
+    <span class="keyword">return</span> validate(root, <span class="keyword">null</span>, <span class="keyword">null</span>);
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, key):
+        self.key = key
+        self.left = self.right = <span class="keyword">None</span>
+
+<span class="comment"># Python ints are unbounded, so float('-inf')/float('inf') are safe sentinels.</span>
+<span class="keyword">def</span> validate(node, low, high):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="keyword">True</span>
+    <span class="keyword">if</span> <span class="keyword">not</span> (low &lt; node.key &lt; high):   <span class="comment"># strict on both sides</span>
+        <span class="keyword">return</span> <span class="keyword">False</span>
+    <span class="keyword">return</span> (validate(node.left, low, node.key) <span class="keyword">and</span>
+            validate(node.right, node.key, high))
+
+<span class="keyword">def</span> is_valid_bst(root):
+    <span class="keyword">return</span> validate(root, float(<span class="string">'-inf'</span>), float(<span class="string">'inf'</span>))
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Validation via Inorder Traversal</h2>
+        <p>Since an inorder traversal (left, node, right) of a valid BST yields keys in <strong>strictly increasing</strong> order, we can validate by walking inorder and checking that each key is greater than the <code>prev</code> key visited. No bounds needed &mdash; just track one previous value.</p>
+
+        <div class="visual">
+<pre>
+Inorder visit order on a valid BST:
+
+         5
+        / \
+       3   8
+      / \   \
+     2   4   9
+
+Visit:  2, 3, 4, 5, 8, 9   (each &gt; the one before)
+
+Keep `prev` = last key seen (start at -inf / null).
+At each node in inorder:
+   if key &lt;= prev  -&gt;  NOT a BST
+   else prev = key
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="comment">// prev holds the last key visited inorder; passed by reference.</span>
+<span class="keyword">bool</span> inorderCheck(Node* node, Node*&amp; prev) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">true</span>;
+    <span class="keyword">if</span> (!inorderCheck(node-&gt;left, prev)) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">if</span> (prev &amp;&amp; prev-&gt;key &gt;= node-&gt;key) <span class="keyword">return</span> <span class="keyword">false</span>;  <span class="comment">// must strictly increase</span>
+    prev = node;
+    <span class="keyword">return</span> inorderCheck(node-&gt;right, prev);
+}
+
+<span class="keyword">bool</span> isValidBST(Node* root) {
+    Node* prev = <span class="keyword">nullptr</span>;
+    <span class="keyword">return</span> inorderCheck(root, prev);
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="keyword">private</span> <span class="type">Node</span> prev;  <span class="comment">// last node visited inorder (instance field)</span>
+
+<span class="keyword">boolean</span> isValidBST(<span class="type">Node</span> root) {
+    prev = <span class="keyword">null</span>;
+    <span class="keyword">return</span> inorderCheck(root);
+}
+
+<span class="keyword">boolean</span> inorderCheck(<span class="type">Node</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">true</span>;
+    <span class="keyword">if</span> (!inorderCheck(node.left)) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">if</span> (prev != <span class="keyword">null</span> &amp;&amp; prev.key &gt;= node.key) <span class="keyword">return</span> <span class="keyword">false</span>;
+    prev = node;
+    <span class="keyword">return</span> inorderCheck(node.right);
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="keyword">def</span> is_valid_bst(root):
+    prev = <span class="keyword">None</span>      <span class="comment"># last key seen inorder; use a list cell for closure</span>
+    state = [prev]
+
+    <span class="keyword">def</span> inorder(node):
+        <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> <span class="keyword">True</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> inorder(node.left):
+            <span class="keyword">return</span> <span class="keyword">False</span>
+        <span class="keyword">if</span> state[<span class="number">0</span>] <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> state[<span class="number">0</span>] &gt;= node.key:
+            <span class="keyword">return</span> <span class="keyword">False</span>
+        state[<span class="number">0</span>] = node.key
+        <span class="keyword">return</span> inorder(node.right)
+
+    <span class="keyword">return</span> inorder(root)
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Inorder Successor &amp; Predecessor</h2>
+        <p>The <strong>inorder successor</strong> of a node is the next-larger key (the node that comes right after it in sorted order); the <strong>predecessor</strong> is the next-smaller key.</p>
+
+        <h3>(a) With parent pointers</h3>
+        <p>If each node stores a pointer to its parent, you don't even need the root:</p>
+        <ul>
+            <li><strong>Successor:</strong> if the node has a right child, the answer is the leftmost node of the right subtree. Otherwise climb up parents until you move up from a <em>left</em> child &mdash; that parent is the successor (or <code>null</code> if you reach the top).</li>
+            <li><strong>Predecessor:</strong> the mirror image &mdash; if there is a left child, take the rightmost node of the left subtree; otherwise climb until you move up from a <em>right</em> child.</li>
+        </ul>
+
+        <h3>(b) Without parent pointers (using BST structure)</h3>
+        <p>Search down from the root. For the successor: whenever you go <em>left</em> (target is smaller), the current node is a <strong>candidate</strong> successor; record it and continue. The lowest recorded candidate is the answer. Equivalently:</p>
+        <ul>
+            <li>If the node has a <strong>right child</strong>, the successor is the <strong>minimum</strong> of the right subtree.</li>
+            <li>Otherwise it is the <strong>lowest ancestor</strong> for which the node lies in that ancestor's <strong>left</strong> subtree.</li>
+        </ul>
+
+        <div class="visual">
+<pre>
+                20
+               /  \
+             10    30
+            /  \   /  \
+           5   15 25   35
+
+Successor of 15:  no right child of 15.
+  Walk from root: 20 &gt; 15 -&gt; candidate=20, go left
+                  10 &lt; 15 -&gt; go right (no candidate)
+                  15 == target, stop.
+  Lowest ancestor that has 15 in its LEFT subtree = 20.  Successor = 20.
+
+Successor of 20:  has a right child (30).
+  Successor = min of right subtree = leftmost of 30 = 25.
+
+Predecessor of 20:  has a left child (10).
+  Predecessor = max of left subtree = rightmost of 10 = 15.
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp4')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java4')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python4')">Python</button>
+            </div>
+            <div id="cpp4" class="code-content active">
+<pre>
+<span class="comment">// No parent pointers. Returns successor node, or nullptr if none.</span>
+Node* inorderSuccessor(Node* root, <span class="keyword">int</span> key) {
+    Node* succ = <span class="keyword">nullptr</span>;
+    Node* cur = root;
+    <span class="keyword">while</span> (cur) {
+        <span class="keyword">if</span> (key &lt; cur-&gt;key) {        <span class="comment">// cur could be the successor</span>
+            succ = cur;
+            cur = cur-&gt;left;
+        } <span class="keyword">else</span> {                     <span class="comment">// key &gt;= cur-&gt;key, successor is to the right</span>
+            cur = cur-&gt;right;
+        }
+    }
+    <span class="keyword">return</span> succ;
+}
+
+<span class="comment">// Symmetric: largest key strictly smaller than `key`.</span>
+Node* inorderPredecessor(Node* root, <span class="keyword">int</span> key) {
+    Node* pred = <span class="keyword">nullptr</span>;
+    Node* cur = root;
+    <span class="keyword">while</span> (cur) {
+        <span class="keyword">if</span> (key &gt; cur-&gt;key) {        <span class="comment">// cur could be the predecessor</span>
+            pred = cur;
+            cur = cur-&gt;right;
+        } <span class="keyword">else</span> {
+            cur = cur-&gt;left;
+        }
+    }
+    <span class="keyword">return</span> pred;
+}
+</pre>
+            </div>
+            <div id="java4" class="code-content">
+<pre>
+<span class="comment">// No parent pointers. Returns successor node, or null if none.</span>
+<span class="type">Node</span> inorderSuccessor(<span class="type">Node</span> root, <span class="keyword">int</span> key) {
+    <span class="type">Node</span> succ = <span class="keyword">null</span>, cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (key &lt; cur.key) {        <span class="comment">// cur could be the successor</span>
+            succ = cur;
+            cur = cur.left;
+        } <span class="keyword">else</span> {
+            cur = cur.right;
+        }
+    }
+    <span class="keyword">return</span> succ;
+}
+
+<span class="type">Node</span> inorderPredecessor(<span class="type">Node</span> root, <span class="keyword">int</span> key) {
+    <span class="type">Node</span> pred = <span class="keyword">null</span>, cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (key &gt; cur.key) {        <span class="comment">// cur could be the predecessor</span>
+            pred = cur;
+            cur = cur.right;
+        } <span class="keyword">else</span> {
+            cur = cur.left;
+        }
+    }
+    <span class="keyword">return</span> pred;
+}
+</pre>
+            </div>
+            <div id="python4" class="code-content">
+<pre>
+<span class="comment"># No parent pointers. Returns successor node, or None if none.</span>
+<span class="keyword">def</span> inorder_successor(root, key):
+    succ, cur = <span class="keyword">None</span>, root
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> key &lt; cur.key:          <span class="comment"># cur could be the successor</span>
+            succ = cur
+            cur = cur.left
+        <span class="keyword">else</span>:
+            cur = cur.right
+    <span class="keyword">return</span> succ
+
+<span class="keyword">def</span> inorder_predecessor(root, key):
+    pred, cur = <span class="keyword">None</span>, root
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> key &gt; cur.key:          <span class="comment"># cur could be the predecessor</span>
+            pred = cur
+            cur = cur.right
+        <span class="keyword">else</span>:
+            cur = cur.left
+    <span class="keyword">return</span> pred
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Floor &amp; Ceil of a Key</h2>
+        <p>The <strong>floor</strong> of a key <code>x</code> is the largest key in the tree that is <code>&lt;= x</code>; the <strong>ceil</strong> is the smallest key <code>&gt;= x</code>. Walk down from the root tracking the best candidate found so far &mdash; O(h) time, no extra space.</p>
+
+        <div class="visual">
+<pre>
+                20
+               /  \
+             10    30
+            /  \   /  \
+           5   15 25   35
+
+floor(22):  walk 20 (&lt;=22, best=20, go right)
+                 30 (&gt;22, go left)
+                 25 (&gt;22, go left -&gt; null)  =&gt; floor = 20
+
+ceil(22):   walk 20 (&lt;22, go right)
+                 30 (&gt;=22, best=30, go left)
+                 25 (&gt;=22, best=25, go left -&gt; null)  =&gt; ceil = 25
+
+If x is present, floor(x) = ceil(x) = x.
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp5')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java5')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python5')">Python</button>
+            </div>
+            <div id="cpp5" class="code-content active">
+<pre>
+<span class="comment">// Largest key &lt;= x. Returns LLONG_MIN sentinel if none exists.</span>
+<span class="keyword">long long</span> floorKey(Node* root, <span class="keyword">int</span> x) {
+    <span class="keyword">long long</span> best = LLONG_MIN;
+    Node* cur = root;
+    <span class="keyword">while</span> (cur) {
+        <span class="keyword">if</span> (cur-&gt;key == x) <span class="keyword">return</span> x;     <span class="comment">// exact match is the floor</span>
+        <span class="keyword">if</span> (cur-&gt;key &lt; x) {              <span class="comment">// candidate; look for something larger</span>
+            best = cur-&gt;key;
+            cur = cur-&gt;right;
+        } <span class="keyword">else</span> {
+            cur = cur-&gt;left;            <span class="comment">// too big; go smaller</span>
+        }
+    }
+    <span class="keyword">return</span> best;
+}
+
+<span class="comment">// Smallest key &gt;= x. Returns LLONG_MAX sentinel if none exists.</span>
+<span class="keyword">long long</span> ceilKey(Node* root, <span class="keyword">int</span> x) {
+    <span class="keyword">long long</span> best = LLONG_MAX;
+    Node* cur = root;
+    <span class="keyword">while</span> (cur) {
+        <span class="keyword">if</span> (cur-&gt;key == x) <span class="keyword">return</span> x;
+        <span class="keyword">if</span> (cur-&gt;key &gt; x) {
+            best = cur-&gt;key;
+            cur = cur-&gt;left;
+        } <span class="keyword">else</span> {
+            cur = cur-&gt;right;
+        }
+    }
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="java5" class="code-content">
+<pre>
+<span class="comment">// Largest key &lt;= x. Returns Long.MIN_VALUE if none exists.</span>
+<span class="keyword">long</span> floorKey(<span class="type">Node</span> root, <span class="keyword">int</span> x) {
+    <span class="keyword">long</span> best = <span class="type">Long</span>.MIN_VALUE;
+    <span class="type">Node</span> cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (cur.key == x) <span class="keyword">return</span> x;
+        <span class="keyword">if</span> (cur.key &lt; x) { best = cur.key; cur = cur.right; }
+        <span class="keyword">else</span> cur = cur.left;
+    }
+    <span class="keyword">return</span> best;
+}
+
+<span class="comment">// Smallest key &gt;= x. Returns Long.MAX_VALUE if none exists.</span>
+<span class="keyword">long</span> ceilKey(<span class="type">Node</span> root, <span class="keyword">int</span> x) {
+    <span class="keyword">long</span> best = <span class="type">Long</span>.MAX_VALUE;
+    <span class="type">Node</span> cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (cur.key == x) <span class="keyword">return</span> x;
+        <span class="keyword">if</span> (cur.key &gt; x) { best = cur.key; cur = cur.left; }
+        <span class="keyword">else</span> cur = cur.right;
+    }
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="python5" class="code-content">
+<pre>
+<span class="comment"># Largest key &lt;= x, or None if none exists.</span>
+<span class="keyword">def</span> floor_key(root, x):
+    best, cur = <span class="keyword">None</span>, root
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> cur.key == x:
+            <span class="keyword">return</span> x
+        <span class="keyword">if</span> cur.key &lt; x:        <span class="comment"># candidate; try to find a larger one</span>
+            best = cur.key
+            cur = cur.right
+        <span class="keyword">else</span>:
+            cur = cur.left
+    <span class="keyword">return</span> best
+
+<span class="comment"># Smallest key &gt;= x, or None if none exists.</span>
+<span class="keyword">def</span> ceil_key(root, x):
+    best, cur = <span class="keyword">None</span>, root
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> cur.key == x:
+            <span class="keyword">return</span> x
+        <span class="keyword">if</span> cur.key &gt; x:
+            best = cur.key
+            cur = cur.left
+        <span class="keyword">else</span>:
+            cur = cur.right
+    <span class="keyword">return</span> best
+</pre>
+            </div>
+        </div>
+
+        <h2>6. Range Queries</h2>
+        <p>To sum (or count) all keys in <code>[lo, hi]</code>, exploit the BST ordering to <strong>prune</strong> entire subtrees: if the current key is <code>&lt;= lo</code> there is nothing useful in its left subtree, and if it is <code>&gt;= hi</code> there is nothing useful in its right subtree. Only descend where the range can still contain matches.</p>
+
+        <div class="visual">
+<pre>
+                20
+               /  \
+             10    30
+            /  \   /  \
+           5   15 25   35
+
+rangeSum(lo=12, hi=27):
+  node 20: in [12,27] -&gt; add 20; 20&gt;12 so explore left; 20&lt;27 so explore right
+    node 10: 10 &lt; 12  -&gt; PRUNE left subtree (5 too), only explore right
+      node 15: in range -&gt; add 15
+    node 30: 30 &gt; 27  -&gt; PRUNE right subtree (35 too), only explore left
+      node 25: in range -&gt; add 25
+  Sum = 20 + 15 + 25 = 60   (nodes 5 and 35 never visited)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp6')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java6')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python6')">Python</button>
+            </div>
+            <div id="cpp6" class="code-content active">
+<pre>
+<span class="comment">// Sum of all keys in [lo, hi], pruning out-of-range subtrees.</span>
+<span class="keyword">long long</span> rangeSumBST(Node* node, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">if</span> (node-&gt;key &lt; lo)              <span class="comment">// whole left subtree is too small</span>
+        <span class="keyword">return</span> rangeSumBST(node-&gt;right, lo, hi);
+    <span class="keyword">if</span> (node-&gt;key &gt; hi)              <span class="comment">// whole right subtree is too large</span>
+        <span class="keyword">return</span> rangeSumBST(node-&gt;left, lo, hi);
+    <span class="comment">// lo &lt;= key &lt;= hi: count this node and recurse both sides</span>
+    <span class="keyword">return</span> node-&gt;key
+         + rangeSumBST(node-&gt;left, lo, hi)
+         + rangeSumBST(node-&gt;right, lo, hi);
+}
+
+<span class="comment">// Count of keys in [lo, hi].</span>
+<span class="keyword">int</span> rangeCount(Node* node, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">if</span> (node-&gt;key &lt; lo) <span class="keyword">return</span> rangeCount(node-&gt;right, lo, hi);
+    <span class="keyword">if</span> (node-&gt;key &gt; hi) <span class="keyword">return</span> rangeCount(node-&gt;left, lo, hi);
+    <span class="keyword">return</span> <span class="number">1</span> + rangeCount(node-&gt;left, lo, hi)
+             + rangeCount(node-&gt;right, lo, hi);
+}
+</pre>
+            </div>
+            <div id="java6" class="code-content">
+<pre>
+<span class="comment">// Sum of all keys in [lo, hi], pruning out-of-range subtrees.</span>
+<span class="keyword">long</span> rangeSumBST(<span class="type">Node</span> node, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">if</span> (node.key &lt; lo)              <span class="comment">// whole left subtree is too small</span>
+        <span class="keyword">return</span> rangeSumBST(node.right, lo, hi);
+    <span class="keyword">if</span> (node.key &gt; hi)              <span class="comment">// whole right subtree is too large</span>
+        <span class="keyword">return</span> rangeSumBST(node.left, lo, hi);
+    <span class="keyword">return</span> node.key
+         + rangeSumBST(node.left, lo, hi)
+         + rangeSumBST(node.right, lo, hi);
+}
+
+<span class="comment">// Count of keys in [lo, hi].</span>
+<span class="keyword">int</span> rangeCount(<span class="type">Node</span> node, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">if</span> (node.key &lt; lo) <span class="keyword">return</span> rangeCount(node.right, lo, hi);
+    <span class="keyword">if</span> (node.key &gt; hi) <span class="keyword">return</span> rangeCount(node.left, lo, hi);
+    <span class="keyword">return</span> <span class="number">1</span> + rangeCount(node.left, lo, hi)
+             + rangeCount(node.right, lo, hi);
+}
+</pre>
+            </div>
+            <div id="python6" class="code-content">
+<pre>
+<span class="comment"># Sum of all keys in [lo, hi], pruning out-of-range subtrees.</span>
+<span class="keyword">def</span> range_sum_bst(node, lo, hi):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="number">0</span>
+    <span class="keyword">if</span> node.key &lt; lo:          <span class="comment"># whole left subtree is too small</span>
+        <span class="keyword">return</span> range_sum_bst(node.right, lo, hi)
+    <span class="keyword">if</span> node.key &gt; hi:          <span class="comment"># whole right subtree is too large</span>
+        <span class="keyword">return</span> range_sum_bst(node.left, lo, hi)
+    <span class="keyword">return</span> (node.key
+            + range_sum_bst(node.left, lo, hi)
+            + range_sum_bst(node.right, lo, hi))
+
+<span class="comment"># Count of keys in [lo, hi].</span>
+<span class="keyword">def</span> range_count(node, lo, hi):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="number">0</span>
+    <span class="keyword">if</span> node.key &lt; lo:
+        <span class="keyword">return</span> range_count(node.right, lo, hi)
+    <span class="keyword">if</span> node.key &gt; hi:
+        <span class="keyword">return</span> range_count(node.left, lo, hi)
+    <span class="keyword">return</span> <span class="number">1</span> + range_count(node.left, lo, hi) \
+             + range_count(node.right, lo, hi)
+</pre>
+            </div>
+        </div>
+
+        <h2>7. Complexity Analysis</h2>
+        <p>Here <code>h</code> is the tree height &mdash; O(log n) for a balanced BST, O(n) in the worst case (a degenerate / skewed tree).</p>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Validate (bounds, recursive)</td><td>O(n)</td><td>O(h) recursion stack</td></tr>
+            <tr><td>Validate (inorder)</td><td>O(n)</td><td>O(h) recursion stack</td></tr>
+            <tr><td>Successor / Predecessor (no parent)</td><td>O(h)</td><td>O(1)</td></tr>
+            <tr><td>Successor / Predecessor (with parent)</td><td>O(h)</td><td>O(1)</td></tr>
+            <tr><td>Floor / Ceil</td><td>O(h)</td><td>O(1)</td></tr>
+            <tr><td>Range sum / count (with pruning)</td><td>O(h + k)*</td><td>O(h)</td></tr>
+        </table>
+        <p>*<code>k</code> = number of nodes actually inside the range; pruning skips entire out-of-range subtrees so only relevant paths are walked.</p>
+
+        <div class="note">
+            <strong>The unifying idea &mdash; inorder = sorted:</strong>
+            <ul>
+                <li><strong>Validation</strong> works because a valid BST's inorder sequence is strictly increasing; the bounds approach is just the same invariant expressed as per-node ranges.</li>
+                <li><strong>Successor / predecessor</strong> are simply the next / previous elements in that sorted inorder order.</li>
+                <li><strong>Floor / ceil</strong> are the neighbors of <code>x</code> in the sorted order (largest <code>&le; x</code>, smallest <code>&ge; x</code>).</li>
+                <li><strong>Range queries</strong> select a contiguous slice of the sorted order, which is exactly why we can prune everything outside <code>[lo, hi]</code>.</li>
+            </ul>
+            Internalize "inorder of a BST is sorted" and every operation on this page becomes a variation on a single theme.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

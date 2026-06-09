@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST Order Statistics - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Order Statistics in a BST</h1>
+        <p><strong>Order statistics</strong> answer questions like "what is the kth smallest key?" (<em>select</em>) and "how many keys are smaller than x?" (<em>rank</em>). A binary search tree already stores keys in sorted order via its in-order traversal, so it is a natural home for these queries. This page builds up from a simple O(n) traversal to an <strong>augmented BST</strong> that answers select and rank in O(h) time.</p>
+
+        <h2>1. Kth Smallest via In-order Traversal</h2>
+        <p>An in-order traversal of a BST (left &rarr; root &rarr; right) visits keys in ascending order. The kth node visited is the kth smallest key. We don't need to finish the traversal: we can <strong>stop early</strong> the moment we have visited k nodes. An iterative stack version makes the early exit clean and avoids recursion overhead.</p>
+
+        <div class="visual">
+<pre>
+BST:
+            8
+          /   \
+         3      10
+        / \       \
+       1   6       14
+          / \      /
+         4   7    13
+
+In-order sequence:  1  3  4  6  7  8  10  13  14
+visit count (k):    1  2  3  4  5  6   7   8   9
+
+kthSmallest(k = 4):
+  push 8, push 3, push 1
+  pop 1  -> count 1                (right of 1 is null)
+  pop 3  -> count 2 -> push 6, push 4
+  pop 4  -> count 3                (right of 4 is null)
+  pop 6  -> count 4  == k  =>  return 6   (early exit)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node { <span class="keyword">int</span> key; Node *left, *right; };
+
+<span class="comment">// kth smallest (1-indexed) via iterative in-order with early exit</span>
+<span class="keyword">int</span> kthSmallest(Node* root, <span class="keyword">int</span> k) {
+    stack&lt;Node*&gt; st;
+    Node* cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">nullptr</span> || !st.empty()) {
+        <span class="comment">// go as far left as possible</span>
+        <span class="keyword">while</span> (cur != <span class="keyword">nullptr</span>) { st.push(cur); cur = cur-&gt;left; }
+        cur = st.top(); st.pop();
+        <span class="keyword">if</span> (--k == <span class="number">0</span>) <span class="keyword">return</span> cur-&gt;key;  <span class="comment">// early exit</span>
+        cur = cur-&gt;right;
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>;  <span class="comment">// k out of range</span>
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">int</span> kthSmallest(Node root, <span class="keyword">int</span> k) {
+    Deque&lt;Node&gt; st = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+    Node cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span> || !st.isEmpty()) {
+        <span class="keyword">while</span> (cur != <span class="keyword">null</span>) { st.push(cur); cur = cur.left; }
+        cur = st.pop();
+        <span class="keyword">if</span> (--k == <span class="number">0</span>) <span class="keyword">return</span> cur.key;  <span class="comment">// early exit</span>
+        cur = cur.right;
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>;
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">def</span> kth_smallest(root, k):
+    st, cur = [], root
+    <span class="keyword">while</span> cur <span class="keyword">or</span> st:
+        <span class="keyword">while</span> cur:                <span class="comment"># descend to leftmost</span>
+            st.append(cur)
+            cur = cur.left
+        cur = st.pop()
+        k -= <span class="number">1</span>
+        <span class="keyword">if</span> k == <span class="number">0</span>:               <span class="comment"># early exit</span>
+            <span class="keyword">return</span> cur.key
+        cur = cur.right
+    <span class="keyword">return</span> -<span class="number">1</span>                   <span class="comment"># k out of range</span>
+</pre>
+            </div>
+        </div>
+
+        <p>With early exit this runs in <strong>O(h + k)</strong> time: O(h) to reach the leftmost leaf, then one stack operation per visited node up to k. In the worst case (skewed tree, or k near n) it degrades to O(n).</p>
+
+        <h2>2. Kth Largest via Reverse In-order</h2>
+        <p>To get the kth <em>largest</em> key, traverse in <strong>reverse in-order</strong> (right &rarr; root &rarr; left), which visits keys in descending order, and stop at the kth visited node.</p>
+
+        <div class="visual">
+<pre>
+Reverse in-order of the tree above:  14 13 10 8 7 6 4 3 1
+visit count (k):                      1  2  3 4 5 6 7 8 9
+
+kthLargest(k = 3) => 10
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="comment">// kth largest via iterative reverse in-order (right, root, left)</span>
+<span class="keyword">int</span> kthLargest(Node* root, <span class="keyword">int</span> k) {
+    stack&lt;Node*&gt; st;
+    Node* cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">nullptr</span> || !st.empty()) {
+        <span class="keyword">while</span> (cur != <span class="keyword">nullptr</span>) { st.push(cur); cur = cur-&gt;right; }
+        cur = st.top(); st.pop();
+        <span class="keyword">if</span> (--k == <span class="number">0</span>) <span class="keyword">return</span> cur-&gt;key;
+        cur = cur-&gt;left;
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>;
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="keyword">def</span> kth_largest(root, k):
+    st, cur = [], root
+    <span class="keyword">while</span> cur <span class="keyword">or</span> st:
+        <span class="keyword">while</span> cur:            <span class="comment"># descend to rightmost</span>
+            st.append(cur)
+            cur = cur.right
+        cur = st.pop()
+        k -= <span class="number">1</span>
+        <span class="keyword">if</span> k == <span class="number">0</span>:
+            <span class="keyword">return</span> cur.key
+        cur = cur.left
+    <span class="keyword">return</span> -<span class="number">1</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Augmented BST: Storing Subtree Sizes</h2>
+        <p>The traversal approach is O(n) in the worst case because it has no shortcut: it cannot skip past subtrees. The fix is to <strong>augment</strong> each node with one extra field: <code>size</code>, the number of nodes in the subtree rooted at that node (including the node itself). With sizes available, we can decide at each step how many keys live in the left subtree and prune accordingly.</p>
+
+        <div class="visual">
+<pre>
+Each node annotated as  key(size):
+
+                 8(9)
+               /      \
+            3(4)        10(4)
+           /    \           \
+        1(1)    6(3)        14(3)
+                /  \         /
+             4(1)  7(1)   13(2)
+
+size(node) = 1 + size(left) + size(right)
+
+leftSize(node) = size(node.left)   (0 if no left child)
+  e.g. leftSize(8) = size(3) = 4  -> 4 keys are less than 8
+</pre>
+        </div>
+
+        <h3>Maintaining size on insert</h3>
+        <p>On the way <strong>down</strong> the search path during an insert, increment <code>size</code> on every node you pass through (each gains exactly one descendant). Equivalently, on the way back <strong>up</strong> from a recursive insert, recompute <code>node.size = 1 + size(node.left) + size(node.right)</code>. Either way the update touches only the O(h) nodes on the path.</p>
+
+        <h3>Maintaining size on delete</h3>
+        <p>Decrement <code>size</code> on every node along the path to the deleted node, then recompute sizes back up to the root. When deleting a node with two children you typically swap with its in-order successor (the minimum of the right subtree); recompute sizes along the successor's path as well. All affected nodes lie on O(h) root-to-node paths, so the bookkeeping stays O(h).</p>
+
+        <div class="note">
+            <strong>Invariant to preserve:</strong> after every insert or delete, for every node <code>node.size == 1 + size(node.left) + size(node.right)</code>, treating a null child's size as 0. If you ever rebalance (rotations in an AVL / red-black tree), update sizes inside the rotation: the rotated-down node's size is recomputed first, then the rotated-up node's.
+        </div>
+
+        <h2>4. Select (Kth Smallest) in O(h) Using Sizes</h2>
+        <p>With sizes stored, <em>select(k)</em> walks a single root-to-node path. At each node let <code>leftSize = size(node.left)</code>. The node's own rank within its subtree is <code>leftSize + 1</code>. Compare:</p>
+        <ul>
+            <li><code>k == leftSize + 1</code> &rarr; this node is the answer.</li>
+            <li><code>k &lt;= leftSize</code> &rarr; the kth smallest is in the left subtree; recurse left with the same <code>k</code>.</li>
+            <li><code>k &gt; leftSize + 1</code> &rarr; it is in the right subtree; recurse right with <code>k - (leftSize + 1)</code> (skip the left subtree and the node itself).</li>
+        </ul>
+
+        <div class="visual">
+<pre>
+select(k = 6) on the tree from Section 3:
+
+  at 8(9):  leftSize = size(3) = 4,  rank = 5
+            k=6 &gt; 5  =>  go right, k = 6 - 5 = 1
+  at 10(4): leftSize = 0,            rank = 1
+            k=1 == 1  =>  return 10
+
+Check: in-order = 1 3 4 6 7 8 10 13 14, the 6th is 8?
+  Wait -- recount with sizes: 8 has rank 5 overall (4 keys below it),
+  so the 6th smallest is the 1st key in 8's right subtree = 10  ✓
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node { <span class="keyword">int</span> key, size; Node *left, *right; };
+
+<span class="keyword">int</span> sz(Node* n) { <span class="keyword">return</span> n ? n-&gt;size : <span class="number">0</span>; }
+
+<span class="comment">// select: return kth smallest key (1-indexed), in O(h)</span>
+Node* select(Node* root, <span class="keyword">int</span> k) {
+    Node* cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">nullptr</span>) {
+        <span class="keyword">int</span> leftSize = sz(cur-&gt;left);
+        <span class="keyword">if</span> (k == leftSize + <span class="number">1</span>) <span class="keyword">return</span> cur;         <span class="comment">// found</span>
+        <span class="keyword">else if</span> (k &lt;= leftSize) cur = cur-&gt;left;       <span class="comment">// go left</span>
+        <span class="keyword">else</span> { k -= leftSize + <span class="number">1</span>; cur = cur-&gt;right; }  <span class="comment">// go right</span>
+    }
+    <span class="keyword">return</span> <span class="keyword">nullptr</span>;  <span class="comment">// k out of range</span>
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="keyword">static int</span> sz(Node n) { <span class="keyword">return</span> n == <span class="keyword">null</span> ? <span class="number">0</span> : n.size; }
+
+Node select(Node root, <span class="keyword">int</span> k) {
+    Node cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {
+        <span class="keyword">int</span> leftSize = sz(cur.left);
+        <span class="keyword">if</span> (k == leftSize + <span class="number">1</span>) <span class="keyword">return</span> cur;
+        <span class="keyword">else if</span> (k &lt;= leftSize) cur = cur.left;
+        <span class="keyword">else</span> { k -= leftSize + <span class="number">1</span>; cur = cur.right; }
+    }
+    <span class="keyword">return</span> <span class="keyword">null</span>;
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="keyword">def</span> _sz(n):
+    <span class="keyword">return</span> n.size <span class="keyword">if</span> n <span class="keyword">else</span> <span class="number">0</span>
+
+<span class="keyword">def</span> select(root, k):
+    cur = root
+    <span class="keyword">while</span> cur:
+        left_size = _sz(cur.left)
+        <span class="keyword">if</span> k == left_size + <span class="number">1</span>:        <span class="comment"># found</span>
+            <span class="keyword">return</span> cur
+        <span class="keyword">elif</span> k &lt;= left_size:           <span class="comment"># go left</span>
+            cur = cur.left
+        <span class="keyword">else</span>:                          <span class="comment"># go right</span>
+            k -= left_size + <span class="number">1</span>
+            cur = cur.right
+    <span class="keyword">return</span> <span class="keyword">None</span>                        <span class="comment"># k out of range</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Rank of a Key in O(h) Using Sizes</h2>
+        <p><em>rank(key)</em> returns the number of keys strictly less than <code>key</code>. Walk down from the root accumulating a running count:</p>
+        <ul>
+            <li>Going <strong>right</strong> from a node means the node and its entire left subtree are smaller than <code>key</code>, so add <code>leftSize + 1</code> to the count.</li>
+            <li>Going <strong>left</strong> adds nothing.</li>
+            <li>When you land on a node equal to <code>key</code>, add its <code>leftSize</code> (all keys below it) and stop.</li>
+        </ul>
+        <p>This is the inverse of <em>select</em>: <code>rank(select(k).key) == k - 1</code>.</p>
+
+        <div class="visual">
+<pre>
+rank(10) on the tree from Section 3  (count keys &lt; 10):
+
+  at 8(9):  10 &gt; 8  =>  count += leftSize(8)+1 = 4+1 = 5, go right
+  at 10(4): 10 == 10 =>  count += leftSize(10) = 0, stop
+  result = 5      (keys 1 3 4 6 7 are &lt; 10)  ✓
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp4')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java4')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python4')">Python</button>
+            </div>
+            <div id="cpp4" class="code-content active">
+<pre>
+<span class="comment">// rank: number of keys strictly less than `key`, in O(h)</span>
+<span class="keyword">int</span> rank(Node* root, <span class="keyword">int</span> key) {
+    <span class="keyword">int</span> count = <span class="number">0</span>;
+    Node* cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">nullptr</span>) {
+        <span class="keyword">if</span> (key &lt; cur-&gt;key) {
+            cur = cur-&gt;left;
+        } <span class="keyword">else if</span> (key &gt; cur-&gt;key) {
+            count += sz(cur-&gt;left) + <span class="number">1</span>;       <span class="comment">// node + left subtree are smaller</span>
+            cur = cur-&gt;right;
+        } <span class="keyword">else</span> {
+            count += sz(cur-&gt;left);            <span class="comment">// keys below this equal node</span>
+            <span class="keyword">break</span>;
+        }
+    }
+    <span class="keyword">return</span> count;
+}
+</pre>
+            </div>
+            <div id="java4" class="code-content">
+<pre>
+<span class="keyword">int</span> rank(Node root, <span class="keyword">int</span> key) {
+    <span class="keyword">int</span> count = <span class="number">0</span>;
+    Node cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (key &lt; cur.key) {
+            cur = cur.left;
+        } <span class="keyword">else if</span> (key &gt; cur.key) {
+            count += sz(cur.left) + <span class="number">1</span>;
+            cur = cur.right;
+        } <span class="keyword">else</span> {
+            count += sz(cur.left);
+            <span class="keyword">break</span>;
+        }
+    }
+    <span class="keyword">return</span> count;
+}
+</pre>
+            </div>
+            <div id="python4" class="code-content">
+<pre>
+<span class="keyword">def</span> rank(root, key):
+    count, cur = <span class="number">0</span>, root
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> key &lt; cur.key:
+            cur = cur.left
+        <span class="keyword">elif</span> key &gt; cur.key:
+            count += _sz(cur.left) + <span class="number">1</span>   <span class="comment"># node + left subtree smaller</span>
+            cur = cur.right
+        <span class="keyword">else</span>:
+            count += _sz(cur.left)         <span class="comment"># keys below equal node</span>
+            <span class="keyword">break</span>
+    <span class="keyword">return</span> count
+</pre>
+            </div>
+        </div>
+
+        <h2>6. Counting Keys in a Range [lo, hi]</h2>
+        <p>Once <em>rank</em> is available, counting keys in an inclusive range is a one-liner. The number of keys strictly less than <code>hi+1</code> minus the number strictly less than <code>lo</code> gives the count of keys in <code>[lo, hi]</code>:</p>
+        <p><code>countInRange(lo, hi) = rank(hi + 1) - rank(lo)</code></p>
+        <p>If keys are not integers (so <code>hi + 1</code> is meaningless), define a <code>rankUpper(key)</code> that counts keys <strong>&le;</strong> key (go right and also add <code>leftSize + 1</code> on equality), then <code>countInRange(lo, hi) = rankUpper(hi) - rank(lo)</code>. Either way it costs two O(h) descents. A direct single-pass traversal that prunes subtrees fully outside <code>[lo, hi]</code> using sizes is also possible and avoids visiting irrelevant subtrees.</p>
+
+        <h2>7. Related Structures</h2>
+        <div class="note">
+            <strong>Cross-references:</strong>
+            <ul>
+                <li><strong>Fenwick / BIT order statistics:</strong> when keys come from a fixed, known universe (or after coordinate compression), a <a href="../fenwick-tree/fenwick-tree-basics.html">Fenwick Tree</a> used as a frequency array supports the same select/rank queries. Bit-descent on the BIT finds the kth smallest in O(log n); a prefix sum gives rank. Prefer the BIT when the key set is dense and static; prefer the augmented BST when keys are sparse, arbitrary, or arrive with deletions.</li>
+                <li><strong>Balanced order-statistic trees:</strong> to keep <code>h = O(log n)</code> in the worst case, layer the <code>size</code> augmentation onto a balanced BST (AVL or red-black), updating sizes inside rotations. In C++ the GNU policy-based data structures (<code>__gnu_pbds::tree</code> with <code>tree_order_statistics_node_update</code>) provide a ready-made order-statistic set exposing <code>find_by_order(k)</code> (select) and <code>order_of_key(key)</code> (rank), both O(log n). It behaves like an augmented <code>std::set</code>.</li>
+            </ul>
+        </div>
+
+        <h2>8. Complexity Summary</h2>
+        <table>
+            <tr><th>Operation</th><th>Method</th><th>Time</th></tr>
+            <tr><td>Kth smallest / largest</td><td>In-order traversal (early exit)</td><td>O(h + k), worst O(n)</td></tr>
+            <tr><td>Select (kth smallest)</td><td>Augmented BST sizes</td><td>O(h)</td></tr>
+            <tr><td>Rank (keys &lt; key)</td><td>Augmented BST sizes</td><td>O(h)</td></tr>
+            <tr><td>Count in range [lo, hi]</td><td>Two rank queries</td><td>O(h)</td></tr>
+            <tr><td>Insert / delete (size upkeep)</td><td>Update path nodes</td><td>O(h)</td></tr>
+        </table>
+        <p>Here <code>h</code> is the tree height: O(log n) for a balanced tree, O(n) for a degenerate (skewed) one. Augmentation turns a query that was O(n) in the worst case into O(h) regardless of k, at the cost of one integer per node and O(h) maintenance per update.</p>
+
+        <div class="note">
+            <strong>Rule of thumb:</strong> augment a BST with subtree <code>size</code> the moment you need <em>rank</em> or <em>select</em>. It is the smallest possible augmentation, costs only O(h) extra work per insert/delete to maintain, and converts both queries from a full O(n) traversal into a single O(h) root-to-node walk.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

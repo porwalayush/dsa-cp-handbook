@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red-Black Trees - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Red-Black Trees</h1>
+        <p>A <strong>red-black tree</strong> is a self-balancing binary search tree where every node carries one extra bit of information &mdash; its <strong>color</strong>, either red or black. By enforcing a handful of coloring rules, the tree guarantees that no root-to-leaf path is more than twice as long as any other, keeping search, insert, and delete at <strong>O(log n)</strong>.</p>
+
+        <h2>Motivation: Why Another Balanced BST?</h2>
+        <p>We already have <a href="avl-trees.html">AVL trees</a>, which are also self-balancing. So why do red-black trees exist and why are they so widely deployed? The answer is a different point on the balance/maintenance tradeoff.</p>
+        <ul>
+            <li><strong>Looser balance.</strong> AVL trees keep the heights of every node's two subtrees within 1 of each other &mdash; very strict. Red-black trees only guarantee the longest path is at most twice the shortest. They can be slightly taller than AVL trees.</li>
+            <li><strong>Fewer rotations on updates.</strong> Because the balance criterion is relaxed, an insertion needs at most <strong>2 rotations</strong> and a deletion at most <strong>3 rotations</strong> to restore the invariants. AVL deletions can cascade rotations all the way up the tree.</li>
+            <li><strong>The library workhorse.</strong> Red-black trees back C++ <code>std::map</code> / <code>std::set</code> / <code>std::multimap</code>, Java's <code>TreeMap</code> / <code>TreeSet</code>, and many OS kernels (the Linux completely-fair scheduler, the Linux process address-space tree, and various memory managers). When updates and lookups are roughly mixed, the cheaper rebalancing wins.</li>
+        </ul>
+        <p>Rule of thumb: <strong>lookup-heavy</strong> workloads slightly favor AVL (shorter trees), while <strong>general-purpose / update-mixed</strong> workloads favor red-black (cheaper writes). Both are O(log n).</p>
+
+        <h2>The Five Properties</h2>
+        <p>A red-black tree is a BST that additionally satisfies all five of these invariants at all times:</p>
+        <ol>
+            <li><strong>Color:</strong> Every node is either <strong>red</strong> or <strong>black</strong>.</li>
+            <li><strong>Root:</strong> The root is <strong>black</strong>.</li>
+            <li><strong>Leaves:</strong> Every leaf (the <code>NIL</code> sentinel that represents a null child) is <strong>black</strong>.</li>
+            <li><strong>Red rule:</strong> If a node is red, then <strong>both its children are black</strong>. Equivalently, no red node has a red child &mdash; you never see two reds in a row on a path.</li>
+            <li><strong>Black-height rule:</strong> For each node, every simple path from that node down to any descendant <code>NIL</code> leaf contains the <strong>same number of black nodes</strong>. This count is the node's <strong>black-height</strong>.</li>
+        </ol>
+        <p>The <code>NIL</code> leaves are conceptual: real implementations use a single shared black sentinel node (or simply treat null pointers as black). Internal "key" nodes are the ones drawn below; the black NILs hang off every empty child slot.</p>
+
+        <div class="visual">
+<pre>
+A valid red-black tree (internal nodes shown; every empty
+child slot has a black NIL leaf, omitted for clarity).
+[B] = black node, [R] = red node.
+
+                    13[B]
+                   /     \
+                8[R]      17[R]
+               /    \     /     \
+            1[B]   11[B] 15[B]  25[B]
+               \                /    \
+              6[R]           22[R]  27[R]
+
+Check the properties:
+  - Root 13 is black.                            (prop 2)
+  - No red node has a red child:
+      8[R] -> 1[B], 11[B]   ok
+      17[R] -> 15[B], 25[B] ok
+      6[R], 22[R], 27[R] -> all NIL (black)  ok    (prop 4)
+  - Black-height from root = 2 on every path
+    (count black nodes excluding root, including
+    the terminal NIL). Every root-to-NIL path
+    crosses exactly 2 black internal-or-NIL nodes
+    beyond the root.                              (prop 5)
+</pre>
+        </div>
+
+        <h2>Why These Properties Imply Balance</h2>
+        <p>The magic is property 4 (no two reds in a row) combined with property 5 (equal black-height). Together they bound how lopsided the tree can be.</p>
+        <ul>
+            <li>Consider the <strong>shortest</strong> possible root-to-NIL path: it could be all black nodes. If its length is <code>bh</code> (the black-height), it has <code>bh</code> black nodes.</li>
+            <li>Consider the <strong>longest</strong> possible root-to-NIL path. Property 5 says it also has exactly <code>bh</code> black nodes. Property 4 says reds cannot be adjacent, so reds can make up at most every other node. The longest path therefore alternates black-red-black-red... and has at most <code>2 &middot; bh</code> nodes.</li>
+        </ul>
+        <p>So the <strong>longest path is at most twice the shortest path</strong>. That is the core balance guarantee.</p>
+
+        <div class="visual">
+<pre>
+Proof sketch of O(log n) height:
+
+1. A subtree rooted at node x with black-height bh(x)
+   contains at least  2^bh(x) - 1  internal nodes.
+   (Induction: a node has two subtrees each with
+    black-height >= bh(x) - 1, so
+    size >= 1 + 2*(2^(bh-1) - 1) = 2^bh - 1.)
+
+2. By property 4, at least half the nodes on any
+   root-to-NIL path are black, so for a tree of
+   height h:   bh(root) >= h / 2.
+
+3. Combine:   n >= 2^bh - 1 >= 2^(h/2) - 1
+   =>  n + 1 >= 2^(h/2)
+   =>  h <= 2 * log2(n + 1)
+
+Therefore  h = O(log n), and every operation that
+walks a single root-to-leaf path is O(log n).
+</pre>
+        </div>
+
+        <h2>Rotations</h2>
+        <p>Rotations are the structural primitive shared with AVL trees: they locally rearrange three nodes to change height while preserving the BST in-order property. A <strong>left rotation</strong> around <code>x</code> makes <code>x</code>'s right child <code>y</code> the new subtree root; a <strong>right rotation</strong> is its mirror. Colors are <em>not</em> changed by the rotation itself &mdash; the fix-up code recolors separately.</p>
+
+        <div class="visual">
+<pre>
+        leftRotate(x)                rightRotate(y)
+       ------------->                <-------------
+
+         x                                 y
+        / \                               / \
+       a   y           <=>               x   c
+          / \                           / \
+         b   c                         a   b
+
+In-order sequence stays  a x b y c  in both shapes,
+so the BST ordering is preserved. Only the subtree b
+changes parent (from y to x, or x to y).
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'rot-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'rot-java')">Java</button>
+            </div>
+            <div id="rot-cpp" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> key;
+    <span class="keyword">bool</span> red;              <span class="comment">// true = red, false = black</span>
+    Node *left, *right, *parent;
+};
+
+Node* NIL;               <span class="comment">// shared black sentinel (red = false)</span>
+Node* root;
+
+<span class="comment">// Rotate the subtree rooted at x to the left.</span>
+<span class="keyword">void</span> leftRotate(Node* x) {
+    Node* y = x-&gt;right;          <span class="comment">// y becomes new subtree root</span>
+    x-&gt;right = y-&gt;left;          <span class="comment">// move y's left subtree (b) under x</span>
+    <span class="keyword">if</span> (y-&gt;left != NIL) y-&gt;left-&gt;parent = x;
+    y-&gt;parent = x-&gt;parent;       <span class="comment">// link y to x's old parent</span>
+    <span class="keyword">if</span> (x-&gt;parent == NIL)        root = y;
+    <span class="keyword">else if</span> (x == x-&gt;parent-&gt;left) x-&gt;parent-&gt;left  = y;
+    <span class="keyword">else</span>                         x-&gt;parent-&gt;right = y;
+    y-&gt;left = x;                 <span class="comment">// put x on y's left</span>
+    x-&gt;parent = y;
+}
+
+<span class="comment">// Mirror image of leftRotate.</span>
+<span class="keyword">void</span> rightRotate(Node* y) {
+    Node* x = y-&gt;left;
+    y-&gt;left = x-&gt;right;
+    <span class="keyword">if</span> (x-&gt;right != NIL) x-&gt;right-&gt;parent = y;
+    x-&gt;parent = y-&gt;parent;
+    <span class="keyword">if</span> (y-&gt;parent == NIL)        root = x;
+    <span class="keyword">else if</span> (y == y-&gt;parent-&gt;left) y-&gt;parent-&gt;left  = x;
+    <span class="keyword">else</span>                         y-&gt;parent-&gt;right = x;
+    x-&gt;right = y;
+    y-&gt;parent = x;
+}
+</pre>
+            </div>
+            <div id="rot-java" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> {
+    <span class="keyword">int</span> key;
+    <span class="keyword">boolean</span> red;          <span class="comment">// true = red, false = black</span>
+    Node left, right, parent;
+}
+
+Node NIL;                <span class="comment">// shared black sentinel (red = false)</span>
+Node root;
+
+<span class="comment">// Rotate the subtree rooted at x to the left.</span>
+<span class="keyword">void</span> leftRotate(Node x) {
+    Node y = x.right;            <span class="comment">// y becomes new subtree root</span>
+    x.right = y.left;            <span class="comment">// move y's left subtree (b) under x</span>
+    <span class="keyword">if</span> (y.left != NIL) y.left.parent = x;
+    y.parent = x.parent;         <span class="comment">// link y to x's old parent</span>
+    <span class="keyword">if</span> (x.parent == NIL)        root = y;
+    <span class="keyword">else if</span> (x == x.parent.left) x.parent.left  = y;
+    <span class="keyword">else</span>                        x.parent.right = y;
+    y.left = x;                  <span class="comment">// put x on y's left</span>
+    x.parent = y;
+}
+
+<span class="comment">// Mirror image of leftRotate.</span>
+<span class="keyword">void</span> rightRotate(Node y) {
+    Node x = y.left;
+    y.left = x.right;
+    <span class="keyword">if</span> (x.right != NIL) x.right.parent = y;
+    x.parent = y.parent;
+    <span class="keyword">if</span> (y.parent == NIL)        root = x;
+    <span class="keyword">else if</span> (y == y.parent.left) y.parent.left  = x;
+    <span class="keyword">else</span>                        y.parent.right = x;
+    x.right = y;
+    y.parent = x;
+}
+</pre>
+            </div>
+        </div>
+
+        <h2>Insertion</h2>
+        <p>Insertion proceeds in two phases:</p>
+        <ol>
+            <li><strong>BST insert.</strong> Walk down like an ordinary BST and attach the new node as a leaf. Color it <strong>red</strong> and give it two black <code>NIL</code> children. Coloring it red is the safe default &mdash; a red node never changes any path's black-height, so property 5 is automatically preserved. The only invariant we might break is property 4 (a red node with a red parent).</li>
+            <li><strong>Fix-up.</strong> If the new node's parent is also red, we have a "red-red" violation. We repair it by walking up, looking at the new node's <strong>uncle</strong> (the sibling of its parent). Three cases handle every situation; each is mirrored for the left/right symmetry.</li>
+        </ol>
+        <p>Below, <code>z</code> is the current node we are fixing, <code>p</code> its parent, <code>g</code> its grandparent, and <code>u</code> the uncle. We assume the parent is a <strong>left</strong> child of the grandparent; the right-child case is the exact mirror (swap left/right rotations).</p>
+
+        <h3>Case 1: Uncle is RED &mdash; recolor and move up</h3>
+        <p>If the uncle is red, we can push blackness down: recolor <code>p</code> and <code>u</code> black and <code>g</code> red. This fixes the local red-red conflict without changing any path's black-height. But <code>g</code> is now red and may conflict with <em>its</em> parent, so we set <code>z = g</code> and repeat.</p>
+        <div class="visual">
+<pre>
+Case 1 (uncle u is RED):
+
+        g[B]                          g[R]   &lt;- new z, recurse up
+       /    \                        /    \
+     p[R]   u[R]      recolor      p[B]   u[B]
+     /                 ------>      /
+   z[R]                          z[R]
+
+p and u become black, g becomes red. Black-height of
+every path through g is unchanged (we removed one red
+above z but added one at g's level on each side).
+</pre>
+        </div>
+
+        <h3>Case 2: Uncle is BLACK, z is the "inner" child &mdash; rotate to set up Case 3</h3>
+        <p>If the uncle is black and <code>z</code> is a right child (the "inner" grandchild, bending toward the uncle side), we first left-rotate around <code>p</code>. This straightens the zig-zag into a zig-zig, transforming the situation into Case 3. After the rotation we relabel so the lower node is again <code>z</code>.</p>
+        <div class="visual">
+<pre>
+Case 2 (u BLACK, z is inner/right child of left-child p):
+
+        g[B]                        g[B]
+       /    \                      /    \
+     p[R]   u[B]    leftRotate   z[R]   u[B]
+        \             (p)        /
+       z[R]                    p[R]   &lt;- relabel this as z, go to Case 3
+
+The zig-zag (p left, z right) becomes a straight line.
+No colors change here; we only restructure.
+</pre>
+        </div>
+
+        <h3>Case 3: Uncle is BLACK, z is the "outer" child &mdash; recolor and rotate grandparent</h3>
+        <p>Now <code>z</code> is a left child of the left-child <code>p</code> (a straight line). Recolor <code>p</code> black and <code>g</code> red, then right-rotate around <code>g</code>. The black <code>p</code> rises to the top of the subtree, both children below it are balanced, and the red-red violation is resolved permanently &mdash; the loop terminates.</p>
+        <div class="visual">
+<pre>
+Case 3 (u BLACK, z is outer/left child of left-child p):
+
+        g[B]                       p[B]
+       /    \      recolor +      /    \
+     p[R]   u[B]   rightRotate  z[R]   g[R]
+     /              (g)                   \
+   z[R]                                   u[B]
+
+p -&gt; black, g -&gt; red, then rotate. The subtree root is
+now black p, so its parent (whatever it was) sees no
+red-red conflict. Done.
+</pre>
+        </div>
+
+        <p>The fix-up loop runs while the parent is red. Case 1 may iterate up the tree (O(log n) recolorings), but Cases 2 and 3 each happen at most once and then terminate &mdash; hence <strong>at most 2 rotations</strong> per insert. Finally we force the root black (property 2), which never violates anything.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'ins-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'ins-py')">Python</button>
+            </div>
+            <div id="ins-cpp" class="code-content active">
+<pre>
+<span class="comment">// Standard BST insert, then fix-up. NIL is the black sentinel.</span>
+<span class="keyword">void</span> insert(<span class="keyword">int</span> key) {
+    Node* z = <span class="keyword">new</span> Node{key, <span class="keyword">true</span>, NIL, NIL, NIL}; <span class="comment">// new node is RED</span>
+    Node* y = NIL;
+    Node* x = root;
+    <span class="keyword">while</span> (x != NIL) {            <span class="comment">// ordinary BST descent</span>
+        y = x;
+        x = (key &lt; x-&gt;key) ? x-&gt;left : x-&gt;right;
+    }
+    z-&gt;parent = y;
+    <span class="keyword">if</span> (y == NIL)            root = z;
+    <span class="keyword">else if</span> (key &lt; y-&gt;key)    y-&gt;left  = z;
+    <span class="keyword">else</span>                     y-&gt;right = z;
+    insertFixup(z);
+}
+
+<span class="keyword">void</span> insertFixup(Node* z) {
+    <span class="keyword">while</span> (z-&gt;parent-&gt;red) {                 <span class="comment">// while parent is RED</span>
+        Node* g = z-&gt;parent-&gt;parent;
+        <span class="keyword">if</span> (z-&gt;parent == g-&gt;left) {          <span class="comment">// parent is a LEFT child</span>
+            Node* u = g-&gt;right;             <span class="comment">// uncle</span>
+            <span class="keyword">if</span> (u-&gt;red) {                   <span class="comment">// --- Case 1: uncle RED ---</span>
+                z-&gt;parent-&gt;red = <span class="keyword">false</span>;
+                u-&gt;red = <span class="keyword">false</span>;
+                g-&gt;red = <span class="keyword">true</span>;
+                z = g;                     <span class="comment">// move up and repeat</span>
+            } <span class="keyword">else</span> {
+                <span class="keyword">if</span> (z == z-&gt;parent-&gt;right) { <span class="comment">// --- Case 2: inner child ---</span>
+                    z = z-&gt;parent;
+                    leftRotate(z);         <span class="comment">// becomes Case 3</span>
+                }
+                z-&gt;parent-&gt;red = <span class="keyword">false</span>;     <span class="comment">// --- Case 3: outer child ---</span>
+                g-&gt;red = <span class="keyword">true</span>;
+                rightRotate(g);
+            }
+        } <span class="keyword">else</span> {                           <span class="comment">// MIRROR: parent is a RIGHT child</span>
+            Node* u = g-&gt;left;
+            <span class="keyword">if</span> (u-&gt;red) {                   <span class="comment">// Case 1</span>
+                z-&gt;parent-&gt;red = <span class="keyword">false</span>;
+                u-&gt;red = <span class="keyword">false</span>;
+                g-&gt;red = <span class="keyword">true</span>;
+                z = g;
+            } <span class="keyword">else</span> {
+                <span class="keyword">if</span> (z == z-&gt;parent-&gt;left) {  <span class="comment">// Case 2 (mirror)</span>
+                    z = z-&gt;parent;
+                    rightRotate(z);
+                }
+                z-&gt;parent-&gt;red = <span class="keyword">false</span>;     <span class="comment">// Case 3 (mirror)</span>
+                g-&gt;red = <span class="keyword">true</span>;
+                leftRotate(g);
+            }
+        }
+    }
+    root-&gt;red = <span class="keyword">false</span>;                      <span class="comment">// property 2: root is black</span>
+}
+</pre>
+            </div>
+            <div id="ins-py" class="code-content">
+<pre>
+<span class="comment"># NIL is the shared black sentinel. Each Node has</span>
+<span class="comment"># key, red (bool), left, right, parent.</span>
+
+<span class="keyword">def</span> insert(self, key):
+    z = Node(key)
+    z.red = <span class="keyword">True</span>                      <span class="comment"># new node is RED</span>
+    z.left = z.right = self.NIL
+    y, x = self.NIL, self.root
+    <span class="keyword">while</span> x <span class="keyword">is not</span> self.NIL:           <span class="comment"># BST descent</span>
+        y = x
+        x = x.left <span class="keyword">if</span> key &lt; x.key <span class="keyword">else</span> x.right
+    z.parent = y
+    <span class="keyword">if</span> y <span class="keyword">is</span> self.NIL:
+        self.root = z
+    <span class="keyword">elif</span> key &lt; y.key:
+        y.left = z
+    <span class="keyword">else</span>:
+        y.right = z
+    self._insert_fixup(z)
+
+<span class="keyword">def</span> _insert_fixup(self, z):
+    <span class="keyword">while</span> z.parent.red:               <span class="comment"># while parent is RED</span>
+        g = z.parent.parent
+        <span class="keyword">if</span> z.parent <span class="keyword">is</span> g.left:        <span class="comment"># parent is LEFT child</span>
+            u = g.right
+            <span class="keyword">if</span> u.red:                <span class="comment"># Case 1: uncle RED</span>
+                z.parent.red = <span class="keyword">False</span>
+                u.red = <span class="keyword">False</span>
+                g.red = <span class="keyword">True</span>
+                z = g
+            <span class="keyword">else</span>:
+                <span class="keyword">if</span> z <span class="keyword">is</span> z.parent.right:  <span class="comment"># Case 2: inner child</span>
+                    z = z.parent
+                    self._left_rotate(z)
+                z.parent.red = <span class="keyword">False</span>     <span class="comment"># Case 3: outer child</span>
+                g.red = <span class="keyword">True</span>
+                self._right_rotate(g)
+        <span class="keyword">else</span>:                         <span class="comment"># MIRROR: parent is RIGHT child</span>
+            u = g.left
+            <span class="keyword">if</span> u.red:                <span class="comment"># Case 1</span>
+                z.parent.red = <span class="keyword">False</span>
+                u.red = <span class="keyword">False</span>
+                g.red = <span class="keyword">True</span>
+                z = g
+            <span class="keyword">else</span>:
+                <span class="keyword">if</span> z <span class="keyword">is</span> z.parent.left:   <span class="comment"># Case 2 (mirror)</span>
+                    z = z.parent
+                    self._right_rotate(z)
+                z.parent.red = <span class="keyword">False</span>     <span class="comment"># Case 3 (mirror)</span>
+                g.red = <span class="keyword">True</span>
+                self._left_rotate(g)
+    self.root.red = <span class="keyword">False</span>            <span class="comment"># root is black</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Deletion</h2>
+        <p>Deletion is the genuinely hard part of red-black trees. The BST removal itself is standard (splice out a node, or replace it with its in-order successor), but the tricky bit is what happens when the node that is physically removed &mdash; or the one that takes its place &mdash; was <strong>black</strong>. Removing a black node shortens the black-height of every path through it, violating property 5.</p>
+        <p>The classic fix introduces the idea of a <strong>"double black"</strong> node: the spot left behind is treated as carrying an extra unit of blackness that must be pushed away or absorbed. The fix-up loop examines the <strong>sibling</strong> <code>w</code> of the double-black node <code>x</code> and applies rotations/recolorings to discharge the extra black, walking up the tree until it is resolved or reaches the root (where the extra black is simply discarded).</p>
+
+        <table>
+            <tr><th>Case</th><th>Sibling w &amp; its children</th><th>Action</th></tr>
+            <tr><td>Case 1</td><td>w is <strong>RED</strong></td><td>Recolor w black and parent red, rotate parent toward x. This converts to one of the cases below with a black sibling.</td></tr>
+            <tr><td>Case 2</td><td>w BLACK, <strong>both of w's children BLACK</strong></td><td>Recolor w red, move the extra black up to the parent (set x = parent and repeat). If parent was red it absorbs it and we stop.</td></tr>
+            <tr><td>Case 3</td><td>w BLACK, w's <strong>near</strong> child RED, far child BLACK</td><td>Recolor and rotate w to turn the near-red into a far-red, converting to Case 4.</td></tr>
+            <tr><td>Case 4</td><td>w BLACK, w's <strong>far</strong> child RED</td><td>Recolor (w takes parent's color, parent and far child become black), rotate parent toward x. The extra black is absorbed; the loop terminates.</td></tr>
+        </table>
+        <p>Each case has a left/right mirror, exactly like insertion. Only Cases 1, 3, and 4 perform rotations, and the loop performs <strong>at most 3 rotations</strong> total before terminating. Case 2 is the only one that iterates upward, and it does no rotation, so deletion is still O(log n).</p>
+
+        <div class="warn">
+            <strong>Interview reality check:</strong>
+            <ul>
+                <li>Almost no interview asks you to code red-black <em>deletion</em> from scratch &mdash; it is long and error-prone. Knowing the double-black concept and the four sibling cases at a conceptual level is plenty.</li>
+                <li>Insertion fix-up (the three cases above) is fair game and worth being able to reason through.</li>
+                <li>Most of all, interviewers want you to know <strong>which container to reach for</strong> and what it guarantees, not to reimplement the balancing.</li>
+            </ul>
+        </div>
+
+        <h2>AVL vs Red-Black Trees</h2>
+        <table>
+            <tr><th>Aspect</th><th>AVL Tree</th><th>Red-Black Tree</th></tr>
+            <tr><td>Balance strictness</td><td>Strict: subtree heights differ by &le; 1</td><td>Loose: longest path &le; 2&times; shortest</td></tr>
+            <tr><td>Worst-case height</td><td>~1.44 log&#8322;(n)</td><td>~2 log&#8322;(n)</td></tr>
+            <tr><td>Rotations per insert</td><td>&le; 2</td><td>&le; 2</td></tr>
+            <tr><td>Rotations per delete</td><td>up to O(log n) (can cascade)</td><td>&le; 3</td></tr>
+            <tr><td>Lookup speed</td><td>Faster (shorter, more balanced tree)</td><td>Slightly slower (can be taller)</td></tr>
+            <tr><td>Update speed</td><td>Slower (more rebalancing on delete)</td><td>Faster (cheaper rebalancing)</td></tr>
+            <tr><td>Memory overhead</td><td>Height/balance factor per node</td><td>1 color bit per node</td></tr>
+            <tr><td>Typical use</td><td>Lookup-heavy, read-mostly workloads</td><td>General-purpose; standard libraries &amp; kernels</td></tr>
+        </table>
+
+        <div class="compare">
+            <div>
+                <h3>Choose AVL when</h3>
+                <ul>
+                    <li>Lookups vastly outnumber updates</li>
+                    <li>You want the shortest possible tree</li>
+                    <li>Search latency is the bottleneck</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Choose Red-Black when</h3>
+                <ul>
+                    <li>Inserts and deletes are frequent</li>
+                    <li>You want predictable, bounded rebalancing</li>
+                    <li>You are using or building a general-purpose ordered map/set</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Practical takeaway:</strong>
+            <ul>
+                <li>You will almost never implement a red-black tree by hand in production &mdash; reach for <code>std::map</code> / <code>std::set</code> in C++ or <code>TreeMap</code> / <code>TreeSet</code> in Java, which are red-black trees under the hood.</li>
+                <li>For interviews, internalize the <strong>five properties</strong>, the <strong>three insert cases</strong>, and the <strong>balance argument</strong> (height &le; 2&middot;log&#8322;(n+1)). That is the high-value 20%.</li>
+                <li>Compare the tradeoffs against <a href="avl-trees.html">AVL trees</a>, and see where ordered maps and sets fit in <a href="bst-applications.html">BST applications</a>.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
