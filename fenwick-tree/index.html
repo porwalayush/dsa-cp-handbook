@@ -1,1 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fenwick Tree (BIT) - Complete Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.1em;
+            color: #6366f1;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.88em;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover { color: #6366f1; }
+
+        .hero {
+            position: relative;
+            text-align: center;
+            padding: 140px 20px 80px;
+            background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 30%, #eef2ff 60%, #f8fafc 100%);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0);
+            background-size: 40px 40px;
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 100px;
+            font-size: 0.8em;
+            font-weight: 500;
+            color: #6366f1;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #2563eb, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            color: #64748b;
+            font-weight: 400;
+            max-width: 620px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .btn-primary {
+            padding: 12px 28px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99,102,241,0.4);
+        }
+
+        .btn-secondary {
+            padding: 12px 28px;
+            background: white;
+            color: #6366f1;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: #6366f1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99,102,241,0.1);
+        }
+
+        .hero-nodes {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+        }
+
+        .hero-node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #93c5fd;
+            opacity: 0.6;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero-node:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; }
+        .hero-node:nth-child(2) { top: 25%; right: 15%; animation-delay: 1s; background: #a5b4fc; }
+        .hero-node:nth-child(3) { top: 60%; left: 8%; animation-delay: 2s; }
+        .hero-node:nth-child(4) { top: 70%; right: 12%; animation-delay: 3s; background: #a5b4fc; }
+        .hero-node:nth-child(5) { top: 40%; left: 20%; animation-delay: 0.5s; width: 6px; height: 6px; }
+        .hero-node:nth-child(6) { top: 50%; right: 25%; animation-delay: 1.5s; width: 6px; height: 6px; background: #a5b4fc; }
+        .hero-node:nth-child(7) { top: 80%; left: 30%; animation-delay: 2.5s; width: 10px; height: 10px; background: #bfdbfe; }
+        .hero-node:nth-child(8) { top: 20%; right: 30%; animation-delay: 4s; width: 10px; height: 10px; background: #c7d2fe; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+            50% { transform: translateY(-20px) scale(1.2); opacity: 0.9; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 32px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .stat { text-align: center; }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: 800;
+            color: #6366f1;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 0.82em;
+            color: #64748b;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+        }
+
+        .roadmap-section {
+            margin: 48px 0;
+        }
+
+        .roadmap-section h2 {
+            font-size: 1.6em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+
+        .roadmap-section > p {
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .roadmap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .roadmap-item {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 100px;
+            font-size: 0.88em;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.2s ease;
+            cursor: default;
+            position: relative;
+        }
+
+        .roadmap-item:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+            background: #eef2ff;
+            transform: scale(1.05);
+        }
+
+        .roadmap-item::after {
+            content: '';
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0; height: 0;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            border-left: 5px solid #cbd5e1;
+        }
+
+        .roadmap-item:last-child::after { display: none; }
+
+        .section {
+            margin-bottom: 48px;
+            animation: fadeInUp 0.5s ease both;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: #6366f1;
+            color: white;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            position: relative;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px 24px 20px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: #e2e8f0;
+            transition: background 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: #c7d2fe;
+            box-shadow: 0 12px 40px -8px rgba(99, 102, 241, 0.12), 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .card:hover::before {
+            background: #6366f1;
+        }
+
+        .card:active {
+            transform: translateY(-1px);
+        }
+
+        .card h3 {
+            font-size: 1.05em;
+            font-weight: 650;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .card p {
+            color: #64748b;
+            line-height: 1.6;
+            font-size: 0.88em;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.7em;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .easy { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .medium { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .hard { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        .complexity-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.68em;
+            font-weight: 500;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .pattern-section {
+            background: linear-gradient(135deg, #dbeafe, #eef2ff);
+            border-radius: 24px;
+            padding: 48px 40px;
+            margin: 48px 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .pattern-section h2 {
+            font-size: 1.6em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .pattern-section > p {
+            color: #64748b;
+            margin-bottom: 32px;
+            font-size: 1em;
+        }
+
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .pattern-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .pattern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99,102,241,0.1);
+        }
+
+        .pattern-icon {
+            width: 36px; height: 36px;
+            background: #eef2ff;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .pattern-card h4 {
+            font-size: 0.95em;
+            font-weight: 650;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .pattern-card p {
+            font-size: 0.82em;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 32px 20px;
+            color: #94a3b8;
+            font-size: 0.85em;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .footer span { color: #6366f1; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.4em; }
+            .hero { padding: 120px 20px 60px; }
+            .grid { grid-template-columns: 1fr; }
+            .container { padding: 20px 16px 40px; }
+            .stats { gap: 24px; flex-wrap: wrap; }
+            .nav-links { display: none; }
+            .pattern-section { padding: 32px 20px; }
+            .pattern-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-logo">BIT Visualized</div>
+        <div class="nav-links">
+            <a href="#fundamentals">Fundamentals</a>
+            <a href="#advanced">Advanced</a>
+            <a href="#patterns">Patterns</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-nodes">
+            <div class="hero-node"></div>
+            <div class="hero-node"></div>
+            <div class="hero-node"></div>
+            <div class="hero-node"></div>
+            <div class="hero-node"></div>
+            <div class="hero-node"></div>
+            <div class="hero-node"></div>
+            <div class="hero-node"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">4 topics with interactive visuals & code</div>
+            <h1>Fenwick Tree <span>(Binary Indexed Tree)</span></h1>
+            <p>Master the elegant BIT data structure. Point updates, prefix queries, range operations, 2D extensions, and classic applications like inversion counting.</p>
+            <div class="hero-buttons">
+                <a href="#fundamentals" class="btn-primary">Start Learning</a>
+                <a href="#patterns" class="btn-secondary">When to Use BIT</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Topics Covered</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">15+</div>
+            <div class="stat-label">Code Examples</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">3</div>
+            <div class="stat-label">Languages</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Visual</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Roadmap -->
+        <div class="roadmap-section">
+            <h2>Learning Roadmap</h2>
+            <p>Master Fenwick Trees step by step</p>
+            <div class="roadmap">
+                <div class="roadmap-item">Prefix Sums</div>
+                <div class="roadmap-item">Lowbit Trick</div>
+                <div class="roadmap-item">Point Update</div>
+                <div class="roadmap-item">Prefix Query</div>
+                <div class="roadmap-item">Range Query</div>
+                <div class="roadmap-item">Range Update</div>
+                <div class="roadmap-item">2D BIT</div>
+                <div class="roadmap-item">Order Statistics</div>
+                <div class="roadmap-item">Inversions</div>
+            </div>
+        </div>
+
+        <!-- Section 1: Fundamentals -->
+        <div class="section" id="fundamentals">
+            <div class="section-header">
+                <span class="section-number">1</span>
+                <h2 class="section-title">BIT Fundamentals</h2>
+            </div>
+            <div class="grid">
+                <a class="card" href="fenwick-tree-basics.html">
+                    <h3>Fenwick Tree Fundamentals</h3>
+                    <p>Binary Indexed Tree structure. How lowbit works. Point update + prefix query. Build in O(n). BIT vs Segment Tree comparison.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(log n) per op</span>
+                    </div>
+                </a>
+                <a class="card" href="fenwick-range-operations.html">
+                    <h3>Range Update & Range Query</h3>
+                    <p>Range update with point query via difference arrays. Range update + range query using two BITs. Mathematical derivation.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(log n)</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Section 2: Advanced -->
+        <div class="section" id="advanced">
+            <div class="section-header">
+                <span class="section-number">2</span>
+                <h2 class="section-title">Advanced BIT</h2>
+            </div>
+            <div class="grid">
+                <a class="card" href="fenwick-2d.html">
+                    <h3>2D Fenwick Tree</h3>
+                    <p>2D prefix sums with updates. Sub-rectangle sum queries. Point updates in 2D grid. Inclusion-exclusion in 2D.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="complexity-tag">O(log n * log m)</span>
+                    </div>
+                </a>
+                <a class="card" href="fenwick-applications.html">
+                    <h3>BIT Applications & Tricks</h3>
+                    <p>Inversion counting. Order statistics with bit descent. Coordinate compression. Offline query techniques.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="complexity-tag">O(n log n)</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pattern Section -->
+        <div class="pattern-section" id="patterns">
+            <h2>When to Use Fenwick Tree</h2>
+            <p>Quick decision guide</p>
+            <div class="pattern-grid">
+                <div class="pattern-card">
+                    <div class="pattern-icon">1</div>
+                    <h4>Point Update + Prefix Sum?</h4>
+                    <p>Classic BIT use case. Simpler and faster than segment tree. Only needs invertible operations (sum, XOR).</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">2</div>
+                    <h4>Counting Inversions?</h4>
+                    <p>Process array left to right. Use BIT as frequency array. Query prefix to count smaller elements seen so far.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">3</div>
+                    <h4>Dynamic Order Statistics?</h4>
+                    <p>BIT on frequencies. Bit descent for O(log n) kth element. Add/remove elements dynamically.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">4</div>
+                    <h4>Range Add + Range Sum?</h4>
+                    <p>Use two BITs trick. Maintains difference array decomposition for both range updates and range queries.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">5</div>
+                    <h4>2D Grid with Updates?</h4>
+                    <p>2D BIT for point updates + rectangle sum queries. Nest the BIT loops for each dimension.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">6</div>
+                    <h4>Need Min/Max/GCD?</h4>
+                    <p>DON'T use BIT. These aren't invertible. Use Segment Tree or Sparse Table instead.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Fenwick Tree (BIT) Visualized | <span>C++, Java & Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'all 0.6s ease';
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
