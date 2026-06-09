@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Views &amp; Properties - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Binary Tree Views &amp; Properties</h1>
+        <p>This guide covers the structural <strong>properties</strong> of binary trees (height, diameter, balance, width) and the classic <strong>views</strong> obtained by traversal (left, right, top, bottom, vertical, boundary). Most of these reduce to a single DFS or BFS pass running in O(n). All examples assume the node type below.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppnode')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javanode')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pynode')">Python</button>
+            </div>
+            <div id="cppnode" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> val;
+    Node *left, *right;
+    Node(<span class="keyword">int</span> v) : val(v), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+</pre>
+            </div>
+            <div id="javanode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> {
+    <span class="keyword">int</span> val;
+    <span class="type">Node</span> left, right;
+    Node(<span class="keyword">int</span> v) { val = v; }
+}
+</pre>
+            </div>
+            <div id="pynode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, val):
+        self.val = val
+        self.left = <span class="keyword">None</span>
+        self.right = <span class="keyword">None</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>1. Height &amp; Depth</h2>
+        <p>These two terms are often confused, so be precise:</p>
+        <ul>
+            <li><strong>Depth of a node</strong> = number of edges on the path from the <strong>root</strong> down to that node. The root has depth 0.</li>
+            <li><strong>Height of a node</strong> = number of edges on the longest path from that node down to a <strong>leaf</strong>. A leaf has height 0.</li>
+            <li><strong>Height of the tree</strong> = height of its root.</li>
+        </ul>
+        <p>An empty tree is conventionally given height <code>-1</code> (so that a single node has height 0). Some texts measure height/depth in <em>nodes</em> instead of edges, which shifts every value by 1 &mdash; pick one convention and stay consistent. Here we count edges.</p>
+
+        <div class="visual">
+<pre>
+                A          depth 0   height 3
+              /   \
+            B       C      depth 1   B.height 2,  C.height 0
+          /   \
+        D       E          depth 2   D.height 1,  E.height 0
+       /
+      F                    depth 3   height 0  (leaf)
+
+depth grows DOWNWARD from the root (top-down).
+height grows UPWARD from the leaves (bottom-up).
+Tree height = A.height = longest root->leaf path = A-B-D-F = 3 edges.
+</pre>
+        </div>
+
+        <p>Height is naturally recursive: a node's height is <code>1 + max(height(left), height(right))</code>, with empty subtrees contributing <code>-1</code>.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpph')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javah')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyh')">Python</button>
+            </div>
+            <div id="cpph" class="code-content active">
+<pre>
+<span class="comment">// height in edges; empty tree returns -1</span>
+<span class="keyword">int</span> height(Node* root) {
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">return</span> <span class="number">1</span> + max(height(root-&gt;left), height(root-&gt;right));
+}
+</pre>
+            </div>
+            <div id="javah" class="code-content">
+<pre>
+<span class="comment">// height in edges; empty tree returns -1</span>
+<span class="keyword">int</span> height(<span class="type">Node</span> root) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">return</span> <span class="number">1</span> + Math.max(height(root.left), height(root.right));
+}
+</pre>
+            </div>
+            <div id="pyh" class="code-content">
+<pre>
+<span class="comment"># height in edges; empty tree returns -1</span>
+<span class="keyword">def</span> height(root):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> -<span class="number">1</span>
+    <span class="keyword">return</span> <span class="number">1</span> + max(height(root.left), height(root.right))
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Counting Nodes, Leaves, and Internal/Full Nodes</h2>
+        <p>Each count is a one-line postorder recursion. A <strong>leaf</strong> has no children; an <strong>internal node</strong> has at least one child; a <strong>full node</strong> has exactly two children.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppc')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javac')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyc')">Python</button>
+            </div>
+            <div id="cppc" class="code-content active">
+<pre>
+<span class="keyword">int</span> countNodes(Node* r) {
+    <span class="keyword">if</span> (!r) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">return</span> <span class="number">1</span> + countNodes(r-&gt;left) + countNodes(r-&gt;right);
+}
+
+<span class="keyword">int</span> countLeaves(Node* r) {
+    <span class="keyword">if</span> (!r) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">if</span> (!r-&gt;left &amp;&amp; !r-&gt;right) <span class="keyword">return</span> <span class="number">1</span>;
+    <span class="keyword">return</span> countLeaves(r-&gt;left) + countLeaves(r-&gt;right);
+}
+
+<span class="keyword">int</span> countInternal(Node* r) {        <span class="comment">// >= 1 child</span>
+    <span class="keyword">if</span> (!r || (!r-&gt;left &amp;&amp; !r-&gt;right)) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">return</span> <span class="number">1</span> + countInternal(r-&gt;left) + countInternal(r-&gt;right);
+}
+
+<span class="keyword">int</span> countFull(Node* r) {            <span class="comment">// exactly 2 children</span>
+    <span class="keyword">if</span> (!r) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> self = (r-&gt;left &amp;&amp; r-&gt;right) ? <span class="number">1</span> : <span class="number">0</span>;
+    <span class="keyword">return</span> self + countFull(r-&gt;left) + countFull(r-&gt;right);
+}
+</pre>
+            </div>
+            <div id="javac" class="code-content">
+<pre>
+<span class="keyword">int</span> countNodes(<span class="type">Node</span> r) {
+    <span class="keyword">if</span> (r == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">return</span> <span class="number">1</span> + countNodes(r.left) + countNodes(r.right);
+}
+
+<span class="keyword">int</span> countLeaves(<span class="type">Node</span> r) {
+    <span class="keyword">if</span> (r == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">if</span> (r.left == <span class="keyword">null</span> &amp;&amp; r.right == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">1</span>;
+    <span class="keyword">return</span> countLeaves(r.left) + countLeaves(r.right);
+}
+
+<span class="keyword">int</span> countInternal(<span class="type">Node</span> r) {        <span class="comment">// >= 1 child</span>
+    <span class="keyword">if</span> (r == <span class="keyword">null</span> || (r.left == <span class="keyword">null</span> &amp;&amp; r.right == <span class="keyword">null</span>)) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">return</span> <span class="number">1</span> + countInternal(r.left) + countInternal(r.right);
+}
+
+<span class="keyword">int</span> countFull(<span class="type">Node</span> r) {            <span class="comment">// exactly 2 children</span>
+    <span class="keyword">if</span> (r == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> self = (r.left != <span class="keyword">null</span> &amp;&amp; r.right != <span class="keyword">null</span>) ? <span class="number">1</span> : <span class="number">0</span>;
+    <span class="keyword">return</span> self + countFull(r.left) + countFull(r.right);
+}
+</pre>
+            </div>
+            <div id="pyc" class="code-content">
+<pre>
+<span class="keyword">def</span> count_nodes(r):
+    <span class="keyword">if</span> r <span class="keyword">is</span> <span class="keyword">None</span>: <span class="keyword">return</span> <span class="number">0</span>
+    <span class="keyword">return</span> <span class="number">1</span> + count_nodes(r.left) + count_nodes(r.right)
+
+<span class="keyword">def</span> count_leaves(r):
+    <span class="keyword">if</span> r <span class="keyword">is</span> <span class="keyword">None</span>: <span class="keyword">return</span> <span class="number">0</span>
+    <span class="keyword">if</span> r.left <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">and</span> r.right <span class="keyword">is</span> <span class="keyword">None</span>: <span class="keyword">return</span> <span class="number">1</span>
+    <span class="keyword">return</span> count_leaves(r.left) + count_leaves(r.right)
+
+<span class="keyword">def</span> count_internal(r):              <span class="comment"># >= 1 child</span>
+    <span class="keyword">if</span> r <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> (r.left <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">and</span> r.right <span class="keyword">is</span> <span class="keyword">None</span>): <span class="keyword">return</span> <span class="number">0</span>
+    <span class="keyword">return</span> <span class="number">1</span> + count_internal(r.left) + count_internal(r.right)
+
+<span class="keyword">def</span> count_full(r):                  <span class="comment"># exactly 2 children</span>
+    <span class="keyword">if</span> r <span class="keyword">is</span> <span class="keyword">None</span>: <span class="keyword">return</span> <span class="number">0</span>
+    self = <span class="number">1</span> <span class="keyword">if</span> (r.left <span class="keyword">and</span> r.right) <span class="keyword">else</span> <span class="number">0</span>
+    <span class="keyword">return</span> self + count_full(r.left) + count_full(r.right)
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Handy identity:</strong> in any binary tree, <code>(# leaves) = (# full nodes) + 1</code>. So a tree's leaf count exceeds its two-children-node count by exactly one.
+        </div>
+
+        <h2>3. Diameter of a Binary Tree</h2>
+        <p>The <strong>diameter</strong> is the length of the longest path between any two nodes, measured in <strong>edges</strong>. That path need not pass through the root. A naive solution computes height at every node (O(n&sup2;)). The clean approach is a single postorder pass: each call returns its node's <em>height</em>, and while returning, it updates a global maximum with the longest path that <em>bends</em> at the current node, namely <code>leftHeight + rightHeight + 2</code> edges.</p>
+
+        <div class="visual">
+<pre>
+                1
+              /   \
+            2       3
+          /   \
+        4       5
+       /         \
+      6             7
+     /               \
+    8                   9
+
+Longest path = 8-6-4-2-5-7-9  (6 edges).
+It passes through node 2, NOT through the root (node 1).
+At node 2:  leftHeight(subtree at 4) = 2,
+            rightHeight(subtree at 5) = 2,
+            path through 2 = 2 + 2 + 2 = 6 edges. <- diameter
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppd')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javad')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyd')">Python</button>
+            </div>
+            <div id="cppd" class="code-content active">
+<pre>
+<span class="keyword">int</span> best = <span class="number">0</span>;  <span class="comment">// global max diameter (in edges)</span>
+
+<span class="comment">// returns height (edges) of subtree at r</span>
+<span class="keyword">int</span> dfs(Node* r) {
+    <span class="keyword">if</span> (!r) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">int</span> lh = dfs(r-&gt;left);
+    <span class="keyword">int</span> rh = dfs(r-&gt;right);
+    best = max(best, lh + rh + <span class="number">2</span>);   <span class="comment">// path bending at r</span>
+    <span class="keyword">return</span> <span class="number">1</span> + max(lh, rh);
+}
+
+<span class="keyword">int</span> diameter(Node* root) {
+    best = <span class="number">0</span>;
+    dfs(root);
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="javad" class="code-content">
+<pre>
+<span class="keyword">int</span> best = <span class="number">0</span>;  <span class="comment">// global max diameter (in edges)</span>
+
+<span class="comment">// returns height (edges) of subtree at r</span>
+<span class="keyword">int</span> dfs(<span class="type">Node</span> r) {
+    <span class="keyword">if</span> (r == <span class="keyword">null</span>) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">int</span> lh = dfs(r.left);
+    <span class="keyword">int</span> rh = dfs(r.right);
+    best = Math.max(best, lh + rh + <span class="number">2</span>);  <span class="comment">// path bending at r</span>
+    <span class="keyword">return</span> <span class="number">1</span> + Math.max(lh, rh);
+}
+
+<span class="keyword">int</span> diameter(<span class="type">Node</span> root) {
+    best = <span class="number">0</span>;
+    dfs(root);
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="pyd" class="code-content">
+<pre>
+<span class="keyword">def</span> diameter(root):
+    best = <span class="number">0</span>
+    <span class="keyword">def</span> dfs(r):                  <span class="comment"># returns height in edges</span>
+        <span class="keyword">nonlocal</span> best
+        <span class="keyword">if</span> r <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> -<span class="number">1</span>
+        lh = dfs(r.left)
+        rh = dfs(r.right)
+        best = max(best, lh + rh + <span class="number">2</span>)  <span class="comment"># path bending at r</span>
+        <span class="keyword">return</span> <span class="number">1</span> + max(lh, rh)
+    dfs(root)
+    <span class="keyword">return</span> best
+</pre>
+            </div>
+        </div>
+
+        <p>If your height convention returns 0 for an empty subtree (counting nodes), the bend term becomes <code>lh + rh</code> instead of <code>lh + rh + 2</code>. Match the constant to your base case.</p>
+
+        <h2>4. Balanced Binary Tree Check</h2>
+        <p>A tree is <strong>height-balanced</strong> if, for every node, the heights of its left and right subtrees differ by at most 1. A top-down check that recomputes height per node is O(n&sup2;). The efficient O(n) version is bottom-up: each call returns the subtree height, or a <strong>sentinel</strong> <code>-2</code> the moment imbalance is detected, which then short-circuits all the way up. (We use <code>-2</code> as the sentinel because the legitimate height of an empty subtree is already <code>-1</code>.)</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppb')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javab')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyb')">Python</button>
+            </div>
+            <div id="cppb" class="code-content active">
+<pre>
+<span class="keyword">const int</span> UNBAL = -<span class="number">2</span>;
+
+<span class="comment">// returns height, or UNBAL if any subtree is unbalanced</span>
+<span class="keyword">int</span> check(Node* r) {
+    <span class="keyword">if</span> (!r) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">int</span> lh = check(r-&gt;left);
+    <span class="keyword">if</span> (lh == UNBAL) <span class="keyword">return</span> UNBAL;
+    <span class="keyword">int</span> rh = check(r-&gt;right);
+    <span class="keyword">if</span> (rh == UNBAL) <span class="keyword">return</span> UNBAL;
+    <span class="keyword">if</span> (abs(lh - rh) &gt; <span class="number">1</span>) <span class="keyword">return</span> UNBAL;
+    <span class="keyword">return</span> <span class="number">1</span> + max(lh, rh);
+}
+
+<span class="keyword">bool</span> isBalanced(Node* root) {
+    <span class="keyword">return</span> check(root) != UNBAL;
+}
+</pre>
+            </div>
+            <div id="javab" class="code-content">
+<pre>
+<span class="keyword">static final int</span> UNBAL = -<span class="number">2</span>;
+
+<span class="comment">// returns height, or UNBAL if any subtree is unbalanced</span>
+<span class="keyword">int</span> check(<span class="type">Node</span> r) {
+    <span class="keyword">if</span> (r == <span class="keyword">null</span>) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">int</span> lh = check(r.left);
+    <span class="keyword">if</span> (lh == UNBAL) <span class="keyword">return</span> UNBAL;
+    <span class="keyword">int</span> rh = check(r.right);
+    <span class="keyword">if</span> (rh == UNBAL) <span class="keyword">return</span> UNBAL;
+    <span class="keyword">if</span> (Math.abs(lh - rh) &gt; <span class="number">1</span>) <span class="keyword">return</span> UNBAL;
+    <span class="keyword">return</span> <span class="number">1</span> + Math.max(lh, rh);
+}
+
+<span class="keyword">boolean</span> isBalanced(<span class="type">Node</span> root) {
+    <span class="keyword">return</span> check(root) != UNBAL;
+}
+</pre>
+            </div>
+            <div id="pyb" class="code-content">
+<pre>
+UNBAL = -<span class="number">2</span>
+
+<span class="keyword">def</span> is_balanced(root):
+    <span class="keyword">def</span> check(r):                <span class="comment"># returns height, or UNBAL</span>
+        <span class="keyword">if</span> r <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> -<span class="number">1</span>
+        lh = check(r.left)
+        <span class="keyword">if</span> lh == UNBAL: <span class="keyword">return</span> UNBAL
+        rh = check(r.right)
+        <span class="keyword">if</span> rh == UNBAL: <span class="keyword">return</span> UNBAL
+        <span class="keyword">if</span> abs(lh - rh) &gt; <span class="number">1</span>: <span class="keyword">return</span> UNBAL
+        <span class="keyword">return</span> <span class="number">1</span> + max(lh, rh)
+    <span class="keyword">return</span> check(root) != UNBAL
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Maximum Width of a Binary Tree</h2>
+        <p>The <strong>maximum width</strong> is the largest number of nodes present at any single level, where the width of a level is measured between its leftmost and rightmost non-null nodes (counting the gaps for missing nodes in between). We BFS level by level, assigning each node an index as if the tree were a complete array: a node at index <code>i</code> has children at <code>2i</code> (left) and <code>2i + 1</code> (right). The width of a level is <code>lastIndex - firstIndex + 1</code>.</p>
+
+        <div class="visual">
+<pre>
+            1            i = 1
+          /   \
+        2       3        i = 2,        i = 3
+       / \       \
+      4   5         7    i = 4, i = 5,        i = 7
+
+Level 3 indices: 4, 5, 7  ->  width = 7 - 4 + 1 = 4
+(the gap at index 6 is counted, matching array-style spacing)
+Maximum width over all levels = 4.
+</pre>
+        </div>
+
+        <p>To keep indices small (and avoid overflow), subtract the first index of each level from every index in that level so numbering restarts near 0.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppw')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaw')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyw')">Python</button>
+            </div>
+            <div id="cppw" class="code-content active">
+<pre>
+<span class="comment">// index-numbered BFS: child of i are 2i and 2i+1</span>
+<span class="keyword">long long</span> maxWidth(Node* root) {
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">long long</span> best = <span class="number">0</span>;
+    queue&lt;pair&lt;Node*, <span class="keyword">long long</span>&gt;&gt; q;
+    q.push({root, <span class="number">0</span>});
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">long long</span> first = q.front().second, last = first;
+        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; sz; k++) {
+            <span class="keyword">auto</span> [node, idx] = q.front(); q.pop();
+            idx -= first;                <span class="comment">// rebase to avoid overflow</span>
+            last = idx;
+            <span class="keyword">if</span> (node-&gt;left)  q.push({node-&gt;left,  <span class="number">2</span> * idx});
+            <span class="keyword">if</span> (node-&gt;right) q.push({node-&gt;right, <span class="number">2</span> * idx + <span class="number">1</span>});
+        }
+        best = max(best, last + <span class="number">1</span>);
+    }
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="javaw" class="code-content">
+<pre>
+<span class="comment">// index-numbered BFS: children of i are 2i and 2i+1</span>
+<span class="keyword">long</span> maxWidth(<span class="type">Node</span> root) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">long</span> best = <span class="number">0</span>;
+    Deque&lt;Object[]&gt; q = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+    q.add(<span class="keyword">new</span> Object[]{root, <span class="number">0</span>L});
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">long</span> first = (<span class="type">Long</span>) q.peek()[<span class="number">1</span>], last = first;
+        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; sz; k++) {
+            Object[] cur = q.poll();
+            <span class="type">Node</span> node = (<span class="type">Node</span>) cur[<span class="number">0</span>];
+            <span class="keyword">long</span> idx = (<span class="type">Long</span>) cur[<span class="number">1</span>] - first;   <span class="comment">// rebase</span>
+            last = idx;
+            <span class="keyword">if</span> (node.left  != <span class="keyword">null</span>) q.add(<span class="keyword">new</span> Object[]{node.left,  <span class="number">2</span> * idx});
+            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.add(<span class="keyword">new</span> Object[]{node.right, <span class="number">2</span> * idx + <span class="number">1</span>});
+        }
+        best = Math.max(best, last + <span class="number">1</span>);
+    }
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="pyw" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="comment"># index-numbered BFS: children of i are 2i and 2i+1</span>
+<span class="keyword">def</span> max_width(root):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="number">0</span>
+    best = <span class="number">0</span>
+    q = deque([(root, <span class="number">0</span>)])
+    <span class="keyword">while</span> q:
+        sz = len(q)
+        first = q[<span class="number">0</span>][<span class="number">1</span>]
+        last = first
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(sz):
+            node, idx = q.popleft()
+            idx -= first              <span class="comment"># rebase (Python ints are unbounded)</span>
+            last = idx
+            <span class="keyword">if</span> node.left:  q.append((node.left,  <span class="number">2</span> * idx))
+            <span class="keyword">if</span> node.right: q.append((node.right, <span class="number">2</span> * idx + <span class="number">1</span>))
+        best = max(best, last - <span class="number">0</span> + <span class="number">1</span>)
+    <span class="keyword">return</span> best
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Overflow warning:</strong> indices double every level, so for a deep, sparse tree they grow exponentially (roughly <code>2^depth</code>). Use a 64-bit type (<code>long long</code> / <code>long</code>) and <strong>rebase</strong> each level's indices against its first index. Without rebasing, a tree of depth ~63 overflows a 64-bit integer. Python integers are arbitrary-precision so they won't overflow, but rebasing still keeps the numbers cheap to handle.
+        </div>
+
+        <h2>6. Tree Views via Level Traversal</h2>
+
+        <h3>Left View and Right View</h3>
+        <p>Standing to the left of the tree, the <strong>left view</strong> is the <em>first</em> node seen at each level; the <strong>right view</strong> is the <em>last</em> node at each level. With BFS, that is simply the first / last node dequeued per level.</p>
+
+        <div class="visual">
+<pre>
+                1
+              /   \
+            2       3
+              \       \
+                5       7
+
+Left view  (first per level): 1, 2, 5
+Right view (last  per level): 1, 3, 7
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpplr')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javalr')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pylr')">Python</button>
+            </div>
+            <div id="cpplr" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; sideView(Node* root, <span class="keyword">bool</span> rightSide) {
+    vector&lt;<span class="keyword">int</span>&gt; res;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> res;
+    queue&lt;Node*&gt; q;
+    q.push(root);
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            Node* node = q.front(); q.pop();
+            <span class="comment">// first node (i==0) for left, last (i==sz-1) for right</span>
+            <span class="keyword">if</span> (rightSide ? (i == sz - <span class="number">1</span>) : (i == <span class="number">0</span>))
+                res.push_back(node-&gt;val);
+            <span class="keyword">if</span> (node-&gt;left)  q.push(node-&gt;left);
+            <span class="keyword">if</span> (node-&gt;right) q.push(node-&gt;right);
+        }
+    }
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="javalr" class="code-content">
+<pre>
+List&lt;<span class="type">Integer</span>&gt; sideView(<span class="type">Node</span> root, <span class="keyword">boolean</span> rightSide) {
+    List&lt;<span class="type">Integer</span>&gt; res = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> res;
+    Queue&lt;<span class="type">Node</span>&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    q.add(root);
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            <span class="type">Node</span> node = q.poll();
+            <span class="keyword">if</span> (rightSide ? (i == sz - <span class="number">1</span>) : (i == <span class="number">0</span>))
+                res.add(node.val);
+            <span class="keyword">if</span> (node.left  != <span class="keyword">null</span>) q.add(node.left);
+            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.add(node.right);
+        }
+    }
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="pylr" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> side_view(root, right_side):
+    res = []
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> res
+    q = deque([root])
+    <span class="keyword">while</span> q:
+        sz = len(q)
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(sz):
+            node = q.popleft()
+            <span class="keyword">if</span> (i == sz - <span class="number">1</span>) <span class="keyword">if</span> right_side <span class="keyword">else</span> (i == <span class="number">0</span>):
+                res.append(node.val)
+            <span class="keyword">if</span> node.left:  q.append(node.left)
+            <span class="keyword">if</span> node.right: q.append(node.right)
+    <span class="keyword">return</span> res
+</pre>
+            </div>
+        </div>
+
+        <h3>Top View and Bottom View (Horizontal Distance)</h3>
+        <p>Assign each node a <strong>horizontal distance</strong> (HD): the root is HD 0, a left child is <code>HD - 1</code>, a right child is <code>HD + 1</code>. Do a BFS and keep a map keyed by HD.</p>
+        <ul>
+            <li><strong>Top view:</strong> for each HD, keep the <em>first</em> node encountered (the topmost). With BFS this is the first time an HD appears.</li>
+            <li><strong>Bottom view:</strong> for each HD, keep the <em>last</em> node encountered (the lowest), so always overwrite the map entry.</li>
+        </ul>
+        <p>BFS (not DFS) is important here so that ties on HD are resolved by the shallower / level-order node correctly. Finally, read the map in ascending HD order.</p>
+
+        <div class="visual">
+<pre>
+HD:    -2    -1     0     1     2
+                    1
+                  /   \
+              2(-1)     3(+1)
+             /   \     /   \
+        4(-2) 5(0) 6(0) 7(+2)
+
+Top view    (first per HD): 4, 2, 1, 3, 7   (HD -2,-1,0,+1,+2)
+Bottom view (last  per HD): 4, 2, 6, 3, 7
+  (at HD 0 the root 1 is seen first -> top; node 6 is seen last -> bottom)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpptv')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javatv')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pytv')">Python</button>
+            </div>
+            <div id="cpptv" class="code-content active">
+<pre>
+<span class="comment">// TOP VIEW: keep first node seen at each HD</span>
+vector&lt;<span class="keyword">int</span>&gt; topView(Node* root) {
+    vector&lt;<span class="keyword">int</span>&gt; res;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> res;
+    map&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; hdMap;          <span class="comment">// HD -> node value (sorted)</span>
+    queue&lt;pair&lt;Node*, <span class="keyword">int</span>&gt;&gt; q;     <span class="comment">// (node, HD)</span>
+    q.push({root, <span class="number">0</span>});
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">auto</span> [node, hd] = q.front(); q.pop();
+        <span class="keyword">if</span> (!hdMap.count(hd))            <span class="comment">// FIRST wins for top view</span>
+            hdMap[hd] = node-&gt;val;
+        <span class="comment">// for BOTTOM VIEW, drop the count() check and</span>
+        <span class="comment">// always assign: hdMap[hd] = node-&gt;val; (LAST wins)</span>
+        <span class="keyword">if</span> (node-&gt;left)  q.push({node-&gt;left,  hd - <span class="number">1</span>});
+        <span class="keyword">if</span> (node-&gt;right) q.push({node-&gt;right, hd + <span class="number">1</span>});
+    }
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [hd, val] : hdMap) res.push_back(val);
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="javatv" class="code-content">
+<pre>
+<span class="comment">// TOP VIEW: keep first node seen at each HD</span>
+List&lt;<span class="type">Integer</span>&gt; topView(<span class="type">Node</span> root) {
+    List&lt;<span class="type">Integer</span>&gt; res = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> res;
+    TreeMap&lt;<span class="type">Integer</span>, <span class="type">Integer</span>&gt; hdMap = <span class="keyword">new</span> TreeMap&lt;&gt;();
+    Queue&lt;Object[]&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    q.add(<span class="keyword">new</span> Object[]{root, <span class="number">0</span>});
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        Object[] cur = q.poll();
+        <span class="type">Node</span> node = (<span class="type">Node</span>) cur[<span class="number">0</span>];
+        <span class="keyword">int</span> hd = (<span class="type">Integer</span>) cur[<span class="number">1</span>];
+        <span class="keyword">if</span> (!hdMap.containsKey(hd))      <span class="comment">// FIRST wins for top view</span>
+            hdMap.put(hd, node.val);
+        <span class="comment">// BOTTOM VIEW: always hdMap.put(hd, node.val); (LAST wins)</span>
+        <span class="keyword">if</span> (node.left  != <span class="keyword">null</span>) q.add(<span class="keyword">new</span> Object[]{node.left,  hd - <span class="number">1</span>});
+        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.add(<span class="keyword">new</span> Object[]{node.right, hd + <span class="number">1</span>});
+    }
+    res.addAll(hdMap.values());      <span class="comment">// TreeMap iterates by ascending HD</span>
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="pytv" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="comment"># TOP VIEW: keep first node seen at each HD</span>
+<span class="keyword">def</span> top_view(root):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> []
+    hd_map = {}                      <span class="comment"># HD -> value</span>
+    q = deque([(root, <span class="number">0</span>)])
+    <span class="keyword">while</span> q:
+        node, hd = q.popleft()
+        <span class="keyword">if</span> hd <span class="keyword">not in</span> hd_map:           <span class="comment"># FIRST wins for top view</span>
+            hd_map[hd] = node.val
+        <span class="comment"># BOTTOM VIEW: always hd_map[hd] = node.val  (LAST wins)</span>
+        <span class="keyword">if</span> node.left:  q.append((node.left,  hd - <span class="number">1</span>))
+        <span class="keyword">if</span> node.right: q.append((node.right, hd + <span class="number">1</span>))
+    <span class="keyword">return</span> [hd_map[hd] <span class="keyword">for</span> hd <span class="keyword">in</span> sorted(hd_map)]
+</pre>
+            </div>
+        </div>
+
+        <p>The only difference between top and bottom view is whether you keep the first or the last node at each HD: top view writes the map only when the HD is unseen; bottom view overwrites it every time.</p>
+
+        <h3>Vertical Order Traversal</h3>
+        <p>Vertical order groups all nodes by HD into columns, read left to right. When two nodes share the same HD, the strict ordering breaks ties by <strong>level</strong> (higher node first) and, if still tied, by <strong>value</strong> (smaller first). Implement it by collecting triples <code>(hd, level, val)</code> during a traversal, sorting by <code>(hd, level, val)</code>, and emitting values grouped by HD. This is O(n log n) due to the sort.</p>
+
+        <h2>7. Boundary Traversal</h2>
+        <p>The <strong>boundary traversal</strong> (anti-clockwise) prints the outline of the tree in three parts, taking care not to print any node twice:</p>
+        <ol>
+            <li><strong>Left boundary</strong> (top &rarr; down), excluding leaves.</li>
+            <li><strong>All leaves</strong>, left to right.</li>
+            <li><strong>Right boundary</strong> (down &rarr; top, i.e. collected top-down then reversed), excluding leaves.</li>
+        </ol>
+        <p>The root is added once at the front. A node belongs to the left boundary if you reach it by preferring left children (or right when no left exists); the right boundary mirrors this preferring right children.</p>
+
+        <div class="visual">
+<pre>
+                1
+              /   \
+            2       3
+          /   \    /  \
+         4     5  6     7
+              / \
+             8   9
+
+Left boundary (no leaves): 1, 2
+Leaves (L to R):           4, 8, 9, 6, 7
+Right boundary (rev):      3            (collected 3, then reversed)
+Boundary = 1, 2, 4, 8, 9, 6, 7, 3
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'pybd')">Python</button>
+            </div>
+            <div id="pybd" class="code-content active">
+<pre>
+<span class="keyword">def</span> boundary(root):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> []
+
+    <span class="keyword">def</span> is_leaf(n):
+        <span class="keyword">return</span> n.left <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">and</span> n.right <span class="keyword">is</span> <span class="keyword">None</span>
+
+    res = [root.val] <span class="keyword">if</span> <span class="keyword">not</span> is_leaf(root) <span class="keyword">else</span> []
+
+    <span class="comment"># Part 1: left boundary, top-down, excluding leaves</span>
+    cur = root.left
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> <span class="keyword">not</span> is_leaf(cur):
+            res.append(cur.val)
+        cur = cur.left <span class="keyword">if</span> cur.left <span class="keyword">else</span> cur.right
+
+    <span class="comment"># Part 2: all leaves, left to right (DFS)</span>
+    <span class="keyword">def</span> leaves(n):
+        <span class="keyword">if</span> n <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span>
+        <span class="keyword">if</span> is_leaf(n):
+            res.append(n.val)
+            <span class="keyword">return</span>
+        leaves(n.left)
+        leaves(n.right)
+    leaves(root)
+
+    <span class="comment"># Part 3: right boundary, collected top-down then reversed</span>
+    tmp, cur = [], root.right
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> <span class="keyword">not</span> is_leaf(cur):
+            tmp.append(cur.val)
+        cur = cur.right <span class="keyword">if</span> cur.right <span class="keyword">else</span> cur.left
+    res.extend(reversed(tmp))
+
+    <span class="keyword">return</span> res
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Edge cases for boundary traversal:</strong>
+            <ul>
+                <li>If the root itself is a leaf, add it once and stop (the loops add nothing).</li>
+                <li>Do not double-count: skip leaves in parts 1 and 3 since part 2 prints all leaves.</li>
+                <li>If <code>root.left</code> or <code>root.right</code> is missing, the corresponding boundary loop simply contributes nothing.</li>
+            </ul>
+        </div>
+
+        <h2>8. Complexity Summary</h2>
+        <table>
+            <tr><th>Property / View</th><th>Approach</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Height / Depth</td><td>DFS postorder</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Count nodes / leaves / internal / full</td><td>DFS postorder</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Diameter</td><td>DFS, height + global max</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Balanced check</td><td>DFS bottom-up, -2 sentinel</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Maximum width</td><td>BFS with 2i / 2i+1 indices</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Left / Right view</td><td>BFS, first / last per level</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Top / Bottom view</td><td>BFS + map keyed by HD</td><td>O(n log n)</td><td>O(n)</td></tr>
+            <tr><td>Vertical order</td><td>Collect (hd, level, val) + sort</td><td>O(n log n)</td><td>O(n)</td></tr>
+            <tr><td>Boundary traversal</td><td>3-part walk (left, leaves, right)</td><td>O(n)</td><td>O(h)</td></tr>
+        </table>
+        <p>Here <code>h</code> is the tree height (recursion stack depth). The map-based views are O(n log n) with an ordered map (<code>std::map</code> / <code>TreeMap</code>) or with a final sort; they drop to O(n) only if you sort by tracking the min/max HD range and bucketing.</p>
+
+        <div class="note">
+            <strong>The recurring "return-a-tuple, build bottom-up" pattern:</strong>
+            <ul>
+                <li>Diameter, balance, and height all share one shape: a postorder DFS where each call <strong>returns information about its subtree</strong> (typically the height) while <strong>updating a global / outer answer</strong> as it unwinds.</li>
+                <li>When a node needs more than one fact from its children &mdash; e.g. height <em>and</em> a balance flag, or height <em>and</em> diameter, or subtree sum <em>and</em> node count &mdash; return a <strong>tuple/struct</strong> instead of a single int. This keeps the whole computation in one O(n) pass and avoids the O(n&sup2;) trap of recomputing height at every node.</li>
+                <li>Mentally: "child returns its summary &rarr; I combine the two summaries &rarr; I update the answer &rarr; I return my own summary upward." Almost every tree-property problem fits this template.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

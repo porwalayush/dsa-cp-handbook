@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Serialization - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Serialize &amp; Deserialize a Binary Tree</h1>
+
+        <p><strong>Serialization</strong> is the process of converting a tree (an in-memory pointer structure) into a flat, linear representation — usually a string or byte stream — so it can be stored on disk or sent over a network. <strong>Deserialization</strong> is the exact inverse: rebuilding the original tree from that flat representation.</p>
+
+        <p>The two operations are packaged together as a <strong>Codec</strong>: one method <code>serialize(root)</code> produces a string, and a matching method <code>deserialize(data)</code> consumes that same string to reconstruct an identical tree. The only hard requirement is the <strong>round-trip property</strong>: <code>deserialize(serialize(root))</code> must yield a tree structurally equal to <code>root</code>.</p>
+
+        <h2>Why Null Markers Are Essential</h2>
+        <p>A plain traversal of a binary tree is <strong>ambiguous</strong>. Consider just a preorder list of values like <code>1, 2, 3</code>. Many different trees produce that exact sequence — there is no way to know whether <code>2</code> is a left child, whether <code>3</code> hangs off <code>1</code> or off <code>2</code>, and so on. One traversal alone does not encode <em>shape</em>, only order.</p>
+
+        <p>The fix is to explicitly record the absence of a child with a <strong>null marker</strong> (we use <code>#</code>). Once every missing child is written down, a single traversal becomes a <strong>bijection</strong> — exactly one tree maps to exactly one string and vice versa. This is what makes a single preorder (or postorder, or level-order) walk sufficient to rebuild the tree.</p>
+
+        <div class="visual">
+<pre>
+Without null markers, "1 2 3" is ambiguous:
+
+    1            1             1
+   /            / \             \
+  2            2   3             2
+ /                                \
+3                                  3
+
+With null markers, each shape has a UNIQUE string.
+</pre>
+        </div>
+
+        <h2>Preorder With Null Markers</h2>
+        <p>The most common contest/interview format. We walk the tree in <strong>preorder</strong> (root, then left subtree, then right subtree). At each step we emit the node's value, and when we hit an empty pointer we emit the null marker <code>#</code>. Values are joined by a delimiter (a comma) so multi-digit and negative numbers survive intact.</p>
+
+        <div class="visual">
+<pre>
+Tree:                 Preorder walk (root, left, right):
+
+      1               visit 1
+     / \              visit 2
+    2   3             2.left  = null  -> #
+       / \            2.right = null  -> #
+      4   5           visit 3
+                      visit 4
+                      4.left  = null  -> #
+                      4.right = null  -> #
+                      visit 5
+                      5.left  = null  -> #
+                      5.right = null  -> #
+
+Serialized string:  "1,2,#,#,3,4,#,#,5,#,#"
+</pre>
+        </div>
+
+        <p><strong>Deserialize</strong> reads the tokens left to right through a shared cursor (a queue or an index/iterator). Because the tokens were emitted in preorder, we rebuild in the same order: read one token; if it is <code>#</code> return null; otherwise create the node, then <em>recursively</em> build its left subtree, then its right subtree. The cursor advances exactly once per token, so the recursion consumes the stream in lockstep with how it was produced — guaranteeing deserialize inverts serialize.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'pre-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'pre-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pre-py')">Python</button>
+            </div>
+            <div id="pre-cpp" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode {
+    <span class="keyword">int</span> val;
+    TreeNode *left, *right;
+    TreeNode(<span class="keyword">int</span> x) : val(x), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+
+<span class="keyword">class</span> Codec {
+<span class="keyword">public</span>:
+    <span class="comment">// Preorder: root, left, right. '#' marks a null child.</span>
+    string serialize(TreeNode* root) {
+        string out;
+        encode(root, out);
+        <span class="keyword">return</span> out;
+    }
+
+    TreeNode* deserialize(string data) {
+        stringstream ss(data);
+        <span class="keyword">return</span> decode(ss);
+    }
+
+<span class="keyword">private</span>:
+    <span class="keyword">void</span> encode(TreeNode* node, string&amp; out) {
+        <span class="keyword">if</span> (!node) { out += <span class="string">"#,"</span>; <span class="keyword">return</span>; }
+        out += to_string(node-&gt;val) + <span class="string">","</span>;
+        encode(node-&gt;left, out);
+        encode(node-&gt;right, out);
+    }
+
+    TreeNode* decode(stringstream&amp; ss) {
+        string token;
+        getline(ss, token, <span class="string">','</span>);          <span class="comment">// read next token</span>
+        <span class="keyword">if</span> (token == <span class="string">"#"</span>) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+        TreeNode* node = <span class="keyword">new</span> TreeNode(stoi(token));
+        node-&gt;left  = decode(ss);            <span class="comment">// build left first (preorder)</span>
+        node-&gt;right = decode(ss);            <span class="comment">// then right</span>
+        <span class="keyword">return</span> node;
+    }
+};
+</pre>
+            </div>
+            <div id="pre-java" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> {
+    <span class="keyword">int</span> val;
+    <span class="type">TreeNode</span> left, right;
+    <span class="type">TreeNode</span>(<span class="keyword">int</span> x) { val = x; }
+}
+
+<span class="keyword">public class</span> <span class="type">Codec</span> {
+    <span class="comment">// Preorder: root, left, right. '#' marks a null child.</span>
+    <span class="keyword">public</span> <span class="type">String</span> serialize(<span class="type">TreeNode</span> root) {
+        <span class="type">StringBuilder</span> sb = <span class="keyword">new</span> <span class="type">StringBuilder</span>();
+        encode(root, sb);
+        <span class="keyword">return</span> sb.toString();
+    }
+
+    <span class="keyword">public</span> <span class="type">TreeNode</span> deserialize(<span class="type">String</span> data) {
+        <span class="type">Deque</span>&lt;<span class="type">String</span>&gt; tokens =
+            <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;(<span class="type">Arrays</span>.asList(data.split(<span class="string">","</span>)));
+        <span class="keyword">return</span> decode(tokens);
+    }
+
+    <span class="keyword">private void</span> encode(<span class="type">TreeNode</span> node, <span class="type">StringBuilder</span> sb) {
+        <span class="keyword">if</span> (node == <span class="keyword">null</span>) { sb.append(<span class="string">"#,"</span>); <span class="keyword">return</span>; }
+        sb.append(node.val).append(<span class="string">","</span>);
+        encode(node.left, sb);
+        encode(node.right, sb);
+    }
+
+    <span class="keyword">private</span> <span class="type">TreeNode</span> decode(<span class="type">Deque</span>&lt;<span class="type">String</span>&gt; tokens) {
+        <span class="type">String</span> token = tokens.poll();        <span class="comment">// read next token</span>
+        <span class="keyword">if</span> (token.equals(<span class="string">"#"</span>)) <span class="keyword">return</span> <span class="keyword">null</span>;
+        <span class="type">TreeNode</span> node = <span class="keyword">new</span> <span class="type">TreeNode</span>(<span class="type">Integer</span>.parseInt(token));
+        node.left  = decode(tokens);        <span class="comment">// build left first (preorder)</span>
+        node.right = decode(tokens);        <span class="comment">// then right</span>
+        <span class="keyword">return</span> node;
+    }
+}
+</pre>
+            </div>
+            <div id="pre-py" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span>:
+    <span class="keyword">def</span> __init__(self, val=<span class="number">0</span>, left=<span class="keyword">None</span>, right=<span class="keyword">None</span>):
+        self.val, self.left, self.right = val, left, right
+
+<span class="keyword">class</span> <span class="type">Codec</span>:
+    <span class="comment"># Preorder: root, left, right. '#' marks a null child.</span>
+    <span class="keyword">def</span> serialize(self, root):
+        out = []
+        <span class="keyword">def</span> encode(node):
+            <span class="keyword">if</span> <span class="keyword">not</span> node:
+                out.append(<span class="string">"#"</span>)
+                <span class="keyword">return</span>
+            out.append(str(node.val))
+            encode(node.left)
+            encode(node.right)
+        encode(root)
+        <span class="keyword">return</span> <span class="string">","</span>.join(out)
+
+    <span class="keyword">def</span> deserialize(self, data):
+        tokens = iter(data.split(<span class="string">","</span>))
+        <span class="keyword">def</span> decode():
+            token = next(tokens)            <span class="comment"># read next token</span>
+            <span class="keyword">if</span> token == <span class="string">"#"</span>:
+                <span class="keyword">return</span> <span class="keyword">None</span>
+            node = <span class="type">TreeNode</span>(int(token))
+            node.left  = decode()           <span class="comment"># build left first (preorder)</span>
+            node.right = decode()           <span class="comment"># then right</span>
+            <span class="keyword">return</span> node
+        <span class="keyword">return</span> decode()
+</pre>
+            </div>
+        </div>
+
+        <h2>Level-Order (BFS) Serialization</h2>
+        <p>This is the format LeetCode uses to display trees: <code>[1,2,3,null,null,4,5]</code>. We perform a breadth-first traversal with a queue, emitting each node's value (or <code>null</code> for an empty child) level by level.</p>
+
+        <div class="visual">
+<pre>
+Tree:                 BFS order (level by level):
+
+      1               level 0:  1
+     / \              level 1:  2  3
+    2   3             level 2:  (2's kids) null null
+       / \                      (3's kids) 4    5
+      4   5
+
+LeetCode form:  [1,2,3,null,null,4,5]
+
+Note: trailing nulls for the deepest leaves (4,5) are
+trimmed by LeetCode's display, but emitting them is fine.
+</pre>
+        </div>
+
+        <p><strong>Serialize</strong>: push the root, then repeatedly pop a node — if it is non-null, emit its value and enqueue both children (even null ones); if it is null, emit <code>#</code> and enqueue nothing. <strong>Deserialize</strong>: read the first token as the root and enqueue it. Then for each dequeued parent, consume the <em>next two tokens</em> as its left and right children, attaching and enqueuing any non-null child. The queue links parents to children in the same order BFS visited them, so the rebuild is exact.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bfs-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'bfs-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'bfs-py')">Python</button>
+            </div>
+            <div id="bfs-cpp" class="code-content active">
+<pre>
+<span class="keyword">class</span> Codec {
+<span class="keyword">public</span>:
+    <span class="comment">// Level-order (BFS). '#' marks a null slot.</span>
+    string serialize(TreeNode* root) {
+        <span class="keyword">if</span> (!root) <span class="keyword">return</span> <span class="string">""</span>;
+        string out;
+        queue&lt;TreeNode*&gt; q;
+        q.push(root);
+        <span class="keyword">while</span> (!q.empty()) {
+            TreeNode* node = q.front(); q.pop();
+            <span class="keyword">if</span> (!node) { out += <span class="string">"#,"</span>; <span class="keyword">continue</span>; }
+            out += to_string(node-&gt;val) + <span class="string">","</span>;
+            q.push(node-&gt;left);             <span class="comment">// enqueue both children</span>
+            q.push(node-&gt;right);
+        }
+        <span class="keyword">return</span> out;
+    }
+
+    TreeNode* deserialize(string data) {
+        <span class="keyword">if</span> (data.empty()) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+        stringstream ss(data);
+        string token;
+        getline(ss, token, <span class="string">','</span>);
+        TreeNode* root = <span class="keyword">new</span> TreeNode(stoi(token));
+        queue&lt;TreeNode*&gt; q;
+        q.push(root);
+        <span class="keyword">while</span> (!q.empty()) {
+            TreeNode* node = q.front(); q.pop();
+            <span class="keyword">if</span> (getline(ss, token, <span class="string">','</span>) &amp;&amp; token != <span class="string">"#"</span>) {
+                node-&gt;left = <span class="keyword">new</span> TreeNode(stoi(token));
+                q.push(node-&gt;left);
+            }
+            <span class="keyword">if</span> (getline(ss, token, <span class="string">','</span>) &amp;&amp; token != <span class="string">"#"</span>) {
+                node-&gt;right = <span class="keyword">new</span> TreeNode(stoi(token));
+                q.push(node-&gt;right);
+            }
+        }
+        <span class="keyword">return</span> root;
+    }
+};
+</pre>
+            </div>
+            <div id="bfs-java" class="code-content">
+<pre>
+<span class="keyword">public class</span> <span class="type">Codec</span> {
+    <span class="comment">// Level-order (BFS). '#' marks a null slot.</span>
+    <span class="keyword">public</span> <span class="type">String</span> serialize(<span class="type">TreeNode</span> root) {
+        <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="string">""</span>;
+        <span class="type">StringBuilder</span> sb = <span class="keyword">new</span> <span class="type">StringBuilder</span>();
+        <span class="type">Queue</span>&lt;<span class="type">TreeNode</span>&gt; q = <span class="keyword">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+        q.add(root);
+        <span class="keyword">while</span> (!q.isEmpty()) {
+            <span class="type">TreeNode</span> node = q.poll();
+            <span class="keyword">if</span> (node == <span class="keyword">null</span>) { sb.append(<span class="string">"#,"</span>); <span class="keyword">continue</span>; }
+            sb.append(node.val).append(<span class="string">","</span>);
+            q.add(node.left);              <span class="comment">// enqueue both children</span>
+            q.add(node.right);
+        }
+        <span class="keyword">return</span> sb.toString();
+    }
+
+    <span class="keyword">public</span> <span class="type">TreeNode</span> deserialize(<span class="type">String</span> data) {
+        <span class="keyword">if</span> (data.isEmpty()) <span class="keyword">return</span> <span class="keyword">null</span>;
+        <span class="type">String</span>[] t = data.split(<span class="string">","</span>);
+        <span class="type">TreeNode</span> root = <span class="keyword">new</span> <span class="type">TreeNode</span>(<span class="type">Integer</span>.parseInt(t[<span class="number">0</span>]));
+        <span class="type">Queue</span>&lt;<span class="type">TreeNode</span>&gt; q = <span class="keyword">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+        q.add(root);
+        <span class="keyword">int</span> i = <span class="number">1</span>;
+        <span class="keyword">while</span> (!q.isEmpty()) {
+            <span class="type">TreeNode</span> node = q.poll();
+            <span class="keyword">if</span> (!t[i].equals(<span class="string">"#"</span>)) {
+                node.left = <span class="keyword">new</span> <span class="type">TreeNode</span>(<span class="type">Integer</span>.parseInt(t[i]));
+                q.add(node.left);
+            }
+            i++;
+            <span class="keyword">if</span> (!t[i].equals(<span class="string">"#"</span>)) {
+                node.right = <span class="keyword">new</span> <span class="type">TreeNode</span>(<span class="type">Integer</span>.parseInt(t[i]));
+                q.add(node.right);
+            }
+            i++;
+        }
+        <span class="keyword">return</span> root;
+    }
+}
+</pre>
+            </div>
+            <div id="bfs-py" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">class</span> <span class="type">Codec</span>:
+    <span class="comment"># Level-order (BFS). '#' marks a null slot.</span>
+    <span class="keyword">def</span> serialize(self, root):
+        <span class="keyword">if</span> <span class="keyword">not</span> root:
+            <span class="keyword">return</span> <span class="string">""</span>
+        out, q = [], deque([root])
+        <span class="keyword">while</span> q:
+            node = q.popleft()
+            <span class="keyword">if</span> <span class="keyword">not</span> node:
+                out.append(<span class="string">"#"</span>)
+                <span class="keyword">continue</span>
+            out.append(str(node.val))
+            q.append(node.left)            <span class="comment"># enqueue both children</span>
+            q.append(node.right)
+        <span class="keyword">return</span> <span class="string">","</span>.join(out)
+
+    <span class="keyword">def</span> deserialize(self, data):
+        <span class="keyword">if</span> <span class="keyword">not</span> data:
+            <span class="keyword">return</span> <span class="keyword">None</span>
+        t = data.split(<span class="string">","</span>)
+        root = <span class="type">TreeNode</span>(int(t[<span class="number">0</span>]))
+        q = deque([root])
+        i = <span class="number">1</span>
+        <span class="keyword">while</span> q:
+            node = q.popleft()
+            <span class="keyword">if</span> t[i] != <span class="string">"#"</span>:
+                node.left = <span class="type">TreeNode</span>(int(t[i]))
+                q.append(node.left)
+            i += <span class="number">1</span>
+            <span class="keyword">if</span> t[i] != <span class="string">"#"</span>:
+                node.right = <span class="type">TreeNode</span>(int(t[i]))
+                q.append(node.right)
+            i += <span class="number">1</span>
+        <span class="keyword">return</span> root
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Preorder vs Level-order — which to pick?</strong>
+            <ul>
+                <li><strong>Preorder (DFS):</strong> shortest code, naturally recursive, easy to reason about. Best for interviews and most contest needs.</li>
+                <li><strong>Level-order (BFS):</strong> matches LeetCode's display format, iterative (no deep recursion / stack-overflow risk on skewed trees), and human-readable as a "tree by levels".</li>
+                <li><strong>Postorder also works:</strong> serialize as left, right, root. To deserialize you read tokens <em>from the back</em> and build <strong>right before left</strong> (mirror of preorder), because the last value written is the root and the right subtree was the last child emitted.</li>
+            </ul>
+        </div>
+
+        <h2>Special Case: Serializing a BST</h2>
+        <p>For a <strong>Binary Search Tree</strong> you can drop the null markers entirely. A bare preorder list such as <code>5,3,2,4,8,7,9</code> is already unambiguous: the BST ordering invariant plus value bounds tell you exactly where each node belongs. During deserialization you carry a <code>(lower, upper)</code> bound; a node attaches as a left or right child only if its value fits the bound, which uniquely reconstructs the shape.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bst-py')">Python</button>
+            </div>
+            <div id="bst-py" class="code-content active">
+<pre>
+<span class="comment"># BST: preorder WITHOUT null markers is enough.</span>
+<span class="keyword">def</span> serialize(root):
+    out = []
+    <span class="keyword">def</span> pre(n):
+        <span class="keyword">if</span> n:
+            out.append(str(n.val)); pre(n.left); pre(n.right)
+    pre(root)
+    <span class="keyword">return</span> <span class="string">","</span>.join(out)
+
+<span class="keyword">def</span> deserialize(data):
+    <span class="keyword">if</span> <span class="keyword">not</span> data: <span class="keyword">return</span> <span class="keyword">None</span>
+    vals = list(map(int, data.split(<span class="string">","</span>)))
+    self_i = [<span class="number">0</span>]
+    <span class="keyword">def</span> build(lower, upper):
+        <span class="keyword">if</span> self_i[<span class="number">0</span>] == len(vals): <span class="keyword">return</span> <span class="keyword">None</span>
+        v = vals[self_i[<span class="number">0</span>]]
+        <span class="keyword">if</span> v &lt; lower <span class="keyword">or</span> v &gt; upper: <span class="keyword">return</span> <span class="keyword">None</span>  <span class="comment"># out of bounds</span>
+        self_i[<span class="number">0</span>] += <span class="number">1</span>
+        node = <span class="type">TreeNode</span>(v)
+        node.left  = build(lower, v)       <span class="comment"># left values &lt; v</span>
+        node.right = build(v, upper)       <span class="comment"># right values &gt; v</span>
+        <span class="keyword">return</span> node
+    <span class="keyword">return</span> build(float(<span class="string">"-inf"</span>), float(<span class="string">"inf"</span>))
+</pre>
+            </div>
+        </div>
+
+        <h2>Edge Cases</h2>
+        <ul>
+            <li><strong>Empty tree:</strong> <code>serialize(null)</code> must produce a string that deserializes back to null. Preorder yields <code>"#"</code>; the BFS version above returns <code>""</code> and special-cases it on the way back.</li>
+            <li><strong>Single node:</strong> a lone root with no children serializes (preorder) to <code>"1,#,#"</code> and must rebuild to a node with both children null.</li>
+            <li><strong>Negative and multi-digit values:</strong> never serialize one character per node. A value like <code>-12</code> or <code>305</code> needs a real delimiter (a comma) between tokens — otherwise <code>-12</code> and <code>1,2</code> become indistinguishable. Always split on the delimiter, never on character position.</li>
+            <li><strong>Duplicate values:</strong> fine for a general binary tree (shape is encoded explicitly), but the BST-without-markers trick assumes a strict ordering — decide up front whether duplicates go left or right and keep the bound comparison consistent.</li>
+        </ul>
+
+        <div class="warn">
+            <strong>Common bug:</strong> using a single character per node (e.g. <code>"12##34####"</code>). This silently breaks the moment a value is negative or has more than one digit. Use a comma-delimited token stream and parse whole tokens.
+        </div>
+
+        <h2>Complexity Analysis</h2>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Serialize (preorder)</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Deserialize (preorder)</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Serialize (level-order)</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Deserialize (level-order)</td><td>O(n)</td><td>O(n)</td></tr>
+        </table>
+        <p>Every node and every null marker is visited exactly once in each direction, so all four operations are <strong>O(n) time</strong>. The output string holds O(n) tokens, and the recursion stack or BFS queue holds at most O(n) entries, so space is <strong>O(n)</strong> as well.</p>
+
+        <div class="note">
+            <strong>Key insight:</strong> a raw traversal records order but not shape, so it maps many trees to one string — it is not invertible. Adding an explicit <strong>null marker</strong> for every missing child restores the shape information, turning an ambiguous traversal into a <strong>bijection</strong> between trees and strings. That single change is what makes <code>deserialize</code> a true inverse of <code>serialize</code>.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Path Problems - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Binary Tree Path Problems</h1>
+        <p>A huge family of binary tree interview questions boils down to reasoning about <strong>paths</strong>: sequences of connected nodes. They look different on the surface, but they share one DFS skeleton. Learn the skeleton once and the variations become bookkeeping.</p>
+
+        <h2>The Family of Path Problems</h2>
+        <p>Path problems differ along two axes: <strong>where a path may start/end</strong> and <strong>what we compute</strong> over it.</p>
+        <ul>
+            <li><strong>Root-to-leaf paths</strong> &mdash; start at the root, end at a leaf. Listing them, checking a target sum, or building numbers all fall here.</li>
+            <li><strong>Downward paths</strong> &mdash; start at <em>any</em> node, go strictly downward, end at any descendant. Path Sum III counts these.</li>
+            <li><strong>Any-to-any paths</strong> &mdash; start at any node, bend through at most one "peak", end at any node. Maximum Path Sum and the diameter live here.</li>
+        </ul>
+
+        <p>All of them ride the same recursive shape: visit a node, recurse into children, combine results. The two recurring tricks you will see below are:</p>
+
+        <div class="visual">
+<pre>
+The shared DFS skeleton
+-----------------------
+dfs(node):
+    if node is null: return base-case
+    L = dfs(node.left)
+    R = dfs(node.right)
+    update global answer using node + L + R     (the "through-node" view)
+    return best single-branch value to parent    (the "ending-here" view)
+
+Two distinct quantities at each node:
+  * best path that BENDS at this node  -> only updates a global, never returned
+  * best path that ENDS at this node   -> returned upward so parent can extend it
+</pre>
+        </div>
+
+        <h2>1. All Root-to-Leaf Paths</h2>
+        <p>Carry the current path down. When you reach a leaf (no children), snapshot the path into the answer. On the way back up, pop the node so sibling branches start clean &mdash; this is <strong>backtracking</strong>.</p>
+
+        <div class="visual">
+<pre>
+          1
+        /   \
+       2     3
+        \      \
+         5      4
+
+Root-to-leaf paths:
+  1 -> 2 -> 5
+  1 -> 3 -> 4
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode { <span class="keyword">int</span> val; TreeNode *left, *right; };
+
+<span class="keyword">void</span> dfs(TreeNode* node, vector&lt;<span class="keyword">int</span>&gt;&amp; path,
+         vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; out) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span>;
+    path.push_back(node-&gt;val);
+    <span class="keyword">if</span> (!node-&gt;left &amp;&amp; !node-&gt;right) {
+        out.push_back(path);              <span class="comment">// leaf: snapshot</span>
+    } <span class="keyword">else</span> {
+        dfs(node-&gt;left,  path, out);
+        dfs(node-&gt;right, path, out);
+    }
+    path.pop_back();                      <span class="comment">// backtrack</span>
+}
+
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; allPaths(TreeNode* root) {
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; out; vector&lt;<span class="keyword">int</span>&gt; path;
+    dfs(root, path, out);
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> { <span class="keyword">int</span> val; <span class="type">TreeNode</span> left, right; }
+
+<span class="keyword">void</span> dfs(<span class="type">TreeNode</span> node, <span class="type">List</span>&lt;<span class="type">Integer</span>&gt; path,
+         <span class="type">List</span>&lt;<span class="type">List</span>&lt;<span class="type">Integer</span>&gt;&gt; out) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    path.add(node.val);
+    <span class="keyword">if</span> (node.left == <span class="keyword">null</span> &amp;&amp; node.right == <span class="keyword">null</span>) {
+        out.add(<span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;(path));   <span class="comment">// leaf: copy</span>
+    } <span class="keyword">else</span> {
+        dfs(node.left,  path, out);
+        dfs(node.right, path, out);
+    }
+    path.remove(path.size() - <span class="number">1</span>);          <span class="comment">// backtrack</span>
+}
+
+<span class="type">List</span>&lt;<span class="type">List</span>&lt;<span class="type">Integer</span>&gt;&gt; allPaths(<span class="type">TreeNode</span> root) {
+    <span class="type">List</span>&lt;<span class="type">List</span>&lt;<span class="type">Integer</span>&gt;&gt; out = <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;();
+    dfs(root, <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;(), out);
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">def</span> all_paths(root):
+    out, path = [], []
+    <span class="keyword">def</span> dfs(node):
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span>
+        path.append(node.val)
+        <span class="keyword">if</span> <span class="keyword">not</span> node.left <span class="keyword">and</span> <span class="keyword">not</span> node.right:
+            out.append(path[:])           <span class="comment"># leaf: snapshot</span>
+        <span class="keyword">else</span>:
+            dfs(node.left)
+            dfs(node.right)
+        path.pop()                        <span class="comment"># backtrack</span>
+    dfs(root)
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Path Sum I &mdash; Does a Root-to-Leaf Path Equal Target?</h2>
+        <p>We do not need to carry the running sum; instead <strong>subtract</strong> each node's value from the remaining target as we descend. At a leaf, the path works iff the remaining target equals the leaf's value. This returns a single boolean &mdash; the moment one branch succeeds, short-circuit.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="keyword">bool</span> hasPathSum(TreeNode* node, <span class="keyword">int</span> target) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">false</span>;
+    target -= node-&gt;val;
+    <span class="keyword">if</span> (!node-&gt;left &amp;&amp; !node-&gt;right)        <span class="comment">// leaf</span>
+        <span class="keyword">return</span> target == <span class="number">0</span>;
+    <span class="keyword">return</span> hasPathSum(node-&gt;left,  target)
+        || hasPathSum(node-&gt;right, target);
+}
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="keyword">boolean</span> hasPathSum(<span class="type">TreeNode</span> node, <span class="keyword">int</span> target) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">false</span>;
+    target -= node.val;
+    <span class="keyword">if</span> (node.left == <span class="keyword">null</span> &amp;&amp; node.right == <span class="keyword">null</span>)
+        <span class="keyword">return</span> target == <span class="number">0</span>;
+    <span class="keyword">return</span> hasPathSum(node.left,  target)
+        || hasPathSum(node.right, target);
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="keyword">def</span> has_path_sum(node, target):
+    <span class="keyword">if</span> <span class="keyword">not</span> node:
+        <span class="keyword">return</span> <span class="keyword">False</span>
+    target -= node.val
+    <span class="keyword">if</span> <span class="keyword">not</span> node.left <span class="keyword">and</span> <span class="keyword">not</span> node.right:
+        <span class="keyword">return</span> target == <span class="number">0</span>
+    <span class="keyword">return</span> (has_path_sum(node.left,  target)
+            <span class="keyword">or</span> has_path_sum(node.right, target))
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Path Sum II &mdash; All Root-to-Leaf Paths Equal to Target</h2>
+        <p>Combine the path-tracking of problem 1 with the subtract-target trick of problem 2. Track the current path, and whenever a leaf brings the remaining target to zero, snapshot the path. Backtrack on the way up.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="keyword">void</span> dfs(TreeNode* node, <span class="keyword">int</span> target,
+         vector&lt;<span class="keyword">int</span>&gt;&amp; path, vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; out) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span>;
+    path.push_back(node-&gt;val);
+    target -= node-&gt;val;
+    <span class="keyword">if</span> (!node-&gt;left &amp;&amp; !node-&gt;right &amp;&amp; target == <span class="number">0</span>)
+        out.push_back(path);
+    dfs(node-&gt;left,  target, path, out);
+    dfs(node-&gt;right, target, path, out);
+    path.pop_back();                      <span class="comment">// backtrack</span>
+}
+
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; pathSum(TreeNode* root, <span class="keyword">int</span> target) {
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; out; vector&lt;<span class="keyword">int</span>&gt; path;
+    dfs(root, target, path, out);
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="keyword">void</span> dfs(<span class="type">TreeNode</span> node, <span class="keyword">int</span> target,
+         <span class="type">List</span>&lt;<span class="type">Integer</span>&gt; path, <span class="type">List</span>&lt;<span class="type">List</span>&lt;<span class="type">Integer</span>&gt;&gt; out) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    path.add(node.val);
+    target -= node.val;
+    <span class="keyword">if</span> (node.left == <span class="keyword">null</span> &amp;&amp; node.right == <span class="keyword">null</span> &amp;&amp; target == <span class="number">0</span>)
+        out.add(<span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;(path));
+    dfs(node.left,  target, path, out);
+    dfs(node.right, target, path, out);
+    path.remove(path.size() - <span class="number">1</span>);          <span class="comment">// backtrack</span>
+}
+
+<span class="type">List</span>&lt;<span class="type">List</span>&lt;<span class="type">Integer</span>&gt;&gt; pathSum(<span class="type">TreeNode</span> root, <span class="keyword">int</span> target) {
+    <span class="type">List</span>&lt;<span class="type">List</span>&lt;<span class="type">Integer</span>&gt;&gt; out = <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;();
+    dfs(root, target, <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;(), out);
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="keyword">def</span> path_sum(root, target):
+    out, path = [], []
+    <span class="keyword">def</span> dfs(node, remaining):
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span>
+        path.append(node.val)
+        remaining -= node.val
+        <span class="keyword">if</span> <span class="keyword">not</span> node.left <span class="keyword">and</span> <span class="keyword">not</span> node.right <span class="keyword">and</span> remaining == <span class="number">0</span>:
+            out.append(path[:])
+        dfs(node.left,  remaining)
+        dfs(node.right, remaining)
+        path.pop()                        <span class="comment"># backtrack</span>
+    dfs(root, target)
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Path Sum III &mdash; Count Downward Paths Summing to Target</h2>
+        <p>Now the path can <strong>start and end anywhere</strong>, as long as it goes strictly downward (parent to child). A brute-force "start a fresh sum at every node" is O(n&sup2;). The elegant O(n) solution borrows the classic <strong>prefix-sum + hashmap</strong> trick from the subarray-sum problem.</p>
+
+        <p>Let <code>prefix</code> be the running sum from the root down to the current node. A downward path ending at the current node with sum <code>target</code> exists for every ancestor where <code>prefixAtAncestor == prefix - target</code>. So we keep a hashmap <em>count of prefix sums seen on the current root-to-node path</em> and, at each node, add <code>map[prefix - target]</code> to the answer.</p>
+
+        <div class="visual">
+<pre>
+target = 8
+
+            10
+           /  \
+          5   (-3)
+         / \     \
+        3   2    11
+       / \   \
+      3 (-2)  1
+
+Walk to node "2" (right child of 5): prefix sums on this path
+  root path: 10, 5, 2   ->  prefixes seen: {0:1, 10:1, 15:1, 17:1}
+  at node "2": prefix = 17, want prefix - target = 9 ... none -> +0
+
+Walk to node "3" (left child of 5), then "3" (its left child):
+  prefixes: 0,10,15,18,21
+  at the lower "3": prefix = 21, want 21 - 8 = 13 ... none
+
+Paths that DO sum to 8:
+  5 -> 3                  (5 + 3 = 8)
+  5 -> 2 -> 1             (5 + 2 + 1 = 8)
+  (-3) -> 11              (-3 + 11 = 8)
+Answer = 3
+
+The map[0] = 1 seed lets a path that starts at the root itself count
+(prefix - target == 0 means the whole root-to-node path equals target).
+</pre>
+        </div>
+
+        <p><strong>Critical detail:</strong> the map only reflects ancestors on the <em>current</em> path. After recursing into both children, <strong>decrement</strong> <code>map[prefix]</code> so sibling subtrees do not see this node's prefix. That decrement is the backtracking step.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp4')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java4')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python4')">Python</button>
+            </div>
+            <div id="cpp4" class="code-content active">
+<pre>
+<span class="comment">// long long prefix to avoid overflow on deep sums</span>
+<span class="keyword">int</span> dfs(TreeNode* node, <span class="keyword">long long</span> prefix, <span class="keyword">int</span> target,
+        unordered_map&lt;<span class="keyword">long long</span>, <span class="keyword">int</span>&gt;&amp; seen) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="number">0</span>;
+    prefix += node-&gt;val;
+    <span class="keyword">int</span> count = <span class="number">0</span>;
+    <span class="keyword">auto</span> it = seen.find(prefix - target);
+    <span class="keyword">if</span> (it != seen.end()) count += it-&gt;second;
+    seen[prefix]++;                       <span class="comment">// record this node</span>
+    count += dfs(node-&gt;left,  prefix, target, seen);
+    count += dfs(node-&gt;right, prefix, target, seen);
+    seen[prefix]--;                       <span class="comment">// backtrack</span>
+    <span class="keyword">return</span> count;
+}
+
+<span class="keyword">int</span> pathSumIII(TreeNode* root, <span class="keyword">int</span> target) {
+    unordered_map&lt;<span class="keyword">long long</span>, <span class="keyword">int</span>&gt; seen;
+    seen[<span class="number">0</span>] = <span class="number">1</span>;                          <span class="comment">// empty prefix</span>
+    <span class="keyword">return</span> dfs(root, <span class="number">0</span>, target, seen);
+}
+</pre>
+            </div>
+            <div id="java4" class="code-content">
+<pre>
+<span class="keyword">int</span> dfs(<span class="type">TreeNode</span> node, <span class="keyword">long</span> prefix, <span class="keyword">int</span> target,
+        <span class="type">Map</span>&lt;<span class="type">Long</span>, <span class="type">Integer</span>&gt; seen) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    prefix += node.val;
+    <span class="keyword">int</span> count = seen.getOrDefault(prefix - target, <span class="number">0</span>);
+    seen.merge(prefix, <span class="number">1</span>, <span class="type">Integer</span>::sum);   <span class="comment">// record</span>
+    count += dfs(node.left,  prefix, target, seen);
+    count += dfs(node.right, prefix, target, seen);
+    seen.merge(prefix, -<span class="number">1</span>, <span class="type">Integer</span>::sum);  <span class="comment">// backtrack</span>
+    <span class="keyword">return</span> count;
+}
+
+<span class="keyword">int</span> pathSumIII(<span class="type">TreeNode</span> root, <span class="keyword">int</span> target) {
+    <span class="type">Map</span>&lt;<span class="type">Long</span>, <span class="type">Integer</span>&gt; seen = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    seen.put(<span class="number">0L</span>, <span class="number">1</span>);                       <span class="comment">// empty prefix</span>
+    <span class="keyword">return</span> dfs(root, <span class="number">0L</span>, target, seen);
+}
+</pre>
+            </div>
+            <div id="python4" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict
+
+<span class="keyword">def</span> path_sum_iii(root, target):
+    seen = defaultdict(<span class="type">int</span>)
+    seen[<span class="number">0</span>] = <span class="number">1</span>                          <span class="comment"># empty prefix</span>
+    <span class="keyword">def</span> dfs(node, prefix):
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span> <span class="number">0</span>
+        prefix += node.val
+        count = seen[prefix - target]
+        seen[prefix] += <span class="number">1</span>                  <span class="comment"># record</span>
+        count += dfs(node.left,  prefix)
+        count += dfs(node.right, prefix)
+        seen[prefix] -= <span class="number">1</span>                  <span class="comment"># backtrack</span>
+        <span class="keyword">return</span> count
+    <span class="keyword">return</span> dfs(root, <span class="number">0</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Maximum Path Sum &mdash; Any Node to Any Node</h2>
+        <p>This is the gold-standard tree-DP problem. A path may start and end at any node and may <strong>bend</strong> through one node (its "peak"). We want the maximum sum over all such paths.</p>
+
+        <p>At each node we juggle the two quantities from the skeleton:</p>
+        <ul>
+            <li><strong>Gain ending here</strong> (returned upward): <code>node.val + max(leftGain, rightGain, 0)</code>. A parent can only extend through one child, so we pick the better single branch. We clamp at 0 because a negative branch is better left off the path entirely.</li>
+            <li><strong>Path bending here</strong> (updates the global best): <code>node.val + max(0, leftGain) + max(0, rightGain)</code>. This uses both branches, forming a path whose highest point is this node.</li>
+        </ul>
+
+        <p><strong>Why clamp negatives?</strong> If a child's best downward gain is negative, attaching it can only shrink our sum, so we treat it as 0 (don't take it). <strong>Why is the bending path not propagated upward?</strong> A path that already uses both children of a node cannot be extended by that node's parent without revisiting the node &mdash; that would no longer be a simple path. So the two-branch value only updates the global answer; the parent receives the single-branch value.</p>
+
+        <div class="visual">
+<pre>
+            -10
+           /    \
+          9      20
+                /  \
+               15   7
+
+Best single branches:
+  gain(9)  = 9
+  gain(15) = 15
+  gain(7)  = 7
+  gain(20) = 20 + max(15,7,0) = 35   (returned upward)
+  gain(-10)= -10 + max(9,35,0) = 25
+
+Bending paths considered for the GLOBAL best:
+  at 20: 20 + 15 + 7 = 42   <-- maximum, does NOT pass through root
+  at -10: -10 + max(0,9) + max(0,35) = 34
+
+Answer = 42  (path 15 -> 20 -> 7, peak at 20)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp5')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java5')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python5')">Python</button>
+            </div>
+            <div id="cpp5" class="code-content active">
+<pre>
+<span class="keyword">int</span> best = INT_MIN;
+
+<span class="comment">// returns max gain of a path STARTING at node going down</span>
+<span class="keyword">int</span> gain(TreeNode* node) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> L = max(<span class="number">0</span>, gain(node-&gt;left));   <span class="comment">// clamp negatives</span>
+    <span class="keyword">int</span> R = max(<span class="number">0</span>, gain(node-&gt;right));
+    best = max(best, node-&gt;val + L + R);  <span class="comment">// path bending here</span>
+    <span class="keyword">return</span> node-&gt;val + max(L, R);          <span class="comment">// extend one branch</span>
+}
+
+<span class="keyword">int</span> maxPathSum(TreeNode* root) {
+    best = INT_MIN;
+    gain(root);
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="java5" class="code-content">
+<pre>
+<span class="keyword">int</span> best = <span class="type">Integer</span>.MIN_VALUE;
+
+<span class="comment">// returns max gain of a path STARTING at node going down</span>
+<span class="keyword">int</span> gain(<span class="type">TreeNode</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> L = <span class="type">Math</span>.max(<span class="number">0</span>, gain(node.left));   <span class="comment">// clamp</span>
+    <span class="keyword">int</span> R = <span class="type">Math</span>.max(<span class="number">0</span>, gain(node.right));
+    best = <span class="type">Math</span>.max(best, node.val + L + R);   <span class="comment">// bend</span>
+    <span class="keyword">return</span> node.val + <span class="type">Math</span>.max(L, R);        <span class="comment">// extend</span>
+}
+
+<span class="keyword">int</span> maxPathSum(<span class="type">TreeNode</span> root) {
+    best = <span class="type">Integer</span>.MIN_VALUE;
+    gain(root);
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="python5" class="code-content">
+<pre>
+<span class="keyword">def</span> max_path_sum(root):
+    best = float(<span class="string">'-inf'</span>)
+    <span class="keyword">def</span> gain(node):
+        <span class="keyword">nonlocal</span> best
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span> <span class="number">0</span>
+        L = max(<span class="number">0</span>, gain(node.left))      <span class="comment"># clamp negatives</span>
+        R = max(<span class="number">0</span>, gain(node.right))
+        best = max(best, node.val + L + R) <span class="comment"># path bending here</span>
+        <span class="keyword">return</span> node.val + max(L, R)         <span class="comment"># extend one branch</span>
+    gain(root)
+    <span class="keyword">return</span> best
+</pre>
+            </div>
+        </div>
+
+        <h2>6. Diameter as a Path Problem</h2>
+        <p>The <strong>diameter</strong> is the longest path between any two nodes, measured in <em>edges</em>. It is exactly Maximum Path Sum with every node's value replaced by 0 and we count edges instead of summing values: at each node the "bending path" length is <code>leftHeight + rightHeight</code>, and we return <code>1 + max(leftHeight, rightHeight)</code> upward. Same skeleton, different accumulator.</p>
+        <div class="note">
+            For the full diameter walkthrough and height-based DFS, see the <strong>Tree Traversals &amp; Views</strong> page, which covers heights and depths in detail.
+        </div>
+
+        <h2>7. Sum Root-to-Leaf Numbers</h2>
+        <p>Each root-to-leaf path spells out a number (e.g. <code>1 -&gt; 2 -&gt; 3</code> means 123). Carry the number built so far as <code>cur * 10 + node.val</code>; at a leaf, add <code>cur</code> to the total. A one-pass DFS, O(n).</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'py6')">Python</button>
+            </div>
+            <div id="py6" class="code-content active">
+<pre>
+<span class="keyword">def</span> sum_numbers(root):
+    <span class="keyword">def</span> dfs(node, cur):
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span> <span class="number">0</span>
+        cur = cur * <span class="number">10</span> + node.val
+        <span class="keyword">if</span> <span class="keyword">not</span> node.left <span class="keyword">and</span> <span class="keyword">not</span> node.right:
+            <span class="keyword">return</span> cur                       <span class="comment"># leaf: number complete</span>
+        <span class="keyword">return</span> dfs(node.left, cur) + dfs(node.right, cur)
+    <span class="keyword">return</span> dfs(root, <span class="number">0</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Problem</th><th>Path type</th><th>Time</th><th>Space</th></tr>
+            <tr><td>All root-to-leaf paths</td><td>root&rarr;leaf</td><td>O(n) nodes, O(n&middot;h) output</td><td>O(h)</td></tr>
+            <tr><td>Path Sum I</td><td>root&rarr;leaf</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Path Sum II</td><td>root&rarr;leaf</td><td>O(n) + output</td><td>O(h)</td></tr>
+            <tr><td>Path Sum III</td><td>any downward</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Maximum Path Sum</td><td>any-to-any</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Diameter</td><td>any-to-any (edges)</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Sum root-to-leaf numbers</td><td>root&rarr;leaf</td><td>O(n)</td><td>O(h)</td></tr>
+        </table>
+        <p>All run in O(n) node-visits; <code>h</code> is the tree height (recursion stack), O(log n) balanced, O(n) skewed. Listing problems add output size on top.</p>
+
+        <div class="note">
+            <strong>The recurring patterns to remember:</strong>
+            <ul>
+                <li><strong>Two views per node.</strong> Return the <em>best-ending-here</em> value upward (so the parent can extend a single branch) while updating the <em>best-through-here</em> answer globally (a bending path that the parent cannot reuse). This single idea solves Maximum Path Sum, diameter, and most "any-to-any" tree problems.</li>
+                <li><strong>Subtract the target.</strong> For root-to-leaf sum checks, decrement the target as you descend and test against 0 at the leaf &mdash; no running sum needed.</li>
+                <li><strong>Prefix-sum map for downward path counting.</strong> Keep a hashmap of prefix sums seen on the <em>current</em> root-to-node path; <code>map[prefix - target]</code> gives the number of downward paths ending here. Always seed <code>map[0] = 1</code> and decrement on the way back up so siblings stay isolated.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

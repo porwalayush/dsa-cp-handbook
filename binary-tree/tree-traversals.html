@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Traversals - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Binary Tree Traversals</h1>
+        <p>A <strong>traversal</strong> is a systematic way to visit every node in a tree exactly once. The two main families are <strong>Depth-First Search (DFS)</strong> &mdash; which dives deep along a branch before backtracking (preorder, inorder, postorder) &mdash; and <strong>Breadth-First Search (BFS)</strong>, also called level-order, which visits nodes level by level.</p>
+
+        <h2>The Running Example</h2>
+        <p>Throughout this page we use one fixed binary tree. It happens to be a <strong>Binary Search Tree (BST)</strong>, which lets us highlight a useful property of inorder traversal later.</p>
+
+        <div class="visual">
+<pre>
+              4
+            /   \
+           2     6
+          / \   / \
+         1   3 5   7
+
+DFS results for this tree:
+  Preorder   (Root, Left, Right):  4 2 1 3 6 5 7
+  Inorder    (Left, Root, Right):  1 2 3 4 5 6 7   &lt;- sorted (BST!)
+  Postorder  (Left, Right, Root):  1 3 2 5 7 6 4
+
+BFS result:
+  Level-order (top to bottom):     4 2 6 1 3 5 7
+</pre>
+        </div>
+
+        <div class="compare">
+            <div>
+                <h3>DFS Family</h3>
+                <ul>
+                    <li>Explores one branch fully, then backtracks</li>
+                    <li>Naturally recursive; iterative form uses an explicit <strong>stack</strong></li>
+                    <li>Variants: preorder, inorder, postorder</li>
+                    <li>Space O(h) where h is tree height</li>
+                </ul>
+            </div>
+            <div>
+                <h3>BFS Family</h3>
+                <ul>
+                    <li>Explores all nodes at depth d before depth d+1</li>
+                    <li>Uses a <strong>queue</strong> (FIFO)</li>
+                    <li>Variant: level-by-level grouping, zigzag</li>
+                    <li>Space O(w) where w is max width (up to n/2)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>The Node Definition</h2>
+        <p>All code below assumes this simple binary tree node.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppNode')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaNode')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyNode')">Python</button>
+            </div>
+            <div id="cppNode" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode {
+    <span class="keyword">int</span> val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(<span class="keyword">int</span> x) : val(x), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+</pre>
+            </div>
+            <div id="javaNode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> {
+    <span class="keyword">int</span> val;
+    TreeNode left, right;
+    TreeNode(<span class="keyword">int</span> x) { val = x; }
+}
+</pre>
+            </div>
+            <div id="pyNode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span>:
+    <span class="keyword">def</span> __init__(self, val=<span class="number">0</span>, left=<span class="keyword">None</span>, right=<span class="keyword">None</span>):
+        self.val = val
+        self.left = left
+        self.right = right
+</pre>
+            </div>
+        </div>
+
+        <h2>1. Preorder Traversal (Root, Left, Right)</h2>
+        <p>Visit the current node <strong>first</strong>, then recurse left, then recurse right. Preorder is useful for <strong>copying/serializing</strong> a tree (the root comes first, so reconstruction is natural) and for prefix-expression evaluation.</p>
+        <p>For our example tree the output is: <code>4 2 1 3 6 5 7</code></p>
+
+        <h3>Recursive</h3>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppPreRec')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaPreRec')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyPreRec')">Python</button>
+            </div>
+            <div id="cppPreRec" class="code-content active">
+<pre>
+<span class="keyword">void</span> preorder(TreeNode* node, vector&lt;<span class="keyword">int</span>&gt;&amp; out) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span>;
+    out.push_back(node-&gt;val);   <span class="comment">// Root</span>
+    preorder(node-&gt;left, out);  <span class="comment">// Left</span>
+    preorder(node-&gt;right, out); <span class="comment">// Right</span>
+}
+</pre>
+            </div>
+            <div id="javaPreRec" class="code-content">
+<pre>
+<span class="keyword">void</span> preorder(TreeNode node, List&lt;Integer&gt; out) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    out.add(node.val);          <span class="comment">// Root</span>
+    preorder(node.left, out);   <span class="comment">// Left</span>
+    preorder(node.right, out);  <span class="comment">// Right</span>
+}
+</pre>
+            </div>
+            <div id="pyPreRec" class="code-content">
+<pre>
+<span class="keyword">def</span> preorder(node, out):
+    <span class="keyword">if</span> <span class="keyword">not</span> node:
+        <span class="keyword">return</span>
+    out.append(node.val)   <span class="comment"># Root</span>
+    preorder(node.left, out)   <span class="comment"># Left</span>
+    preorder(node.right, out)  <span class="comment"># Right</span>
+</pre>
+            </div>
+        </div>
+
+        <h3>Iterative (explicit stack)</h3>
+        <p>Push the root, then repeatedly pop a node, record it, and push its <strong>right child first then left child</strong> so the left is processed next (LIFO order).</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppPreIt')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaPreIt')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyPreIt')">Python</button>
+            </div>
+            <div id="cppPreIt" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; preorderIterative(TreeNode* root) {
+    vector&lt;<span class="keyword">int</span>&gt; out;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> out;
+    stack&lt;TreeNode*&gt; st;
+    st.push(root);
+    <span class="keyword">while</span> (!st.empty()) {
+        TreeNode* node = st.top(); st.pop();
+        out.push_back(node-&gt;val);
+        <span class="comment">// push right first so left is popped next</span>
+        <span class="keyword">if</span> (node-&gt;right) st.push(node-&gt;right);
+        <span class="keyword">if</span> (node-&gt;left)  st.push(node-&gt;left);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaPreIt" class="code-content">
+<pre>
+List&lt;Integer&gt; preorderIterative(TreeNode root) {
+    List&lt;Integer&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> out;
+    Deque&lt;TreeNode&gt; st = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+    st.push(root);
+    <span class="keyword">while</span> (!st.isEmpty()) {
+        TreeNode node = st.pop();
+        out.add(node.val);
+        <span class="comment">// push right first so left is popped next</span>
+        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) st.push(node.right);
+        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  st.push(node.left);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyPreIt" class="code-content">
+<pre>
+<span class="keyword">def</span> preorder_iterative(root):
+    out = []
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> out
+    stack = [root]
+    <span class="keyword">while</span> stack:
+        node = stack.pop()
+        out.append(node.val)
+        <span class="comment"># push right first so left is popped next</span>
+        <span class="keyword">if</span> node.right:
+            stack.append(node.right)
+        <span class="keyword">if</span> node.left:
+            stack.append(node.left)
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Inorder Traversal (Left, Root, Right)</h2>
+        <p>Recurse left first, then visit the node, then recurse right.</p>
+        <p>For our example tree the output is: <code>1 2 3 4 5 6 7</code></p>
+
+        <div class="note">
+            <strong>Key property:</strong> An inorder traversal of a <strong>Binary Search Tree</strong> visits keys in <strong>sorted ascending order</strong>. This is why our example yields <code>1 2 3 4 5 6 7</code>. It is a common interview test for BST validity: check that the inorder sequence is strictly increasing.
+        </div>
+
+        <h3>Recursive</h3>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppInRec')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaInRec')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyInRec')">Python</button>
+            </div>
+            <div id="cppInRec" class="code-content active">
+<pre>
+<span class="keyword">void</span> inorder(TreeNode* node, vector&lt;<span class="keyword">int</span>&gt;&amp; out) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span>;
+    inorder(node-&gt;left, out);   <span class="comment">// Left</span>
+    out.push_back(node-&gt;val);   <span class="comment">// Root</span>
+    inorder(node-&gt;right, out);  <span class="comment">// Right</span>
+}
+</pre>
+            </div>
+            <div id="javaInRec" class="code-content">
+<pre>
+<span class="keyword">void</span> inorder(TreeNode node, List&lt;Integer&gt; out) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    inorder(node.left, out);    <span class="comment">// Left</span>
+    out.add(node.val);          <span class="comment">// Root</span>
+    inorder(node.right, out);   <span class="comment">// Right</span>
+}
+</pre>
+            </div>
+            <div id="pyInRec" class="code-content">
+<pre>
+<span class="keyword">def</span> inorder(node, out):
+    <span class="keyword">if</span> <span class="keyword">not</span> node:
+        <span class="keyword">return</span>
+    inorder(node.left, out)    <span class="comment"># Left</span>
+    out.append(node.val)   <span class="comment"># Root</span>
+    inorder(node.right, out)   <span class="comment"># Right</span>
+</pre>
+            </div>
+        </div>
+
+        <h3>Iterative (explicit stack)</h3>
+        <p>Walk left as far as possible, pushing nodes. When you can go no further, pop a node, record it, then move to its right child and repeat.</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppInIt')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaInIt')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyInIt')">Python</button>
+            </div>
+            <div id="cppInIt" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; inorderIterative(TreeNode* root) {
+    vector&lt;<span class="keyword">int</span>&gt; out;
+    stack&lt;TreeNode*&gt; st;
+    TreeNode* cur = root;
+    <span class="keyword">while</span> (cur || !st.empty()) {
+        <span class="keyword">while</span> (cur) {            <span class="comment">// go as left as possible</span>
+            st.push(cur);
+            cur = cur-&gt;left;
+        }
+        cur = st.top(); st.pop();
+        out.push_back(cur-&gt;val); <span class="comment">// visit node</span>
+        cur = cur-&gt;right;        <span class="comment">// then go right</span>
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaInIt" class="code-content">
+<pre>
+List&lt;Integer&gt; inorderIterative(TreeNode root) {
+    List&lt;Integer&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    Deque&lt;TreeNode&gt; st = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+    TreeNode cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span> || !st.isEmpty()) {
+        <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {     <span class="comment">// go as left as possible</span>
+            st.push(cur);
+            cur = cur.left;
+        }
+        cur = st.pop();
+        out.add(cur.val);        <span class="comment">// visit node</span>
+        cur = cur.right;         <span class="comment">// then go right</span>
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyInIt" class="code-content">
+<pre>
+<span class="keyword">def</span> inorder_iterative(root):
+    out, stack, cur = [], [], root
+    <span class="keyword">while</span> cur <span class="keyword">or</span> stack:
+        <span class="keyword">while</span> cur:              <span class="comment"># go as left as possible</span>
+            stack.append(cur)
+            cur = cur.left
+        cur = stack.pop()
+        out.append(cur.val)    <span class="comment"># visit node</span>
+        cur = cur.right        <span class="comment"># then go right</span>
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Postorder Traversal (Left, Right, Root)</h2>
+        <p>Recurse left, recurse right, then visit the node <strong>last</strong>. Postorder is the order you would use to <strong>delete/free</strong> a tree (children before parent) or to evaluate a postfix expression and compute values bottom-up.</p>
+        <p>For our example tree the output is: <code>1 3 2 5 7 6 4</code></p>
+
+        <h3>Recursive</h3>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppPostRec')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaPostRec')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyPostRec')">Python</button>
+            </div>
+            <div id="cppPostRec" class="code-content active">
+<pre>
+<span class="keyword">void</span> postorder(TreeNode* node, vector&lt;<span class="keyword">int</span>&gt;&amp; out) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span>;
+    postorder(node-&gt;left, out);  <span class="comment">// Left</span>
+    postorder(node-&gt;right, out); <span class="comment">// Right</span>
+    out.push_back(node-&gt;val);    <span class="comment">// Root</span>
+}
+</pre>
+            </div>
+            <div id="javaPostRec" class="code-content">
+<pre>
+<span class="keyword">void</span> postorder(TreeNode node, List&lt;Integer&gt; out) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    postorder(node.left, out);   <span class="comment">// Left</span>
+    postorder(node.right, out);  <span class="comment">// Right</span>
+    out.add(node.val);           <span class="comment">// Root</span>
+}
+</pre>
+            </div>
+            <div id="pyPostRec" class="code-content">
+<pre>
+<span class="keyword">def</span> postorder(node, out):
+    <span class="keyword">if</span> <span class="keyword">not</span> node:
+        <span class="keyword">return</span>
+    postorder(node.left, out)  <span class="comment"># Left</span>
+    postorder(node.right, out) <span class="comment"># Right</span>
+    out.append(node.val)   <span class="comment"># Root</span>
+</pre>
+            </div>
+        </div>
+
+        <h3>Iterative &mdash; Two-Stack Method</h3>
+        <p>Note that <strong>reverse postorder = "Root, Right, Left"</strong>, which is a mirrored preorder. So run a preorder-like traversal pushing onto a second stack, then reverse it.</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppPost2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaPost2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyPost2')">Python</button>
+            </div>
+            <div id="cppPost2" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; postorderTwoStacks(TreeNode* root) {
+    vector&lt;<span class="keyword">int</span>&gt; out;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> out;
+    stack&lt;TreeNode*&gt; s1, s2;
+    s1.push(root);
+    <span class="keyword">while</span> (!s1.empty()) {
+        TreeNode* node = s1.top(); s1.pop();
+        s2.push(node);              <span class="comment">// collect in Root,Right,Left order</span>
+        <span class="keyword">if</span> (node-&gt;left)  s1.push(node-&gt;left);
+        <span class="keyword">if</span> (node-&gt;right) s1.push(node-&gt;right);
+    }
+    <span class="keyword">while</span> (!s2.empty()) {            <span class="comment">// reverse -&gt; Left,Right,Root</span>
+        out.push_back(s2.top()-&gt;val);
+        s2.pop();
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaPost2" class="code-content">
+<pre>
+List&lt;Integer&gt; postorderTwoStacks(TreeNode root) {
+    LinkedList&lt;Integer&gt; out = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> out;
+    Deque&lt;TreeNode&gt; st = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+    st.push(root);
+    <span class="keyword">while</span> (!st.isEmpty()) {
+        TreeNode node = st.pop();
+        out.addFirst(node.val);     <span class="comment">// prepend -&gt; reverses Root,Right,Left</span>
+        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  st.push(node.left);
+        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) st.push(node.right);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyPost2" class="code-content">
+<pre>
+<span class="keyword">def</span> postorder_two_stacks(root):
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> []
+    stack, out = [root], []
+    <span class="keyword">while</span> stack:
+        node = stack.pop()
+        out.append(node.val)       <span class="comment"># Root,Right,Left order</span>
+        <span class="keyword">if</span> node.left:
+            stack.append(node.left)
+        <span class="keyword">if</span> node.right:
+            stack.append(node.right)
+    <span class="keyword">return</span> out[::-<span class="number">1</span>]            <span class="comment"># reverse -&gt; Left,Right,Root</span>
+</pre>
+            </div>
+        </div>
+
+        <h3>Iterative &mdash; Single Stack with Last-Visited Pointer</h3>
+        <p>A true single-stack postorder. We only visit a node after its right subtree has been fully processed, tracked by a <code>lastVisited</code> pointer.</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppPost1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaPost1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyPost1')">Python</button>
+            </div>
+            <div id="cppPost1" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; postorderSingleStack(TreeNode* root) {
+    vector&lt;<span class="keyword">int</span>&gt; out;
+    stack&lt;TreeNode*&gt; st;
+    TreeNode* cur = root;
+    TreeNode* lastVisited = <span class="keyword">nullptr</span>;
+    <span class="keyword">while</span> (cur || !st.empty()) {
+        <span class="keyword">while</span> (cur) { st.push(cur); cur = cur-&gt;left; }
+        TreeNode* peek = st.top();
+        <span class="comment">// if right exists and not yet processed, go right</span>
+        <span class="keyword">if</span> (peek-&gt;right &amp;&amp; lastVisited != peek-&gt;right) {
+            cur = peek-&gt;right;
+        } <span class="keyword">else</span> {
+            out.push_back(peek-&gt;val);
+            lastVisited = peek;
+            st.pop();
+        }
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaPost1" class="code-content">
+<pre>
+List&lt;Integer&gt; postorderSingleStack(TreeNode root) {
+    List&lt;Integer&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    Deque&lt;TreeNode&gt; st = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+    TreeNode cur = root, lastVisited = <span class="keyword">null</span>;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span> || !st.isEmpty()) {
+        <span class="keyword">while</span> (cur != <span class="keyword">null</span>) { st.push(cur); cur = cur.left; }
+        TreeNode peek = st.peek();
+        <span class="keyword">if</span> (peek.right != <span class="keyword">null</span> &amp;&amp; lastVisited != peek.right) {
+            cur = peek.right;
+        } <span class="keyword">else</span> {
+            out.add(peek.val);
+            lastVisited = st.pop();
+        }
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyPost1" class="code-content">
+<pre>
+<span class="keyword">def</span> postorder_single_stack(root):
+    out, stack = [], []
+    cur, last_visited = root, <span class="keyword">None</span>
+    <span class="keyword">while</span> cur <span class="keyword">or</span> stack:
+        <span class="keyword">while</span> cur:
+            stack.append(cur)
+            cur = cur.left
+        peek = stack[-<span class="number">1</span>]
+        <span class="keyword">if</span> peek.right <span class="keyword">and</span> last_visited <span class="keyword">is</span> <span class="keyword">not</span> peek.right:
+            cur = peek.right
+        <span class="keyword">else</span>:
+            out.append(peek.val)
+            last_visited = stack.pop()
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Level-Order Traversal (BFS)</h2>
+        <p>Use a FIFO queue: enqueue the root, then repeatedly dequeue a node, record it, and enqueue its children. This visits nodes top-to-bottom, left-to-right.</p>
+        <p>For our example tree the output is: <code>4 2 6 1 3 5 7</code></p>
+
+        <div class="visual">
+<pre>
+BFS queue walk for the example tree:
+
+  queue: [4]            -&gt; pop 4, push 2,6     out: 4
+  queue: [2, 6]         -&gt; pop 2, push 1,3     out: 4 2
+  queue: [6, 1, 3]      -&gt; pop 6, push 5,7     out: 4 2 6
+  queue: [1, 3, 5, 7]   -&gt; pop 1               out: 4 2 6 1
+  queue: [3, 5, 7]      -&gt; pop 3               out: 4 2 6 1 3
+  queue: [5, 7]         -&gt; pop 5               out: 4 2 6 1 3 5
+  queue: [7]            -&gt; pop 7               out: 4 2 6 1 3 5 7
+  queue: []  done.
+</pre>
+        </div>
+
+        <h3>Flat Level-Order</h3>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppBfs')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaBfs')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyBfs')">Python</button>
+            </div>
+            <div id="cppBfs" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; levelOrder(TreeNode* root) {
+    vector&lt;<span class="keyword">int</span>&gt; out;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> out;
+    queue&lt;TreeNode*&gt; q;
+    q.push(root);
+    <span class="keyword">while</span> (!q.empty()) {
+        TreeNode* node = q.front(); q.pop();
+        out.push_back(node-&gt;val);
+        <span class="keyword">if</span> (node-&gt;left)  q.push(node-&gt;left);
+        <span class="keyword">if</span> (node-&gt;right) q.push(node-&gt;right);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaBfs" class="code-content">
+<pre>
+List&lt;Integer&gt; levelOrder(TreeNode root) {
+    List&lt;Integer&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> out;
+    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    q.offer(root);
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        TreeNode node = q.poll();
+        out.add(node.val);
+        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);
+        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyBfs" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> level_order(root):
+    out = []
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> out
+    q = deque([root])
+    <span class="keyword">while</span> q:
+        node = q.popleft()
+        out.append(node.val)
+        <span class="keyword">if</span> node.left:
+            q.append(node.left)
+        <span class="keyword">if</span> node.right:
+            q.append(node.right)
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h3>Level-by-Level (List of Lists)</h3>
+        <p>The trick: at the start of each outer iteration, the queue holds <strong>exactly one full level</strong>. Snapshot its size and process that many nodes to group them. For our tree this returns <code>[[4], [2, 6], [1, 3, 5, 7]]</code>.</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppBfsL')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaBfsL')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyBfsL')">Python</button>
+            </div>
+            <div id="cppBfsL" class="code-content active">
+<pre>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; levelOrderByLevel(TreeNode* root) {
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; out;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> out;
+    queue&lt;TreeNode*&gt; q;
+    q.push(root);
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">int</span> sz = q.size();      <span class="comment">// nodes in this level</span>
+        vector&lt;<span class="keyword">int</span>&gt; level;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode* node = q.front(); q.pop();
+            level.push_back(node-&gt;val);
+            <span class="keyword">if</span> (node-&gt;left)  q.push(node-&gt;left);
+            <span class="keyword">if</span> (node-&gt;right) q.push(node-&gt;right);
+        }
+        out.push_back(level);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaBfsL" class="code-content">
+<pre>
+List&lt;List&lt;Integer&gt;&gt; levelOrderByLevel(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> out;
+    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    q.offer(root);
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">int</span> sz = q.size();      <span class="comment">// nodes in this level</span>
+        List&lt;Integer&gt; level = <span class="keyword">new</span> ArrayList&lt;&gt;();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode node = q.poll();
+            level.add(node.val);
+            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);
+            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);
+        }
+        out.add(level);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyBfsL" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> level_order_by_level(root):
+    out = []
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> out
+    q = deque([root])
+    <span class="keyword">while</span> q:
+        level = []
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(len(q)):   <span class="comment"># nodes in this level</span>
+            node = q.popleft()
+            level.append(node.val)
+            <span class="keyword">if</span> node.left:
+                q.append(node.left)
+            <span class="keyword">if</span> node.right:
+                q.append(node.right)
+        out.append(level)
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h3>Variant: Zigzag / Spiral Order</h3>
+        <p>Same level grouping, but reverse the order of every other level (left-to-right, then right-to-left, alternating). For our tree this yields <code>[[4], [6, 2], [1, 3, 5, 7]]</code>. Just track a boolean and reverse the level list (or insert at the front) on odd levels.</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppZig')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaZig')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyZig')">Python</button>
+            </div>
+            <div id="cppZig" class="code-content active">
+<pre>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; zigzag(TreeNode* root) {
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; out;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> out;
+    queue&lt;TreeNode*&gt; q;
+    q.push(root);
+    <span class="keyword">bool</span> leftToRight = <span class="keyword">true</span>;
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">int</span> sz = q.size();
+        vector&lt;<span class="keyword">int</span>&gt; level(sz);
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode* node = q.front(); q.pop();
+            <span class="keyword">int</span> idx = leftToRight ? i : sz - <span class="number">1</span> - i;
+            level[idx] = node-&gt;val;
+            <span class="keyword">if</span> (node-&gt;left)  q.push(node-&gt;left);
+            <span class="keyword">if</span> (node-&gt;right) q.push(node-&gt;right);
+        }
+        out.push_back(level);
+        leftToRight = !leftToRight;
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaZig" class="code-content">
+<pre>
+List&lt;List&lt;Integer&gt;&gt; zigzag(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> out;
+    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    q.offer(root);
+    <span class="keyword">boolean</span> leftToRight = <span class="keyword">true</span>;
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">int</span> sz = q.size();
+        Integer[] level = <span class="keyword">new</span> Integer[sz];
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode node = q.poll();
+            <span class="keyword">int</span> idx = leftToRight ? i : sz - <span class="number">1</span> - i;
+            level[idx] = node.val;
+            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);
+            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);
+        }
+        out.add(Arrays.asList(level));
+        leftToRight = !leftToRight;
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyZig" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> zigzag(root):
+    out = []
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> out
+    q = deque([root])
+    left_to_right = <span class="keyword">True</span>
+    <span class="keyword">while</span> q:
+        level = []
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(len(q)):
+            node = q.popleft()
+            level.append(node.val)
+            <span class="keyword">if</span> node.left:
+                q.append(node.left)
+            <span class="keyword">if</span> node.right:
+                q.append(node.right)
+        out.append(level <span class="keyword">if</span> left_to_right <span class="keyword">else</span> level[::-<span class="number">1</span>])
+        left_to_right = <span class="keyword">not</span> left_to_right
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Morris Traversal (O(1) Space Inorder)</h2>
+        <p>Recursive and stack-based inorder both use O(h) auxiliary space. <strong>Morris traversal</strong> achieves inorder in <strong>O(1) extra space</strong> by temporarily creating <strong>threads</strong>: for each node with a left subtree, it rewires the left subtree's rightmost node (the inorder <strong>predecessor</strong>) to point back to the current node, then removes the thread once it has been used. It mutates the tree during traversal but restores it fully.</p>
+
+        <p>The rule for the current node <code>cur</code>:</p>
+        <ul>
+            <li>If <code>cur</code> has <strong>no left child</strong>: visit <code>cur</code>, then move right.</li>
+            <li>Otherwise find <code>pred</code> = rightmost node of <code>cur</code>'s left subtree:
+                <ul>
+                    <li>If <code>pred.right</code> is null: set <code>pred.right = cur</code> (create thread), move left.</li>
+                    <li>If <code>pred.right == cur</code>: thread already exists, so left subtree is done. Remove thread, visit <code>cur</code>, move right.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="visual">
+<pre>
+Morris walk on the example tree (visiting in inorder):
+
+           4
+         /   \
+        2     6
+       / \   / \
+      1   3 5   7
+
+cur=4: has left(2). pred = rightmost of {2,1,3} = 3.
+       3.right is null  -&gt; thread 3.right=4, move left to 2.
+cur=2: has left(1). pred = 1. 1.right null -&gt; thread 1.right=2, left to 1.
+cur=1: no left -&gt; VISIT 1, follow right thread to 2.
+cur=2: pred = 1, 1.right == 2 -&gt; remove thread, VISIT 2, move right to 3.
+cur=3: no left -&gt; VISIT 3, follow right thread to 4.
+cur=4: pred = 3, 3.right == 4 -&gt; remove thread, VISIT 4, move right to 6.
+cur=6: has left(5). pred = 5. 5.right null -&gt; thread 5.right=6, left to 5.
+cur=5: no left -&gt; VISIT 5, follow right thread to 6.
+cur=6: pred = 5, 5.right == 6 -&gt; remove thread, VISIT 6, move right to 7.
+cur=7: no left -&gt; VISIT 7, move right to null. Done.
+
+Output: 1 2 3 4 5 6 7   (tree fully restored)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppMorris')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaMorris')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyMorris')">Python</button>
+            </div>
+            <div id="cppMorris" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; morrisInorder(TreeNode* root) {
+    vector&lt;<span class="keyword">int</span>&gt; out;
+    TreeNode* cur = root;
+    <span class="keyword">while</span> (cur) {
+        <span class="keyword">if</span> (!cur-&gt;left) {
+            out.push_back(cur-&gt;val);     <span class="comment">// visit</span>
+            cur = cur-&gt;right;
+        } <span class="keyword">else</span> {
+            TreeNode* pred = cur-&gt;left;
+            <span class="keyword">while</span> (pred-&gt;right &amp;&amp; pred-&gt;right != cur)
+                pred = pred-&gt;right;      <span class="comment">// find predecessor</span>
+            <span class="keyword">if</span> (!pred-&gt;right) {
+                pred-&gt;right = cur;        <span class="comment">// create thread</span>
+                cur = cur-&gt;left;
+            } <span class="keyword">else</span> {
+                pred-&gt;right = <span class="keyword">nullptr</span>;     <span class="comment">// remove thread</span>
+                out.push_back(cur-&gt;val);  <span class="comment">// visit</span>
+                cur = cur-&gt;right;
+            }
+        }
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaMorris" class="code-content">
+<pre>
+List&lt;Integer&gt; morrisInorder(TreeNode root) {
+    List&lt;Integer&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    TreeNode cur = root;
+    <span class="keyword">while</span> (cur != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (cur.left == <span class="keyword">null</span>) {
+            out.add(cur.val);            <span class="comment">// visit</span>
+            cur = cur.right;
+        } <span class="keyword">else</span> {
+            TreeNode pred = cur.left;
+            <span class="keyword">while</span> (pred.right != <span class="keyword">null</span> &amp;&amp; pred.right != cur)
+                pred = pred.right;       <span class="comment">// find predecessor</span>
+            <span class="keyword">if</span> (pred.right == <span class="keyword">null</span>) {
+                pred.right = cur;         <span class="comment">// create thread</span>
+                cur = cur.left;
+            } <span class="keyword">else</span> {
+                pred.right = <span class="keyword">null</span>;       <span class="comment">// remove thread</span>
+                out.add(cur.val);         <span class="comment">// visit</span>
+                cur = cur.right;
+            }
+        }
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyMorris" class="code-content">
+<pre>
+<span class="keyword">def</span> morris_inorder(root):
+    out = []
+    cur = root
+    <span class="keyword">while</span> cur:
+        <span class="keyword">if</span> <span class="keyword">not</span> cur.left:
+            out.append(cur.val)        <span class="comment"># visit</span>
+            cur = cur.right
+        <span class="keyword">else</span>:
+            pred = cur.left
+            <span class="keyword">while</span> pred.right <span class="keyword">and</span> pred.right <span class="keyword">is</span> <span class="keyword">not</span> cur:
+                pred = pred.right      <span class="comment"># find predecessor</span>
+            <span class="keyword">if</span> pred.right <span class="keyword">is</span> <span class="keyword">None</span>:
+                pred.right = cur       <span class="comment"># create thread</span>
+                cur = cur.left
+            <span class="keyword">else</span>:
+                pred.right = <span class="keyword">None</span>      <span class="comment"># remove thread</span>
+                out.append(cur.val)    <span class="comment"># visit</span>
+                cur = cur.right
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Morris preorder (brief):</strong> The structure is identical, but you <strong>visit the node at the moment you create the thread</strong> (in the <code>pred.right == null</code> branch) instead of when you remove it. That shifts the visit order from Left-Root-Right to Root-Left-Right. Each node is still visited once and the tree is restored. There is no simple O(1) Morris postorder; the standard approach reverses paths and is rarely needed.
+        </div>
+
+        <div class="warn">
+            <strong>Caveat:</strong> Morris traversal <strong>mutates the tree</strong> while running. It is not safe to run two Morris traversals concurrently on the same tree or to interrupt one mid-way, and it cannot be used on immutable trees. Total work is still O(n): although the predecessor search looks like extra work, each edge is traversed at most a constant number of times.
+        </div>
+
+        <h2>6. Complexity Summary</h2>
+        <p>Here <code>n</code> = number of nodes, <code>h</code> = tree height. For a balanced tree h = O(log n); for a degenerate (linked-list-like) tree h = O(n).</p>
+        <table>
+            <tr><th>Traversal</th><th>Time</th><th>Recursive Space</th><th>Iterative Space</th><th>Morris Space</th></tr>
+            <tr><td>Preorder</td><td>O(n)</td><td>O(h)</td><td>O(h)</td><td>O(1)</td></tr>
+            <tr><td>Inorder</td><td>O(n)</td><td>O(h)</td><td>O(h)</td><td>O(1)</td></tr>
+            <tr><td>Postorder</td><td>O(n)</td><td>O(h)</td><td>O(h)</td><td>O(1)*</td></tr>
+            <tr><td>Level-order (BFS)</td><td>O(n)</td><td>&mdash;</td><td>O(w) &le; O(n)</td><td>&mdash;</td></tr>
+        </table>
+        <p style="font-size:0.85em; color:#94a3b8;">* Morris postorder exists but is intricate (path reversal); inorder and preorder are the common O(1) cases. Recursive space is the implicit call-stack depth.</p>
+
+        <div class="note">
+            <strong>How to pick a traversal:</strong>
+            <ul>
+                <li><strong>Preorder</strong> &mdash; serialize / clone a tree, write prefix notation, or process a parent before its children.</li>
+                <li><strong>Inorder</strong> &mdash; read a BST's keys in sorted order, validate a BST, or find the kth smallest element.</li>
+                <li><strong>Postorder</strong> &mdash; free/delete a tree, evaluate expression trees, or compute results that depend on both subtrees (e.g. subtree sums, height, diameter).</li>
+                <li><strong>Level-order (BFS)</strong> &mdash; shortest path in unweighted trees, level grouping, right-side view, or "process nearest first" problems.</li>
+                <li><strong>Morris</strong> &mdash; only when O(1) extra space is a hard requirement and the tree may be mutated; otherwise prefer the simpler recursive form.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

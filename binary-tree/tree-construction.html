@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Construction - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Constructing Binary Trees from Traversals</h1>
+        <p>A classic family of problems asks you to <strong>rebuild a binary tree</strong> from one or more of its traversal sequences. The challenge is figuring out which traversals carry enough information to pin down a <em>unique</em> tree, and then doing the reconstruction efficiently in O(n) time.</p>
+
+        <h2>Why One Traversal Is Not Enough</h2>
+        <p>A single traversal is <strong>ambiguous</strong>: many different tree shapes produce the same sequence. Consider the preorder sequence <code>[1, 2]</code>. Two completely different trees yield it:</p>
+
+        <div class="visual">
+<pre>
+preorder = [1, 2]  -- two valid trees, same sequence
+
+   Tree A            Tree B
+     1                  1
+    /                    \
+   2                      2
+
+Both visit root 1 first, then 2. Preorder alone cannot tell us
+whether 2 is a left child or a right child.
+</pre>
+        </div>
+
+        <p>The fix is to combine traversals. The key property we exploit is that <strong>inorder</strong> tells us, for any chosen root, exactly which nodes fall in the left subtree and which fall in the right subtree (everything left of the root in inorder is the left subtree, everything right is the right subtree). A second traversal (preorder or postorder) tells us <strong>who the root is</strong>. Together they reconstruct the tree.</p>
+
+        <h3>Which Pairs Uniquely Determine a Tree?</h3>
+        <table>
+            <tr><th>Traversal Pair</th><th>Unique?</th><th>Reason</th></tr>
+            <tr><td>Preorder + Inorder</td><td>Yes</td><td>Preorder gives root; inorder splits left/right subtrees.</td></tr>
+            <tr><td>Postorder + Inorder</td><td>Yes</td><td>Postorder gives root (last element); inorder splits subtrees.</td></tr>
+            <tr><td>Level-order + Inorder</td><td>Yes</td><td>Level-order gives root; inorder splits, restricted per subtree.</td></tr>
+            <tr><td>Preorder + Postorder</td><td>Only for full trees</td><td>Cannot distinguish a single child as left vs right; not unique in general.</td></tr>
+            <tr><td>Any single traversal</td><td>No</td><td>No way to locate subtree boundaries.</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>Assumption for all constructions below:</strong> node values are <strong>distinct</strong>. If duplicates exist, the value-to-index lookup is ambiguous and these algorithms break down.
+        </div>
+
+        <h2>1. Build from Preorder + Inorder</h2>
+        <p>The recipe relies on two facts:</p>
+        <ul>
+            <li><strong>Preorder</strong> visits <em>root, then left subtree, then right subtree</em> &mdash; so the <strong>first</strong> unused preorder element is always the next root.</li>
+            <li><strong>Inorder</strong> visits <em>left subtree, then root, then right subtree</em> &mdash; so once we know the root's position in inorder, everything to its left is the left subtree and everything to its right is the right subtree.</li>
+        </ul>
+
+        <h3>Walk-through</h3>
+        <div class="visual">
+<pre>
+preorder = [3, 9, 20, 15, 7]
+inorder  = [9, 3, 15, 20, 7]
+
+Step 1: root = preorder[0] = 3
+        find 3 in inorder at index 1
+        inorder left  = [9]          (1 node)
+        inorder right = [15, 20, 7]  (3 nodes)
+
+              3
+             / \
+          [9]   [15,20,7]
+
+Step 2: left subtree, next preorder = 9
+        find 9 in inorder -> [9] empty on both sides -> leaf 9
+
+Step 3: right subtree, next preorder = 20
+        find 20 in inorder [15, 20, 7] at index 1
+        inorder left = [15], inorder right = [7]
+
+              3
+             / \
+            9   20
+               /  \
+             15    7
+
+Final tree:
+              3
+             / \
+            9    20
+                /  \
+              15     7
+</pre>
+        </div>
+
+        <p>A naive implementation does a linear scan of inorder to find the root each time &mdash; O(n) per node, O(n&sup2;) total. We get O(n) by precomputing a <strong>hashmap value &rarr; inorder index</strong> and using a single moving <strong>preorder pointer</strong> that advances as we consume roots.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'prein-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'prein-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'prein-py')">Python</button>
+            </div>
+            <div id="prein-cpp" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode {
+    <span class="keyword">int</span> val;
+    TreeNode *left, *right;
+    TreeNode(<span class="keyword">int</span> v) : val(v), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+
+<span class="keyword">class</span> Solution {
+    vector&lt;<span class="keyword">int</span>&gt; pre, in;
+    unordered_map&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; idx;  <span class="comment">// value -&gt; inorder index</span>
+    <span class="keyword">int</span> preIdx = <span class="number">0</span>;            <span class="comment">// moving preorder pointer</span>
+
+    TreeNode* build(<span class="keyword">int</span> inL, <span class="keyword">int</span> inR) {
+        <span class="keyword">if</span> (inL &gt; inR) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+        <span class="keyword">int</span> rootVal = pre[preIdx++];        <span class="comment">// next root</span>
+        TreeNode* root = <span class="keyword">new</span> TreeNode(rootVal);
+        <span class="keyword">int</span> mid = idx[rootVal];             <span class="comment">// split point in inorder</span>
+        root-&gt;left  = build(inL, mid - <span class="number">1</span>); <span class="comment">// left first (preorder order)</span>
+        root-&gt;right = build(mid + <span class="number">1</span>, inR);
+        <span class="keyword">return</span> root;
+    }
+<span class="keyword">public</span>:
+    TreeNode* buildTree(vector&lt;<span class="keyword">int</span>&gt;&amp; preorder, vector&lt;<span class="keyword">int</span>&gt;&amp; inorder) {
+        pre = preorder; in = inorder;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="keyword">int</span>)in.size(); i++) idx[in[i]] = i;
+        <span class="keyword">return</span> build(<span class="number">0</span>, in.size() - <span class="number">1</span>);
+    }
+};
+</pre>
+            </div>
+            <div id="prein-java" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> {
+    <span class="keyword">int</span> val;
+    <span class="type">TreeNode</span> left, right;
+    <span class="type">TreeNode</span>(<span class="keyword">int</span> v) { val = v; }
+}
+
+<span class="keyword">class</span> <span class="type">Solution</span> {
+    <span class="keyword">int</span>[] pre;
+    <span class="type">Map</span>&lt;<span class="type">Integer</span>, <span class="type">Integer</span>&gt; idx = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    <span class="keyword">int</span> preIdx = <span class="number">0</span>;
+
+    <span class="type">TreeNode</span> build(<span class="keyword">int</span> inL, <span class="keyword">int</span> inR) {
+        <span class="keyword">if</span> (inL &gt; inR) <span class="keyword">return</span> <span class="keyword">null</span>;
+        <span class="keyword">int</span> rootVal = pre[preIdx++];
+        <span class="type">TreeNode</span> root = <span class="keyword">new</span> <span class="type">TreeNode</span>(rootVal);
+        <span class="keyword">int</span> mid = idx.get(rootVal);
+        root.left  = build(inL, mid - <span class="number">1</span>);
+        root.right = build(mid + <span class="number">1</span>, inR);
+        <span class="keyword">return</span> root;
+    }
+
+    <span class="type">TreeNode</span> buildTree(<span class="keyword">int</span>[] preorder, <span class="keyword">int</span>[] inorder) {
+        pre = preorder;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; inorder.length; i++) idx.put(inorder[i], i);
+        <span class="keyword">return</span> build(<span class="number">0</span>, inorder.length - <span class="number">1</span>);
+    }
+}
+</pre>
+            </div>
+            <div id="prein-py" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span>:
+    <span class="keyword">def</span> __init__(self, val=<span class="number">0</span>, left=<span class="keyword">None</span>, right=<span class="keyword">None</span>):
+        self.val, self.left, self.right = val, left, right
+
+<span class="keyword">class</span> <span class="type">Solution</span>:
+    <span class="keyword">def</span> buildTree(self, preorder, inorder):
+        idx = {v: i <span class="keyword">for</span> i, v <span class="keyword">in</span> enumerate(inorder)}  <span class="comment"># value -&gt; index</span>
+        self.pre_idx = <span class="number">0</span>                              <span class="comment"># moving pointer</span>
+
+        <span class="keyword">def</span> build(in_l, in_r):
+            <span class="keyword">if</span> in_l &gt; in_r:
+                <span class="keyword">return</span> <span class="keyword">None</span>
+            root_val = preorder[self.pre_idx]
+            self.pre_idx += <span class="number">1</span>
+            root = TreeNode(root_val)
+            mid = idx[root_val]
+            root.left  = build(in_l, mid - <span class="number">1</span>)        <span class="comment"># left before right</span>
+            root.right = build(mid + <span class="number">1</span>, in_r)
+            <span class="keyword">return</span> root
+
+        <span class="keyword">return</span> build(<span class="number">0</span>, len(inorder) - <span class="number">1</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Build from Postorder + Inorder</h2>
+        <p>Postorder visits <em>left subtree, then right subtree, then root</em> &mdash; so the <strong>last</strong> postorder element is the root. We scan the postorder pointer <strong>backwards</strong>, and because the right subtree is consumed before the left in reverse, we must build the <strong>right subtree before the left</strong>.</p>
+
+        <div class="visual">
+<pre>
+postorder = [9, 15, 7, 20, 3]
+inorder   = [9, 3, 15, 20, 7]
+
+Step 1: root = postorder[last] = 3, find in inorder at index 1
+        left  = [9], right = [15, 20, 7]
+        (move postorder pointer left, build RIGHT subtree first)
+
+Step 2: next root (from back) = 20, in inorder [15,20,7] at index 1
+        left = [15], right = [7]
+
+Resulting tree (identical to section 1):
+              3
+             / \
+            9    20
+                /  \
+              15     7
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'postin-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'postin-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'postin-py')">Python</button>
+            </div>
+            <div id="postin-cpp" class="code-content active">
+<pre>
+<span class="keyword">class</span> Solution {
+    vector&lt;<span class="keyword">int</span>&gt; post;
+    unordered_map&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; idx;  <span class="comment">// value -&gt; inorder index</span>
+    <span class="keyword">int</span> postIdx;               <span class="comment">// moving pointer, starts at end</span>
+
+    TreeNode* build(<span class="keyword">int</span> inL, <span class="keyword">int</span> inR) {
+        <span class="keyword">if</span> (inL &gt; inR) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+        <span class="keyword">int</span> rootVal = post[postIdx--];     <span class="comment">// last element = root</span>
+        TreeNode* root = <span class="keyword">new</span> TreeNode(rootVal);
+        <span class="keyword">int</span> mid = idx[rootVal];
+        root-&gt;right = build(mid + <span class="number">1</span>, inR); <span class="comment">// right BEFORE left</span>
+        root-&gt;left  = build(inL, mid - <span class="number">1</span>);
+        <span class="keyword">return</span> root;
+    }
+<span class="keyword">public</span>:
+    TreeNode* buildTree(vector&lt;<span class="keyword">int</span>&gt;&amp; inorder, vector&lt;<span class="keyword">int</span>&gt;&amp; postorder) {
+        post = postorder;
+        postIdx = post.size() - <span class="number">1</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="keyword">int</span>)inorder.size(); i++) idx[inorder[i]] = i;
+        <span class="keyword">return</span> build(<span class="number">0</span>, inorder.size() - <span class="number">1</span>);
+    }
+};
+</pre>
+            </div>
+            <div id="postin-java" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Solution</span> {
+    <span class="keyword">int</span>[] post;
+    <span class="type">Map</span>&lt;<span class="type">Integer</span>, <span class="type">Integer</span>&gt; idx = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    <span class="keyword">int</span> postIdx;
+
+    <span class="type">TreeNode</span> build(<span class="keyword">int</span> inL, <span class="keyword">int</span> inR) {
+        <span class="keyword">if</span> (inL &gt; inR) <span class="keyword">return</span> <span class="keyword">null</span>;
+        <span class="keyword">int</span> rootVal = post[postIdx--];
+        <span class="type">TreeNode</span> root = <span class="keyword">new</span> <span class="type">TreeNode</span>(rootVal);
+        <span class="keyword">int</span> mid = idx.get(rootVal);
+        root.right = build(mid + <span class="number">1</span>, inR);  <span class="comment">// right BEFORE left</span>
+        root.left  = build(inL, mid - <span class="number">1</span>);
+        <span class="keyword">return</span> root;
+    }
+
+    <span class="type">TreeNode</span> buildTree(<span class="keyword">int</span>[] inorder, <span class="keyword">int</span>[] postorder) {
+        post = postorder;
+        postIdx = postorder.length - <span class="number">1</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; inorder.length; i++) idx.put(inorder[i], i);
+        <span class="keyword">return</span> build(<span class="number">0</span>, inorder.length - <span class="number">1</span>);
+    }
+}
+</pre>
+            </div>
+            <div id="postin-py" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Solution</span>:
+    <span class="keyword">def</span> buildTree(self, inorder, postorder):
+        idx = {v: i <span class="keyword">for</span> i, v <span class="keyword">in</span> enumerate(inorder)}
+        self.post_idx = len(postorder) - <span class="number">1</span>      <span class="comment"># start at end</span>
+
+        <span class="keyword">def</span> build(in_l, in_r):
+            <span class="keyword">if</span> in_l &gt; in_r:
+                <span class="keyword">return</span> <span class="keyword">None</span>
+            root_val = postorder[self.post_idx]
+            self.post_idx -= <span class="number">1</span>
+            root = TreeNode(root_val)
+            mid = idx[root_val]
+            root.right = build(mid + <span class="number">1</span>, in_r)     <span class="comment"># right BEFORE left</span>
+            root.left  = build(in_l, mid - <span class="number">1</span>)
+            <span class="keyword">return</span> root
+
+        <span class="keyword">return</span> build(<span class="number">0</span>, len(inorder) - <span class="number">1</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Build from Preorder + Postorder (Full Binary Trees)</h2>
+        <p>Without inorder we lose the clean left/right split, so this pair is generally <strong>not enough</strong> to recover a unique tree. The construction works only when we assume the tree is <strong>full</strong> (every node has 0 or 2 children).</p>
+
+        <p>The idea: <code>preorder[0]</code> is the root, and <code>preorder[1]</code> must be the root of the <strong>left</strong> subtree. We locate <code>preorder[1]</code> in postorder &mdash; everything up to and including it forms the left subtree, the rest (minus the final root) forms the right subtree.</p>
+
+        <div class="visual">
+<pre>
+preorder  = [1, 2, 4, 5, 3, 6, 7]
+postorder = [4, 5, 2, 6, 7, 3, 1]
+
+root = preorder[0] = 1
+left root = preorder[1] = 2
+  find 2 in postorder at index 2 -> left subtree size = 2 + 1 = 3
+  left  postorder = [4, 5, 2],  right postorder = [6, 7, 3]
+
+           1
+          / \
+         2    3
+        / \  / \
+       4  5 6   7
+</pre>
+        </div>
+
+        <div class="warn">
+            <strong>Not unique in general.</strong> If a node has exactly one child, preorder + postorder cannot tell whether that child is on the left or the right. The reconstruction is only well defined when <strong>every node has 0 or 2 children</strong> (a full / proper binary tree). With single-child nodes, multiple distinct trees share the same pre/post sequences.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'prepost-py')">Python</button>
+            </div>
+            <div id="prepost-py" class="code-content active">
+<pre>
+<span class="keyword">class</span> <span class="type">Solution</span>:
+    <span class="comment"># Assumes a FULL binary tree (every node has 0 or 2 children).</span>
+    <span class="keyword">def</span> constructFromPrePost(self, preorder, postorder):
+        post_idx = {v: i <span class="keyword">for</span> i, v <span class="keyword">in</span> enumerate(postorder)}
+        self.pre_idx = <span class="number">0</span>
+
+        <span class="keyword">def</span> build(post_l, post_r):
+            <span class="keyword">if</span> post_l &gt; post_r:
+                <span class="keyword">return</span> <span class="keyword">None</span>
+            root = TreeNode(preorder[self.pre_idx])
+            self.pre_idx += <span class="number">1</span>
+            <span class="keyword">if</span> post_l == post_r:           <span class="comment"># leaf: no children</span>
+                <span class="keyword">return</span> root
+            <span class="comment"># next preorder value is the left subtree's root</span>
+            left_root = preorder[self.pre_idx]
+            mid = post_idx[left_root]      <span class="comment"># its position in postorder</span>
+            root.left  = build(post_l, mid)
+            root.right = build(mid + <span class="number">1</span>, post_r - <span class="number">1</span>)
+            <span class="keyword">return</span> root
+
+        <span class="keyword">return</span> build(<span class="number">0</span>, len(postorder) - <span class="number">1</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Build a Balanced BST from a Sorted Array</h2>
+        <p>A <strong>sorted array</strong> already encodes the inorder traversal of any BST. To get a <strong>height-balanced</strong> BST, pick the <strong>middle element as the root</strong> at every step: the left half becomes the left subtree, the right half the right subtree. This guarantees O(log n) height.</p>
+
+        <div class="visual">
+<pre>
+sorted = [1, 2, 3, 4, 5, 6, 7]
+
+mid index = 3 -> root = 4
+  left  half = [1, 2, 3]   right half = [5, 6, 7]
+    mid -> 2                  mid -> 6
+    left [1]  right [3]       left [5]  right [7]
+
+              4
+            /   \
+           2     6
+          / \   / \
+         1   3 5   7
+
+Height = O(log n) -- perfectly balanced.
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bst-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'bst-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'bst-py')">Python</button>
+            </div>
+            <div id="bst-cpp" class="code-content active">
+<pre>
+<span class="keyword">class</span> Solution {
+    TreeNode* build(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+        <span class="keyword">if</span> (lo &gt; hi) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+        <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;   <span class="comment">// middle = root</span>
+        TreeNode* root = <span class="keyword">new</span> TreeNode(a[mid]);
+        root-&gt;left  = build(a, lo, mid - <span class="number">1</span>);
+        root-&gt;right = build(a, mid + <span class="number">1</span>, hi);
+        <span class="keyword">return</span> root;
+    }
+<span class="keyword">public</span>:
+    TreeNode* sortedArrayToBST(vector&lt;<span class="keyword">int</span>&gt;&amp; nums) {
+        <span class="keyword">return</span> build(nums, <span class="number">0</span>, nums.size() - <span class="number">1</span>);
+    }
+};
+</pre>
+            </div>
+            <div id="bst-java" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Solution</span> {
+    <span class="type">TreeNode</span> build(<span class="keyword">int</span>[] a, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+        <span class="keyword">if</span> (lo &gt; hi) <span class="keyword">return</span> <span class="keyword">null</span>;
+        <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;   <span class="comment">// middle = root</span>
+        <span class="type">TreeNode</span> root = <span class="keyword">new</span> <span class="type">TreeNode</span>(a[mid]);
+        root.left  = build(a, lo, mid - <span class="number">1</span>);
+        root.right = build(a, mid + <span class="number">1</span>, hi);
+        <span class="keyword">return</span> root;
+    }
+
+    <span class="type">TreeNode</span> sortedArrayToBST(<span class="keyword">int</span>[] nums) {
+        <span class="keyword">return</span> build(nums, <span class="number">0</span>, nums.length - <span class="number">1</span>);
+    }
+}
+</pre>
+            </div>
+            <div id="bst-py" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Solution</span>:
+    <span class="keyword">def</span> sortedArrayToBST(self, nums):
+        <span class="keyword">def</span> build(lo, hi):
+            <span class="keyword">if</span> lo &gt; hi:
+                <span class="keyword">return</span> <span class="keyword">None</span>
+            mid = (lo + hi) // <span class="number">2</span>          <span class="comment"># middle = root</span>
+            root = TreeNode(nums[mid])
+            root.left  = build(lo, mid - <span class="number">1</span>)
+            root.right = build(mid + <span class="number">1</span>, hi)
+            <span class="keyword">return</span> root
+
+        <span class="keyword">return</span> build(<span class="number">0</span>, len(nums) - <span class="number">1</span>)
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            See the <a href="bst.html">BST section</a> for more on binary search tree properties, insertion, and validation. The sorted-array-to-BST trick is the inverse of an inorder traversal: an inorder walk of the result reproduces the original sorted array.
+        </div>
+
+        <h2>5. Build from Level-order + Inorder</h2>
+        <p>Level-order (BFS) lists nodes top-to-bottom, left-to-right, so the <strong>first level-order element that appears within a given inorder range is that subtree's root</strong>. Inorder then splits the range into left and right halves as before.</p>
+
+        <p><strong>Approach:</strong></p>
+        <ol>
+            <li>Record each value's position in level-order with a hashmap (so "earliest in level-order" is an O(1) comparison).</li>
+            <li>Build the inorder index map value &rarr; inorder index.</li>
+            <li>Recurse on an inorder range <code>[l, r]</code>: scan the candidates and pick the one with the smallest level-order position as the root (or, more efficiently, pass down the candidate root for each side). The root splits inorder into <code>[l, mid-1]</code> and <code>[mid+1, r]</code>.</li>
+        </ol>
+
+        <p>The clean O(n) version filters the level-order array into two sub-sequences (left-subtree values and right-subtree values, preserving level order) at each step, then recurses. A practical pattern: keep a global level-order sequence and, for each inorder sub-range, the first level-order value lying inside that range is its root.</p>
+
+        <div class="visual">
+<pre>
+levelorder = [3, 9, 20, 15, 7]
+inorder    = [9, 3, 15, 20, 7]
+
+range [9,3,15,20,7]: first level-order value present = 3 -> root
+   left inorder = [9], right inorder = [15,20,7]
+range [15,20,7]: first level-order value present = 20 -> root
+   left = [15], right = [7]
+
+              3
+             / \
+            9    20
+                /  \
+              15     7
+</pre>
+        </div>
+
+        <h2>6. Complexity Comparison</h2>
+        <p>The reconstruction logic is identical &mdash; the only difference is <strong>how you locate the root inside inorder</strong>. A linear scan is the naive trap; a hashmap makes it O(1).</p>
+
+        <table>
+            <tr><th>Strategy</th><th>Root Lookup</th><th>Total Time</th><th>Space</th></tr>
+            <tr><td>Naive (linear scan of inorder)</td><td>O(n) per node</td><td>O(n&sup2;)</td><td>O(n) recursion</td></tr>
+            <tr><td>Hashmap of inorder indices</td><td>O(1) per node</td><td>O(n)</td><td>O(n) map + recursion</td></tr>
+            <tr><td>Sorted array &rarr; balanced BST</td><td>O(1) (middle index)</td><td>O(n)</td><td>O(log n) recursion</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>The universal trick.</strong> Every construction in this guide reduces to the same two-part recipe:
+            <ul>
+                <li>A <strong>hashmap of inorder indices</strong> (<code>value &rarr; index</code>) so the left/right split is found in O(1) instead of scanning &mdash; this is what turns O(n&sup2;) into O(n).</li>
+                <li>A <strong>single global pointer</strong> into the preorder (advance forward) or postorder (advance backward) array, so you never re-slice the sequence; the recursion only carries the current inorder <code>[lo, hi]</code> bounds.</li>
+            </ul>
+            Match the recursion order to the pointer direction: preorder builds <strong>left before right</strong>; postorder (consumed from the back) builds <strong>right before left</strong>.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
