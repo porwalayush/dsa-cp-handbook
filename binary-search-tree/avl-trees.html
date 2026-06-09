@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVL Trees - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>AVL Trees (Self-Balancing BST)</h1>
+        <p>An <strong>AVL tree</strong> (Adelson-Velsky and Landis, 1962) is a binary search tree that keeps itself balanced by guaranteeing that, for every node, the heights of its two child subtrees differ by at most one. This bound is restored after every insertion and deletion using <strong>rotations</strong>, giving worst-case O(log n) search, insert, and delete.</p>
+
+        <h2>Motivation: Why Balance?</h2>
+        <p>A plain BST has O(log n) operations only when it stays bushy. Feed it <strong>already-sorted</strong> data and each new key becomes the right child of the previous one. The tree collapses into a linked list and every operation degrades to O(n).</p>
+
+        <div class="visual">
+<pre>
+Insert 1, 2, 3, 4, 5 into a plain BST (no balancing):
+
+    1
+     \
+      2
+       \
+        3              height = 4, n = 5
+         \             search(5) visits all 5 nodes -> O(n)
+          4
+           \
+            5
+
+The same 5 keys in an AVL tree stay balanced:
+
+        2
+       / \
+      1   4
+         / \
+        3   5          height = 2, search(5) -> O(log n)
+</pre>
+        </div>
+
+        <p>AVL trees prevent this degeneration by enforcing a strict height invariant on every node, so the tree height stays O(log n) no matter what order the keys arrive in.</p>
+
+        <h2>Balance Factor</h2>
+        <p>For any node, define its <strong>balance factor</strong> as:</p>
+        <p><code>balanceFactor(node) = height(node.left) - height(node.right)</code></p>
+        <p>An AVL tree requires <code>balanceFactor(node)</code> to be in <strong>{-1, 0, +1}</strong> for <em>every</em> node. A factor outside this range means the node is too left-heavy (&gt; +1) or too right-heavy (&lt; -1) and must be fixed by a rotation. By convention an empty subtree has height <code>-1</code> and a single leaf has height <code>0</code>. Each node caches its own height so the balance factor can be computed in O(1).</p>
+
+        <div class="visual">
+<pre>
+A balanced AVL tree.  Notation:  key (h=height, bf=balanceFactor)
+
+                30 (h=2, bf=0)
+               /            \
+       20 (h=1, bf=+1)      40 (h=1, bf=-1)
+       /                       \
+  10 (h=0, bf=0)            50 (h=0, bf=0)
+
+height(empty) = -1,  height(leaf) = 0
+bf(20) = h(10) - h(empty) = 0 - (-1) = +1   (ok)
+bf(40) = h(empty) - h(50) = -1 - 0  = -1    (ok)
+bf(30) = h(20) - h(40)    = 1 - 1   =  0    (ok)
+
+Every |bf| <= 1, so the tree is a valid AVL tree.
+</pre>
+        </div>
+
+        <h2>Rotations: The Core Primitive</h2>
+        <p>A rotation locally rearranges three pointers to change the height of a subtree while <strong>preserving the BST in-order ordering</strong>. There are two mirror-image rotations.</p>
+
+        <h3>Right Rotation (around y)</h3>
+        <p>Used when the left subtree is too tall. The left child <code>x</code> moves up to become the new root of the subtree; <code>y</code> becomes <code>x</code>'s right child; <code>x</code>'s former right subtree <code>T2</code> is re-parented as <code>y</code>'s left subtree.</p>
+
+        <div class="visual">
+<pre>
+        rightRotate(y)
+
+         y                         x
+        / \                       / \
+       x   T3      ===>         T1   y
+      / \                           / \
+    T1   T2                       T2   T3
+
+Subtree that moves: T2 (was x.right, becomes y.left)
+Ordering preserved: T1 &lt; x &lt; T2 &lt; y &lt; T3  in both shapes.
+</pre>
+        </div>
+
+        <h3>Left Rotation (around x)</h3>
+        <p>The mirror case: the right subtree is too tall. The right child <code>y</code> moves up; <code>x</code> becomes <code>y</code>'s left child; <code>y</code>'s former left subtree <code>T2</code> is re-parented as <code>x</code>'s right subtree.</p>
+
+        <div class="visual">
+<pre>
+        leftRotate(x)
+
+       x                           y
+      / \                         / \
+    T1   y          ===>         x   T3
+        / \                     / \
+      T2   T3                 T1   T2
+
+Subtree that moves: T2 (was y.left, becomes x.right)
+Ordering preserved: T1 &lt; x &lt; T2 &lt; y &lt; T3  in both shapes.
+</pre>
+        </div>
+
+        <div class="warn">
+            <strong>Critical:</strong> after rewiring pointers you MUST recompute heights, and you must do it in the right order &mdash; the lower node (the one that moved <em>down</em>) first, then the new subtree root. Both rotations are O(1): a fixed number of pointer assignments and two height updates.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppRot')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaRot')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyRot')">Python</button>
+            </div>
+            <div id="cppRot" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> key, height;
+    Node *left, *right;
+    Node(<span class="keyword">int</span> k) : key(k), height(<span class="number">0</span>), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+
+<span class="keyword">int</span> height(Node* n) { <span class="keyword">return</span> n ? n-&gt;height : -<span class="number">1</span>; }
+
+<span class="keyword">void</span> updateHeight(Node* n) {
+    n-&gt;height = <span class="number">1</span> + max(height(n-&gt;left), height(n-&gt;right));
+}
+
+<span class="keyword">int</span> getBalance(Node* n) {
+    <span class="keyword">return</span> n ? height(n-&gt;left) - height(n-&gt;right) : <span class="number">0</span>;
+}
+
+<span class="comment">// Right rotation around y, returns the new subtree root (x)</span>
+Node* rightRotate(Node* y) {
+    Node* x  = y-&gt;left;
+    Node* T2 = x-&gt;right;
+    x-&gt;right = y;          <span class="comment">// y moves down to the right</span>
+    y-&gt;left  = T2;         <span class="comment">// T2 re-parented under y</span>
+    updateHeight(y);      <span class="comment">// update lower node first</span>
+    updateHeight(x);      <span class="comment">// then the new root</span>
+    <span class="keyword">return</span> x;
+}
+
+<span class="comment">// Left rotation around x, returns the new subtree root (y)</span>
+Node* leftRotate(Node* x) {
+    Node* y  = x-&gt;right;
+    Node* T2 = y-&gt;left;
+    y-&gt;left  = x;          <span class="comment">// x moves down to the left</span>
+    x-&gt;right = T2;         <span class="comment">// T2 re-parented under x</span>
+    updateHeight(x);      <span class="comment">// update lower node first</span>
+    updateHeight(y);      <span class="comment">// then the new root</span>
+    <span class="keyword">return</span> y;
+}
+</pre>
+            </div>
+            <div id="javaRot" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> {
+    <span class="keyword">int</span> key, height;
+    Node left, right;
+    Node(<span class="keyword">int</span> k) { key = k; height = <span class="number">0</span>; }
+}
+
+<span class="keyword">int</span> height(Node n) { <span class="keyword">return</span> n == <span class="keyword">null</span> ? -<span class="number">1</span> : n.height; }
+
+<span class="keyword">void</span> updateHeight(Node n) {
+    n.height = <span class="number">1</span> + Math.max(height(n.left), height(n.right));
+}
+
+<span class="keyword">int</span> getBalance(Node n) {
+    <span class="keyword">return</span> n == <span class="keyword">null</span> ? <span class="number">0</span> : height(n.left) - height(n.right);
+}
+
+<span class="comment">// Right rotation around y, returns the new subtree root (x)</span>
+Node rightRotate(Node y) {
+    Node x  = y.left;
+    Node T2 = x.right;
+    x.right = y;          <span class="comment">// y moves down to the right</span>
+    y.left  = T2;         <span class="comment">// T2 re-parented under y</span>
+    updateHeight(y);      <span class="comment">// update lower node first</span>
+    updateHeight(x);      <span class="comment">// then the new root</span>
+    <span class="keyword">return</span> x;
+}
+
+<span class="comment">// Left rotation around x, returns the new subtree root (y)</span>
+Node leftRotate(Node x) {
+    Node y  = x.right;
+    Node T2 = y.left;
+    y.left  = x;          <span class="comment">// x moves down to the left</span>
+    x.right = T2;         <span class="comment">// T2 re-parented under x</span>
+    updateHeight(x);      <span class="comment">// update lower node first</span>
+    updateHeight(y);      <span class="comment">// then the new root</span>
+    <span class="keyword">return</span> y;
+}
+</pre>
+            </div>
+            <div id="pyRot" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, key):
+        self.key = key
+        self.height = <span class="number">0</span>
+        self.left = <span class="keyword">None</span>
+        self.right = <span class="keyword">None</span>
+
+<span class="keyword">def</span> height(n):
+    <span class="keyword">return</span> n.height <span class="keyword">if</span> n <span class="keyword">else</span> -<span class="number">1</span>
+
+<span class="keyword">def</span> update_height(n):
+    n.height = <span class="number">1</span> + max(height(n.left), height(n.right))
+
+<span class="keyword">def</span> get_balance(n):
+    <span class="keyword">return</span> height(n.left) - height(n.right) <span class="keyword">if</span> n <span class="keyword">else</span> <span class="number">0</span>
+
+<span class="comment"># Right rotation around y, returns the new subtree root (x)</span>
+<span class="keyword">def</span> right_rotate(y):
+    x  = y.left
+    T2 = x.right
+    x.right = y          <span class="comment"># y moves down to the right</span>
+    y.left  = T2         <span class="comment"># T2 re-parented under y</span>
+    update_height(y)     <span class="comment"># update lower node first</span>
+    update_height(x)     <span class="comment"># then the new root</span>
+    <span class="keyword">return</span> x
+
+<span class="comment"># Left rotation around x, returns the new subtree root (y)</span>
+<span class="keyword">def</span> left_rotate(x):
+    y  = x.right
+    T2 = y.left
+    y.left  = x          <span class="comment"># x moves down to the left</span>
+    x.right = T2         <span class="comment"># T2 re-parented under x</span>
+    update_height(x)     <span class="comment"># update lower node first</span>
+    update_height(y)     <span class="comment"># then the new root</span>
+    <span class="keyword">return</span> y
+</pre>
+            </div>
+        </div>
+
+        <h2>The Four Imbalance Cases</h2>
+        <p>When a node <code>z</code> becomes unbalanced (<code>|balanceFactor(z)| &gt; 1</code>), exactly one of four shapes applies, decided by the sign of <code>z</code>'s balance factor and the relevant child's balance factor. The fix is one or two rotations.</p>
+
+        <h3>Case LL (Left-Left) &mdash; single right rotation</h3>
+        <p>Trigger: <code>balance(z) &gt; 1</code> <strong>and</strong> <code>balance(z.left) &gt;= 0</code> (inserted into the left subtree of the left child).</p>
+        <div class="visual">
+<pre>
+        z (bf=+2)                 y
+       / \                       / \
+      y   T4    rightRotate(z)  x   z
+     / \         ========&gt;     / \ / \
+    x   T3                    T1 T2 T3 T4
+   / \
+  T1  T2
+
+Fix:  z = rightRotate(z)
+</pre>
+        </div>
+
+        <h3>Case RR (Right-Right) &mdash; single left rotation</h3>
+        <p>Trigger: <code>balance(z) &lt; -1</code> <strong>and</strong> <code>balance(z.right) &lt;= 0</code> (inserted into the right subtree of the right child).</p>
+        <div class="visual">
+<pre>
+    z (bf=-2)                       y
+   / \                             / \
+  T1  y         leftRotate(z)     z   x
+     / \         ========&gt;       / \ / \
+    T2  x                       T1 T2 T3 T4
+       / \
+      T3  T4
+
+Fix:  z = leftRotate(z)
+</pre>
+        </div>
+
+        <h3>Case LR (Left-Right) &mdash; left rotate child, then right rotate node</h3>
+        <p>Trigger: <code>balance(z) &gt; 1</code> <strong>and</strong> <code>balance(z.left) &lt; 0</code> (inserted into the right subtree of the left child). First a left rotation on the child turns it into the LL shape, then a right rotation on <code>z</code>.</p>
+        <div class="visual">
+<pre>
+      z (bf=+2)              z                      x
+     / \                    / \                    / \
+    y   T4  leftRotate(y)  x   T4  rightRotate(z) y   z
+   / \      =========&gt;    / \      ==========&gt;   / \ / \
+  T1  x                  y   T3                 T1 T2 T3 T4
+     / \                / \
+    T2  T3            T1  T2
+
+Fix:  z.left = leftRotate(z.left);  z = rightRotate(z)
+</pre>
+        </div>
+
+        <h3>Case RL (Right-Left) &mdash; right rotate child, then left rotate node</h3>
+        <p>Trigger: <code>balance(z) &lt; -1</code> <strong>and</strong> <code>balance(z.right) &gt; 0</code> (inserted into the left subtree of the right child). First a right rotation on the child turns it into the RR shape, then a left rotation on <code>z</code>.</p>
+        <div class="visual">
+<pre>
+   z (bf=-2)                  z                          x
+  / \                        / \                        / \
+ T1  y     rightRotate(y)   T1  x     leftRotate(z)     z   y
+    / \     =========&gt;          / \    =========&gt;      / \ / \
+   x   T4                      T2  y                  T1 T2 T3 T4
+  / \                             / \
+ T2  T3                          T3  T4
+
+Fix:  z.right = rightRotate(z.right);  z = leftRotate(z)
+</pre>
+        </div>
+
+        <div class="note">
+            <strong>Decision logic in one place</strong> (let <code>bf = balance(z)</code>):
+            <ul>
+                <li><code>bf &gt; 1  &amp;&amp;  balance(z.left)  &gt;= 0</code> &rarr; <strong>LL</strong>: <code>rightRotate(z)</code></li>
+                <li><code>bf &gt; 1  &amp;&amp;  balance(z.left)  &lt; 0</code>  &rarr; <strong>LR</strong>: <code>z.left = leftRotate(z.left); rightRotate(z)</code></li>
+                <li><code>bf &lt; -1 &amp;&amp;  balance(z.right) &lt;= 0</code> &rarr; <strong>RR</strong>: <code>leftRotate(z)</code></li>
+                <li><code>bf &lt; -1 &amp;&amp;  balance(z.right) &gt; 0</code>  &rarr; <strong>RL</strong>: <code>z.right = rightRotate(z.right); leftRotate(z)</code></li>
+            </ul>
+        </div>
+
+        <h2>Insertion</h2>
+        <p>Insertion is a normal recursive BST insert followed by a "fix-up" on the way back up the recursion: update the height of the current node, compute its balance factor, and if it is out of range apply the matching rotation. Because a single insertion lengthens at most one path, <strong>at most one rotation (single or double) is ever needed</strong>, and it happens at the lowest unbalanced ancestor.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppIns')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaIns')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyIns')">Python</button>
+            </div>
+            <div id="cppIns" class="code-content active">
+<pre>
+Node* insert(Node* node, <span class="keyword">int</span> key) {
+    <span class="comment">// 1. Standard BST insert</span>
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">new</span> Node(key);
+    <span class="keyword">if</span> (key &lt; node-&gt;key)
+        node-&gt;left  = insert(node-&gt;left, key);
+    <span class="keyword">else if</span> (key &gt; node-&gt;key)
+        node-&gt;right = insert(node-&gt;right, key);
+    <span class="keyword">else</span>
+        <span class="keyword">return</span> node;  <span class="comment">// duplicates not allowed</span>
+
+    <span class="comment">// 2. Update height of this ancestor</span>
+    updateHeight(node);
+
+    <span class="comment">// 3. Compute balance and rebalance if needed</span>
+    <span class="keyword">int</span> bf = getBalance(node);
+
+    <span class="comment">// LL</span>
+    <span class="keyword">if</span> (bf &gt; <span class="number">1</span> &amp;&amp; getBalance(node-&gt;left) &gt;= <span class="number">0</span>)
+        <span class="keyword">return</span> rightRotate(node);
+    <span class="comment">// LR</span>
+    <span class="keyword">if</span> (bf &gt; <span class="number">1</span> &amp;&amp; getBalance(node-&gt;left) &lt; <span class="number">0</span>) {
+        node-&gt;left = leftRotate(node-&gt;left);
+        <span class="keyword">return</span> rightRotate(node);
+    }
+    <span class="comment">// RR</span>
+    <span class="keyword">if</span> (bf &lt; -<span class="number">1</span> &amp;&amp; getBalance(node-&gt;right) &lt;= <span class="number">0</span>)
+        <span class="keyword">return</span> leftRotate(node);
+    <span class="comment">// RL</span>
+    <span class="keyword">if</span> (bf &lt; -<span class="number">1</span> &amp;&amp; getBalance(node-&gt;right) &gt; <span class="number">0</span>) {
+        node-&gt;right = rightRotate(node-&gt;right);
+        <span class="keyword">return</span> leftRotate(node);
+    }
+
+    <span class="keyword">return</span> node;  <span class="comment">// already balanced</span>
+}
+</pre>
+            </div>
+            <div id="javaIns" class="code-content">
+<pre>
+Node insert(Node node, <span class="keyword">int</span> key) {
+    <span class="comment">// 1. Standard BST insert</span>
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return new</span> Node(key);
+    <span class="keyword">if</span> (key &lt; node.key)
+        node.left  = insert(node.left, key);
+    <span class="keyword">else if</span> (key &gt; node.key)
+        node.right = insert(node.right, key);
+    <span class="keyword">else</span>
+        <span class="keyword">return</span> node;  <span class="comment">// duplicates not allowed</span>
+
+    <span class="comment">// 2. Update height of this ancestor</span>
+    updateHeight(node);
+
+    <span class="comment">// 3. Compute balance and rebalance if needed</span>
+    <span class="keyword">int</span> bf = getBalance(node);
+
+    <span class="comment">// LL</span>
+    <span class="keyword">if</span> (bf &gt; <span class="number">1</span> &amp;&amp; getBalance(node.left) &gt;= <span class="number">0</span>)
+        <span class="keyword">return</span> rightRotate(node);
+    <span class="comment">// LR</span>
+    <span class="keyword">if</span> (bf &gt; <span class="number">1</span> &amp;&amp; getBalance(node.left) &lt; <span class="number">0</span>) {
+        node.left = leftRotate(node.left);
+        <span class="keyword">return</span> rightRotate(node);
+    }
+    <span class="comment">// RR</span>
+    <span class="keyword">if</span> (bf &lt; -<span class="number">1</span> &amp;&amp; getBalance(node.right) &lt;= <span class="number">0</span>)
+        <span class="keyword">return</span> leftRotate(node);
+    <span class="comment">// RL</span>
+    <span class="keyword">if</span> (bf &lt; -<span class="number">1</span> &amp;&amp; getBalance(node.right) &gt; <span class="number">0</span>) {
+        node.right = rightRotate(node.right);
+        <span class="keyword">return</span> leftRotate(node);
+    }
+
+    <span class="keyword">return</span> node;  <span class="comment">// already balanced</span>
+}
+</pre>
+            </div>
+            <div id="pyIns" class="code-content">
+<pre>
+<span class="keyword">def</span> insert(node, key):
+    <span class="comment"># 1. Standard BST insert</span>
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> Node(key)
+    <span class="keyword">if</span> key &lt; node.key:
+        node.left  = insert(node.left, key)
+    <span class="keyword">elif</span> key &gt; node.key:
+        node.right = insert(node.right, key)
+    <span class="keyword">else</span>:
+        <span class="keyword">return</span> node  <span class="comment"># duplicates not allowed</span>
+
+    <span class="comment"># 2. Update height of this ancestor</span>
+    update_height(node)
+
+    <span class="comment"># 3. Compute balance and rebalance if needed</span>
+    bf = get_balance(node)
+
+    <span class="comment"># LL</span>
+    <span class="keyword">if</span> bf &gt; <span class="number">1</span> <span class="keyword">and</span> get_balance(node.left) &gt;= <span class="number">0</span>:
+        <span class="keyword">return</span> right_rotate(node)
+    <span class="comment"># LR</span>
+    <span class="keyword">if</span> bf &gt; <span class="number">1</span> <span class="keyword">and</span> get_balance(node.left) &lt; <span class="number">0</span>:
+        node.left = left_rotate(node.left)
+        <span class="keyword">return</span> right_rotate(node)
+    <span class="comment"># RR</span>
+    <span class="keyword">if</span> bf &lt; -<span class="number">1</span> <span class="keyword">and</span> get_balance(node.right) &lt;= <span class="number">0</span>:
+        <span class="keyword">return</span> left_rotate(node)
+    <span class="comment"># RL</span>
+    <span class="keyword">if</span> bf &lt; -<span class="number">1</span> <span class="keyword">and</span> get_balance(node.right) &gt; <span class="number">0</span>:
+        node.right = right_rotate(node.right)
+        <span class="keyword">return</span> left_rotate(node)
+
+    <span class="keyword">return</span> node  <span class="comment"># already balanced</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Deletion</h2>
+        <p>Deletion is a standard BST delete (replace a two-child node by its in-order successor, then delete that successor) followed by the <strong>same</strong> rebalancing logic on the way up. The key difference from insertion: a deletion can shorten a subtree, which may cascade and require <strong>rotations at multiple ancestors all the way up to the root</strong> &mdash; whereas insertion needs at most one.</p>
+
+        <p>One subtlety: when rebalancing after a delete, the off-balance child may itself have a balance factor of <code>0</code>. The comparisons above (<code>&gt;= 0</code> for the left child, <code>&lt;= 0</code> for the right child) handle this correctly, so the exact same case logic works for both insert and delete.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDel')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDel')">Python</button>
+            </div>
+            <div id="cppDel" class="code-content active">
+<pre>
+Node* minValueNode(Node* n) {
+    <span class="keyword">while</span> (n-&gt;left) n = n-&gt;left;
+    <span class="keyword">return</span> n;
+}
+
+<span class="comment">// Shared rebalance step (identical to insert's fix-up)</span>
+Node* rebalance(Node* node) {
+    updateHeight(node);
+    <span class="keyword">int</span> bf = getBalance(node);
+    <span class="keyword">if</span> (bf &gt; <span class="number">1</span> &amp;&amp; getBalance(node-&gt;left) &gt;= <span class="number">0</span>)
+        <span class="keyword">return</span> rightRotate(node);                 <span class="comment">// LL</span>
+    <span class="keyword">if</span> (bf &gt; <span class="number">1</span> &amp;&amp; getBalance(node-&gt;left) &lt; <span class="number">0</span>) {     <span class="comment">// LR</span>
+        node-&gt;left = leftRotate(node-&gt;left);
+        <span class="keyword">return</span> rightRotate(node);
+    }
+    <span class="keyword">if</span> (bf &lt; -<span class="number">1</span> &amp;&amp; getBalance(node-&gt;right) &lt;= <span class="number">0</span>)
+        <span class="keyword">return</span> leftRotate(node);                  <span class="comment">// RR</span>
+    <span class="keyword">if</span> (bf &lt; -<span class="number">1</span> &amp;&amp; getBalance(node-&gt;right) &gt; <span class="number">0</span>) { <span class="comment">// RL</span>
+        node-&gt;right = rightRotate(node-&gt;right);
+        <span class="keyword">return</span> leftRotate(node);
+    }
+    <span class="keyword">return</span> node;
+}
+
+Node* deleteNode(Node* node, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> node;
+
+    <span class="comment">// 1. Standard BST delete</span>
+    <span class="keyword">if</span> (key &lt; node-&gt;key)
+        node-&gt;left  = deleteNode(node-&gt;left, key);
+    <span class="keyword">else if</span> (key &gt; node-&gt;key)
+        node-&gt;right = deleteNode(node-&gt;right, key);
+    <span class="keyword">else</span> {
+        <span class="keyword">if</span> (!node-&gt;left || !node-&gt;right) {        <span class="comment">// 0 or 1 child</span>
+            Node* child = node-&gt;left ? node-&gt;left : node-&gt;right;
+            <span class="keyword">delete</span> node;
+            <span class="keyword">return</span> child;                         <span class="comment">// may be nullptr</span>
+        }
+        <span class="comment">// 2 children: replace with in-order successor</span>
+        Node* succ = minValueNode(node-&gt;right);
+        node-&gt;key = succ-&gt;key;
+        node-&gt;right = deleteNode(node-&gt;right, succ-&gt;key);
+    }
+
+    <span class="comment">// 2. Rebalance on the way up (may rotate at many levels)</span>
+    <span class="keyword">return</span> rebalance(node);
+}
+</pre>
+            </div>
+            <div id="pyDel" class="code-content">
+<pre>
+<span class="keyword">def</span> min_value_node(n):
+    <span class="keyword">while</span> n.left:
+        n = n.left
+    <span class="keyword">return</span> n
+
+<span class="comment"># Shared rebalance step (identical to insert's fix-up)</span>
+<span class="keyword">def</span> rebalance(node):
+    update_height(node)
+    bf = get_balance(node)
+    <span class="keyword">if</span> bf &gt; <span class="number">1</span> <span class="keyword">and</span> get_balance(node.left) &gt;= <span class="number">0</span>:      <span class="comment"># LL</span>
+        <span class="keyword">return</span> right_rotate(node)
+    <span class="keyword">if</span> bf &gt; <span class="number">1</span> <span class="keyword">and</span> get_balance(node.left) &lt; <span class="number">0</span>:       <span class="comment"># LR</span>
+        node.left = left_rotate(node.left)
+        <span class="keyword">return</span> right_rotate(node)
+    <span class="keyword">if</span> bf &lt; -<span class="number">1</span> <span class="keyword">and</span> get_balance(node.right) &lt;= <span class="number">0</span>:    <span class="comment"># RR</span>
+        <span class="keyword">return</span> left_rotate(node)
+    <span class="keyword">if</span> bf &lt; -<span class="number">1</span> <span class="keyword">and</span> get_balance(node.right) &gt; <span class="number">0</span>:     <span class="comment"># RL</span>
+        node.right = right_rotate(node.right)
+        <span class="keyword">return</span> left_rotate(node)
+    <span class="keyword">return</span> node
+
+<span class="keyword">def</span> delete_node(node, key):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> node
+
+    <span class="comment"># 1. Standard BST delete</span>
+    <span class="keyword">if</span> key &lt; node.key:
+        node.left  = delete_node(node.left, key)
+    <span class="keyword">elif</span> key &gt; node.key:
+        node.right = delete_node(node.right, key)
+    <span class="keyword">else</span>:
+        <span class="keyword">if</span> node.left <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> node.right <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> node.left <span class="keyword">if</span> node.left <span class="keyword">else</span> node.right
+        succ = min_value_node(node.right)     <span class="comment"># in-order successor</span>
+        node.key = succ.key
+        node.right = delete_node(node.right, succ.key)
+
+    <span class="comment"># 2. Rebalance on the way up (may rotate at many levels)</span>
+    <span class="keyword">return</span> rebalance(node)
+</pre>
+            </div>
+        </div>
+
+        <h2>Height Bound and Fibonacci</h2>
+        <p>How tall can an AVL tree of <code>n</code> nodes get? Ask the opposite question: what is the <strong>minimum</strong> number of nodes <code>N(h)</code> in an AVL tree of height <code>h</code>? Such a "worst-case sparse" tree has a root, one subtree of height <code>h-1</code>, and the other of height <code>h-2</code> (the smallest difference still allowed):</p>
+
+        <div class="visual">
+<pre>
+N(h) = 1 + N(h-1) + N(h-2),   N(0) = 1,  N(1) = 2
+
+h :  0   1   2   3    4    5    6
+N :  1   2   4   7   12   20   33
+
+Compare Fibonacci:  F: 1, 1, 2, 3, 5, 8, 13, 21, 34, ...
+   N(h) = F(h + 3) - 1     (the recurrence is Fibonacci shifted)
+</pre>
+        </div>
+
+        <p>Since <code>N(h)</code> grows like the Fibonacci numbers (which grow as <code>&phi;^h</code> with the golden ratio <code>&phi; &approx; 1.618</code>), inverting the relation gives the height bound:</p>
+        <p style="text-align:center"><code>h &lt; 1.4405 &middot; log&#8322;(n + 2) - 0.3277</code> &nbsp;&rarr;&nbsp; <code>h = O(log n)</code></p>
+        <p>So an AVL tree is never more than about <strong>44% taller</strong> than a perfectly balanced tree, which is what guarantees O(log n) operations.</p>
+
+        <h2>Complexity</h2>
+        <table>
+            <tr><th>Operation</th><th>Time (worst case)</th><th>Notes</th></tr>
+            <tr><td>Search</td><td>O(log n)</td><td>Height is bounded by ~1.44 log&#8322;n</td></tr>
+            <tr><td>Insert</td><td>O(log n)</td><td>BST insert + at most one rotation</td></tr>
+            <tr><td>Delete</td><td>O(log n)</td><td>BST delete + up to O(log n) rotations</td></tr>
+            <tr><td>Single rotation</td><td>O(1)</td><td>Fixed pointer rewiring + 2 height updates</td></tr>
+            <tr><td>Space</td><td>O(n)</td><td>One extra int (height) per node</td></tr>
+        </table>
+
+        <div class="warn">
+            <strong>Most common bug:</strong> forgetting to update node heights <em>after</em> a rotation, or updating them in the wrong order. In each rotation, recompute the height of the node that moved <strong>down</strong> first, then the new subtree root &mdash; otherwise the parent's height is computed from a stale child height and every later balance factor is wrong.
+        </div>
+
+        <h2>AVL vs Red-Black Trees</h2>
+        <div class="compare">
+            <div>
+                <h3>AVL Tree</h3>
+                <ul>
+                    <li>More rigidly balanced (height &le; ~1.44 log&#8322;n)</li>
+                    <li>Faster lookups &mdash; shallower trees</li>
+                    <li>May do more rotations per update</li>
+                    <li>Best for read-heavy workloads</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Red-Black Tree</h3>
+                <ul>
+                    <li>Looser balance (height &le; 2 log&#8322;(n+1))</li>
+                    <li>Slightly slower lookups &mdash; taller trees</li>
+                    <li>At most O(1) rotations per insert/delete (amortized fewer)</li>
+                    <li>Best for write-heavy workloads</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Rule of thumb:</strong> choose AVL when lookups dominate and you want the flattest possible tree; choose a <a href="red-black-trees.html">Red-Black tree</a> when inserts and deletes are frequent and you want to minimize restructuring work. Both guarantee O(log n) for all operations; the difference is in the constant factors. Most standard library ordered maps (e.g. C++ <code>std::map</code>, Java <code>TreeMap</code>) use red-black trees for exactly this reason.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
