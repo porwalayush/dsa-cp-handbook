@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iterative Segment Tree - Range Queries Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Iterative Segment Tree</h1>
+        <p>The <strong>iterative segment tree</strong> is a bottom-up implementation that uses a flat array of size <code>2n</code>. It eliminates recursion overhead, is cache-friendly, and produces compact code ideal for competitive programming.</p>
+
+        <h2>Why Iterative?</h2>
+        <ul>
+            <li><strong>Faster constant factor</strong> &mdash; no function call overhead or stack frame allocation from recursion</li>
+            <li><strong>Cache-friendly</strong> &mdash; sequential memory access patterns; parent nodes are adjacent to children in the array</li>
+            <li><strong>Simpler for contests</strong> &mdash; the entire implementation fits in ~20 lines; easy to type under time pressure</li>
+            <li><strong>Exactly 2n space</strong> &mdash; no need for the 4n upper bound required by recursive versions</li>
+        </ul>
+
+        <h2>Bottom-Up Array Layout</h2>
+        <p>The tree is stored in an array <code>t[0..2n-1]</code>. Leaves occupy positions <code>n</code> to <code>2n-1</code>, and internal nodes occupy positions <code>1</code> to <code>n-1</code>. Position <code>0</code> is unused.</p>
+
+        <div class="visual">
+<pre>
+Array: [5, 8, 6, 3, 2, 7, 2, 6]    n = 8
+
+Tree array t[] (sum segment tree):
+Index:   1    2    3    4    5    6    7    8   9  10  11  12  13  14  15
+Value: [39] [22] [17] [13]  [9]  [9]  [8]  [5] [8] [6] [3] [2] [7] [2] [6]
+        |    |    |    |    |    |    |    |___________________________|
+        |    |    |    |    |    |    |         leaves (positions n..2n-1)
+        |    |    |    |____|____|____|
+        |    |____|         internal nodes
+        |
+       root (index 1)
+
+Parent-child relationships:
+  parent(i) = i / 2     (integer division)
+  left(i)   = 2 * i
+  right(i)  = 2 * i + 1
+
+Mapping:
+  arr[k] lives at t[k + n]    (leaf position)
+  t[i] = t[2*i] + t[2*i+1]   (for internal nodes)
+</pre>
+        </div>
+
+        <div class="visual">
+<pre>
+Tree structure (showing index and value):
+
+                       t[1]=39
+                     /         \
+              t[2]=22            t[3]=17
+             /      \           /       \
+        t[4]=13    t[5]=9   t[6]=9    t[7]=8
+         /  \       / \      / \       / \
+       t[8] t[9] t[10] t[11] t[12] t[13] t[14] t[15]
+        =5   =8    =6    =3    =2    =7    =2    =6
+        |    |     |     |     |     |     |     |
+       a[0] a[1]  a[2]  a[3]  a[4]  a[5]  a[6]  a[7]
+</pre>
+        </div>
+
+        <h2>Build Operation</h2>
+        <p>Copy array values into the leaf positions, then compute each internal node bottom-up from its two children.</p>
+
+        <div class="visual">
+<pre>
+Step 1: Place leaves at positions n..2n-1
+  t[8]=5, t[9]=8, t[10]=6, t[11]=3, t[12]=2, t[13]=7, t[14]=2, t[15]=6
+
+Step 2: Fill internal nodes from i = n-1 down to 1
+  i=7: t[7] = t[14] + t[15] = 2 + 6 = 8
+  i=6: t[6] = t[12] + t[13] = 2 + 7 = 9
+  i=5: t[5] = t[10] + t[11] = 6 + 3 = 9
+  i=4: t[4] = t[8]  + t[9]  = 5 + 8 = 13
+  i=3: t[3] = t[6]  + t[7]  = 9 + 8 = 17
+  i=2: t[2] = t[4]  + t[5]  = 13 + 9 = 22
+  i=1: t[1] = t[2]  + t[3]  = 22 + 17 = 39
+
+Time: O(n)  |  Space: O(2n)
+</pre>
+        </div>
+
+        <h2>Point Update</h2>
+        <p>Update the leaf directly, then walk up to the root recalculating each ancestor.</p>
+
+        <div class="visual">
+<pre>
+Update arr[2] = 10  (was 6)
+Leaf position: i = 2 + n = 2 + 8 = 10
+
+  t[10] = 10                  (set new value)
+  i = 10 / 2 = 5
+  t[5] = t[10] + t[11] = 10 + 3 = 13
+
+  i = 5 / 2 = 2
+  t[2] = t[4] + t[5] = 13 + 13 = 26
+
+  i = 2 / 2 = 1
+  t[1] = t[2] + t[3] = 26 + 17 = 43
+
+Done! Only O(log n) nodes updated.
+
+Code pattern:
+  i = pos + n
+  t[i] = new_val
+  while i > 1:
+      i = i / 2
+      t[i] = t[2*i] + t[2*i+1]
+</pre>
+        </div>
+
+        <h2>Range Query</h2>
+        <p>Use two pointers <code>l</code> and <code>r</code> starting at the leaf level. At each level, if a pointer is a right child (odd index), include it and move inward. Then move both pointers to their parents.</p>
+
+        <div class="visual">
+<pre>
+Query: sum(2, 6)  -- sum of arr[2..6] (0-indexed)
+
+Initialize: l = 2 + n = 10,  r = 6 + n = 14
+             (point to leaves for arr[2] and arr[6])
+Result = 0
+
+Iteration 1: l=10, r=14
+  l is even  -> skip (it's a left child, parent covers it)
+  r is even  -> r is right child? 14 is even -> it's a left child
+               Actually: odd = right child. 14 is even = left child.
+               Wait -- let's use the standard approach:
+               r is inclusive, so we use r+1 for the open interval.
+
+--- Cleaner explanation using half-open [l, r) ---
+
+Query: sum(2, 6) means arr[2]+arr[3]+arr[4]+arr[5]+arr[6]
+Convert to tree indices: l = 2+n = 10,  r = 6+n+1 = 15
+
+Iteration 1: l=10, r=15
+  l=10 is even -> move up: l = 5
+  r=15 is odd  -> r-=1 => r=14, res += t[14]=2, then r = 7
+Result = 2
+
+Iteration 2: l=5, r=7
+  l=5 is odd  -> res += t[5]=9, l+=1 => l=6, then l = 3
+  r=7 is odd  -> r-=1 => r=6, res += t[6]=9, then r = 3
+Result = 2 + 9 + 9 = 20
+
+Iteration 3: l=3, r=3
+  l >= r -> STOP
+
+Final answer = 20
+Verify: arr[2]+arr[3]+arr[4]+arr[5]+arr[6] = 6+3+2+7+2 = 20  ✓
+</pre>
+        </div>
+
+        <div class="visual">
+<pre>
+Query algorithm (half-open interval [l, r)):
+
+  res = 0
+  l += n        // move to leaf layer
+  r += n + 1    // one past the right leaf
+
+  while l < r:
+      if l is odd:     // l is a right child
+          res += t[l]  // include this node
+          l += 1       // move to next subtree
+      if r is odd:     // r-1 is a right child
+          r -= 1       // include this node
+          res += t[r]
+      l /= 2           // move up one level
+      r /= 2
+
+Why it works:
+  - If l is a right child, its parent covers elements outside
+    our range (to the left), so we take l alone and skip its parent.
+  - If r-1 is a right child, we include it before moving up.
+  - Each level, the range shrinks until l >= r.
+</pre>
+        </div>
+
+        <h2>Full Implementation</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> SegTree {
+    <span class="keyword">int</span> n;
+    vector&lt;<span class="keyword">int</span>&gt; t;
+
+    SegTree(<span class="keyword">int</span> n) : n(n), t(<span class="number">2</span> * n, <span class="number">0</span>) {}
+
+    SegTree(vector&lt;<span class="keyword">int</span>&gt;&amp; arr) : n(arr.size()), t(<span class="number">2</span> * arr.size()) {
+        <span class="comment">// Place leaves at positions [n, 2n)</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+            t[i + n] = arr[i];
+        <span class="comment">// Build internal nodes bottom-up</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = n - <span class="number">1</span>; i &gt;= <span class="number">1</span>; i--)
+            t[i] = t[<span class="number">2</span> * i] + t[<span class="number">2</span> * i + <span class="number">1</span>];
+    }
+
+    <span class="comment">// Point update: set arr[pos] = val</span>
+    <span class="keyword">void</span> update(<span class="keyword">int</span> pos, <span class="keyword">int</span> val) {
+        pos += n;            <span class="comment">// go to leaf</span>
+        t[pos] = val;        <span class="comment">// update leaf</span>
+        <span class="keyword">for</span> (pos /= <span class="number">2</span>; pos &gt;= <span class="number">1</span>; pos /= <span class="number">2</span>)
+            t[pos] = t[<span class="number">2</span> * pos] + t[<span class="number">2</span> * pos + <span class="number">1</span>];
+    }
+
+    <span class="comment">// Range query: sum of [l, r] (inclusive)</span>
+    <span class="keyword">int</span> query(<span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">int</span> res = <span class="number">0</span>;
+        <span class="keyword">for</span> (l += n, r += n + <span class="number">1</span>; l &lt; r; l /= <span class="number">2</span>, r /= <span class="number">2</span>) {
+            <span class="keyword">if</span> (l &amp; <span class="number">1</span>) res += t[l++];
+            <span class="keyword">if</span> (r &amp; <span class="number">1</span>) res += t[--r];
+        }
+        <span class="keyword">return</span> res;
+    }
+};
+
+<span class="keyword">int</span> main() {
+    vector&lt;<span class="keyword">int</span>&gt; arr = {<span class="number">5</span>, <span class="number">8</span>, <span class="number">6</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">7</span>, <span class="number">2</span>, <span class="number">6</span>};
+    SegTree st(arr);
+
+    cout &lt;&lt; st.query(<span class="number">2</span>, <span class="number">6</span>) &lt;&lt; <span class="string">"\n"</span>;  <span class="comment">// 20</span>
+    st.update(<span class="number">2</span>, <span class="number">10</span>);                 <span class="comment">// arr[2] = 10</span>
+    cout &lt;&lt; st.query(<span class="number">2</span>, <span class="number">6</span>) &lt;&lt; <span class="string">"\n"</span>;  <span class="comment">// 24</span>
+    cout &lt;&lt; st.query(<span class="number">0</span>, <span class="number">7</span>) &lt;&lt; <span class="string">"\n"</span>;  <span class="comment">// 43</span>
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">SegTree</span> {
+    <span class="keyword">int</span>[] t;
+    <span class="keyword">int</span> n;
+
+    SegTree(<span class="keyword">int</span>[] arr) {
+        n = arr.length;
+        t = <span class="keyword">new int</span>[<span class="number">2</span> * n];
+        <span class="comment">// Place leaves</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+            t[i + n] = arr[i];
+        <span class="comment">// Build internal nodes</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = n - <span class="number">1</span>; i &gt;= <span class="number">1</span>; i--)
+            t[i] = t[<span class="number">2</span> * i] + t[<span class="number">2</span> * i + <span class="number">1</span>];
+    }
+
+    <span class="comment">// Point update: set arr[pos] = val</span>
+    <span class="keyword">void</span> update(<span class="keyword">int</span> pos, <span class="keyword">int</span> val) {
+        pos += n;
+        t[pos] = val;
+        <span class="keyword">for</span> (pos /= <span class="number">2</span>; pos &gt;= <span class="number">1</span>; pos /= <span class="number">2</span>)
+            t[pos] = t[<span class="number">2</span> * pos] + t[<span class="number">2</span> * pos + <span class="number">1</span>];
+    }
+
+    <span class="comment">// Range query: sum of [l, r] (inclusive)</span>
+    <span class="keyword">int</span> query(<span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">int</span> res = <span class="number">0</span>;
+        <span class="keyword">for</span> (l += n, r += n + <span class="number">1</span>; l &lt; r; l /= <span class="number">2</span>, r /= <span class="number">2</span>) {
+            <span class="keyword">if</span> ((l &amp; <span class="number">1</span>) == <span class="number">1</span>) res += t[l++];
+            <span class="keyword">if</span> ((r &amp; <span class="number">1</span>) == <span class="number">1</span>) res += t[--r];
+        }
+        <span class="keyword">return</span> res;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span>[] arr = {<span class="number">5</span>, <span class="number">8</span>, <span class="number">6</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">7</span>, <span class="number">2</span>, <span class="number">6</span>};
+        <span class="type">SegTree</span> st = <span class="keyword">new</span> <span class="type">SegTree</span>(arr);
+
+        System.out.println(st.query(<span class="number">2</span>, <span class="number">6</span>));  <span class="comment">// 20</span>
+        st.update(<span class="number">2</span>, <span class="number">10</span>);                      <span class="comment">// arr[2] = 10</span>
+        System.out.println(st.query(<span class="number">2</span>, <span class="number">6</span>));  <span class="comment">// 24</span>
+        System.out.println(st.query(<span class="number">0</span>, <span class="number">7</span>));  <span class="comment">// 43</span>
+    }
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">SegTree</span>:
+    <span class="keyword">def</span> __init__(self, arr):
+        self.n = len(arr)
+        self.t = [<span class="number">0</span>] * (<span class="number">2</span> * self.n)
+        <span class="comment"># Place leaves at positions [n, 2n)</span>
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(self.n):
+            self.t[i + self.n] = arr[i]
+        <span class="comment"># Build internal nodes bottom-up</span>
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(self.n - <span class="number">1</span>, <span class="number">0</span>, -<span class="number">1</span>):
+            self.t[i] = self.t[<span class="number">2</span> * i] + self.t[<span class="number">2</span> * i + <span class="number">1</span>]
+
+    <span class="keyword">def</span> update(self, pos, val):
+        <span class="string">"""Set arr[pos] = val"""</span>
+        pos += self.n
+        self.t[pos] = val
+        pos //= <span class="number">2</span>
+        <span class="keyword">while</span> pos >= <span class="number">1</span>:
+            self.t[pos] = self.t[<span class="number">2</span> * pos] + self.t[<span class="number">2</span> * pos + <span class="number">1</span>]
+            pos //= <span class="number">2</span>
+
+    <span class="keyword">def</span> query(self, l, r):
+        <span class="string">"""Sum of arr[l..r] (inclusive)"""</span>
+        res = <span class="number">0</span>
+        l += self.n
+        r += self.n + <span class="number">1</span>
+        <span class="keyword">while</span> l &lt; r:
+            <span class="keyword">if</span> l &amp; <span class="number">1</span>:
+                res += self.t[l]
+                l += <span class="number">1</span>
+            <span class="keyword">if</span> r &amp; <span class="number">1</span>:
+                r -= <span class="number">1</span>
+                res += self.t[r]
+            l //= <span class="number">2</span>
+            r //= <span class="number">2</span>
+        <span class="keyword">return</span> res
+
+<span class="comment"># Usage</span>
+arr = [<span class="number">5</span>, <span class="number">8</span>, <span class="number">6</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">7</span>, <span class="number">2</span>, <span class="number">6</span>]
+st = SegTree(arr)
+
+<span class="keyword">print</span>(st.query(<span class="number">2</span>, <span class="number">6</span>))   <span class="comment"># 20</span>
+st.update(<span class="number">2</span>, <span class="number">10</span>)         <span class="comment"># arr[2] = 10</span>
+<span class="keyword">print</span>(st.query(<span class="number">2</span>, <span class="number">6</span>))   <span class="comment"># 24</span>
+<span class="keyword">print</span>(st.query(<span class="number">0</span>, <span class="number">7</span>))   <span class="comment"># 43</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Recursive vs Iterative Comparison</h2>
+        <table>
+            <tr><th>Aspect</th><th>Recursive</th><th>Iterative</th></tr>
+            <tr><td>Speed</td><td>Slower (recursion overhead)</td><td>Faster (2-3x in practice)</td></tr>
+            <tr><td>Memory</td><td>4n array + O(log n) stack</td><td>2n array, no stack</td></tr>
+            <tr><td>Code size</td><td>~40 lines</td><td>~20 lines</td></tr>
+            <tr><td>Cache performance</td><td>Scattered access</td><td>Sequential, cache-friendly</td></tr>
+            <tr><td>Lazy propagation</td><td>Straightforward</td><td>Complex (requires extra loops)</td></tr>
+            <tr><td>Persistent version</td><td>Natural (pointer-based)</td><td>Not practical</td></tr>
+            <tr><td>Non-commutative ops</td><td>Easy (natural L/R order)</td><td>Need care with query direction</td></tr>
+            <tr><td>Contest suitability</td><td>Good for complex problems</td><td>Excellent for standard problems</td></tr>
+        </table>
+
+        <h2>Complexity</h2>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Build</td><td>O(n)</td><td>O(2n)</td></tr>
+            <tr><td>Point Update</td><td>O(log n)</td><td>-</td></tr>
+            <tr><td>Range Query</td><td>O(log n)</td><td>-</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>Limitations of Iterative Segment Trees:</strong>
+            <ul>
+                <li><strong>Lazy propagation is harder</strong> &mdash; requires pushing updates top-down before queries, adding O(log n) overhead and complexity</li>
+                <li><strong>Non-commutative operations</strong> &mdash; the query loop collects values from left and right separately; you must combine them in the correct order</li>
+                <li><strong>Persistent trees</strong> &mdash; the iterative structure does not support path-copying, making persistence impractical</li>
+                <li><strong>Power-of-two assumption</strong> &mdash; works cleanly when n is a power of 2; for arbitrary n, you can pad the array or handle edge cases carefully</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

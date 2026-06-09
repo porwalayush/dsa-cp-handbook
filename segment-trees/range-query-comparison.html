@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Range Query Data Structures Compared - Range Queries Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } table { font-size: 0.8em; } th, td { padding: 8px 10px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Range Query Data Structures Compared</h1>
+        <p>Choosing the right range query structure can make the difference between TLE and AC. This page compares the five main approaches: <strong>Prefix Sums</strong>, <strong>Fenwick Tree (BIT)</strong>, <strong>Segment Tree</strong>, <strong>Sparse Table</strong>, and <strong>Sqrt Decomposition</strong>. Each has a sweet spot where it outperforms the rest.</p>
+
+        <h2>Overview of Structures</h2>
+
+        <h3>1. Prefix Sums</h3>
+        <p>The simplest range query technique. Precompute cumulative sums so that any range sum <code>[l, r]</code> is answered in O(1) as <code>prefix[r] - prefix[l-1]</code>. Works only for static arrays (no updates). Extends to 2D with inclusion-exclusion.</p>
+
+        <h3>2. Fenwick Tree (Binary Indexed Tree)</h3>
+        <p>A compact tree stored in a flat array that supports <strong>point updates</strong> and <strong>prefix queries</strong> in O(log n). Relies on the binary representation of indices. Best for invertible operations like sum and XOR where prefix decomposition is possible.</p>
+
+        <h3>3. Segment Tree</h3>
+        <p>The most versatile range query structure. Supports <strong>any associative operation</strong> (sum, min, max, GCD, etc.) with O(log n) queries and updates. Can be extended with lazy propagation for range updates and with persistence for historical queries.</p>
+
+        <h3>4. Sparse Table</h3>
+        <p>Precomputes answers for all power-of-two length intervals. Achieves <strong>O(1) queries</strong> for idempotent operations (min, max, GCD) on static arrays. Uses O(n log n) space and build time. Cannot handle updates.</p>
+
+        <h3>5. Sqrt Decomposition</h3>
+        <p>Divides the array into blocks of size ~sqrt(n). Simple to implement and flexible. Particularly useful for problems that are hard to solve with trees (e.g., Mo's algorithm for offline range queries, distinct element counting).</p>
+
+        <h2>Big Comparison Table</h2>
+        <table>
+            <tr>
+                <th>Structure</th>
+                <th>Build</th>
+                <th>Point Update</th>
+                <th>Range Query</th>
+                <th>Range Update</th>
+                <th>Space</th>
+                <th>Code Complexity</th>
+            </tr>
+            <tr>
+                <td><strong>Prefix Sums</strong></td>
+                <td>O(n)</td>
+                <td>O(n) rebuild</td>
+                <td>O(1)</td>
+                <td>O(n) rebuild</td>
+                <td>O(n)</td>
+                <td>Trivial</td>
+            </tr>
+            <tr>
+                <td><strong>Fenwick Tree</strong></td>
+                <td>O(n)</td>
+                <td>O(log n)</td>
+                <td>O(log n)</td>
+                <td>O(log n)*</td>
+                <td>O(n)</td>
+                <td>Low</td>
+            </tr>
+            <tr>
+                <td><strong>Segment Tree</strong></td>
+                <td>O(n)</td>
+                <td>O(log n)</td>
+                <td>O(log n)</td>
+                <td>O(log n)</td>
+                <td>O(4n)</td>
+                <td>Medium-High</td>
+            </tr>
+            <tr>
+                <td><strong>Sparse Table</strong></td>
+                <td>O(n log n)</td>
+                <td>N/A</td>
+                <td>O(1)</td>
+                <td>N/A</td>
+                <td>O(n log n)</td>
+                <td>Low</td>
+            </tr>
+            <tr>
+                <td><strong>Sqrt Decomp</strong></td>
+                <td>O(n)</td>
+                <td>O(1)</td>
+                <td>O(sqrt n)</td>
+                <td>O(sqrt n)</td>
+                <td>O(n)</td>
+                <td>Low-Medium</td>
+            </tr>
+        </table>
+        <p><em>* Fenwick range update requires the difference array trick (two BITs) and only works for sum-like operations.</em></p>
+
+        <h2>Decision Flowchart</h2>
+        <div class="visual">
+<pre>
+                        +-----------------------+
+                        |   Range Query Problem  |
+                        +-----------+-----------+
+                                    |
+                        +-----------v-----------+
+                        |  Is the array static?  |
+                        |    (no updates)        |
+                        +-----+----------+------+
+                              |          |
+                         YES  |          |  NO
+                              v          v
+                 +------------+--+    +--+-------------------+
+                 | Need O(1)     |    | Point updates only?  |
+                 | query?        |    +--+----------+--------+
+                 +--+--------+--+       |          |
+                    |        |     YES  |          |  NO (range updates)
+               YES  |        | NO       v          v
+                    v        v    +-----+----+ +---+--------------+
+          +---------+--+ +---+--+ | Operation| | Segment Tree     |
+          |Sparse Table | |Prefix| | invertible?| + Lazy Propagation|
+          |(min/max/GCD)| |Sums  | +--+-----+-+ +-----------+----+
+          +------------+ +------+    |     |               |
+                                YES  |     | NO            |
+                                     v     v               |
+                              +------+-+ +-+--------+      |
+                              |Fenwick | |Segment   |      |
+                              |Tree    | |Tree      |      |
+                              |(BIT)   | |(any op)  |      |
+                              +--------+ +----------+      |
+                                                           |
+                         +---------------------------------+
+                         |
+                         v
+          +-----------------------------+
+          | Special cases:              |
+          | - Need order statistics?    |
+          |   -> BIT with bit descent   |
+          | - Need persistence?         |
+          |   -> Persistent Seg Tree    |
+          | - Offline + distinct count? |
+          |   -> Mo's (Sqrt Decomp)     |
+          +-----------------------------+
+</pre>
+        </div>
+
+        <h2>When BIT Wins Over Segment Tree</h2>
+        <p>If your problem only requires <strong>point updates + prefix/range sum queries</strong> (or XOR, or any invertible operation), the Fenwick Tree is almost always the better choice:</p>
+
+        <div class="compare">
+            <div>
+                <h3>BIT Advantages</h3>
+                <ul>
+                    <li><strong>Simpler code:</strong> 5-10 lines vs 30-50 lines</li>
+                    <li><strong>Faster constant:</strong> ~2-3x faster in practice due to fewer cache misses and simpler operations</li>
+                    <li><strong>Less memory:</strong> single array of size n+1 vs 4n array</li>
+                    <li><strong>Lower bug risk:</strong> fewer edge cases and off-by-one errors</li>
+                    <li><strong>Easy to extend:</strong> 2D BIT is straightforward</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Typical BIT Problems</h3>
+                <ul>
+                    <li>Range sum with point updates</li>
+                    <li>Inversion counting</li>
+                    <li>Coordinate compression + frequency</li>
+                    <li>Order statistics (kth smallest)</li>
+                    <li>2D prefix sums with updates</li>
+                    <li>Range update + point query (difference BIT)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bit-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'bit-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'bit-python')">Python</button>
+            </div>
+            <div id="bit-cpp" class="code-content active">
+<pre>
+<span class="comment">// BIT: entire implementation in ~10 lines</span>
+<span class="keyword">int</span> bit[N];
+<span class="keyword">void</span> update(<span class="keyword">int</span> i, <span class="keyword">int</span> v) { <span class="keyword">for</span> (; i &lt; N; i += i &amp; -i) bit[i] += v; }
+<span class="keyword">int</span> query(<span class="keyword">int</span> i) { <span class="keyword">int</span> s = <span class="number">0</span>; <span class="keyword">for</span> (; i &gt; <span class="number">0</span>; i -= i &amp; -i) s += bit[i]; <span class="keyword">return</span> s; }
+<span class="keyword">int</span> query(<span class="keyword">int</span> l, <span class="keyword">int</span> r) { <span class="keyword">return</span> query(r) - query(l - <span class="number">1</span>); }
+
+<span class="comment">// Compare: Segment Tree needs build(), push_down(), update(), query()...</span>
+<span class="comment">// BIT is 2-3x faster in practice for sum queries</span>
+</pre>
+            </div>
+            <div id="bit-java" class="code-content">
+<pre>
+<span class="comment">// BIT: entire implementation in ~10 lines</span>
+<span class="keyword">int</span>[] bit = <span class="keyword">new int</span>[N];
+<span class="keyword">void</span> update(<span class="keyword">int</span> i, <span class="keyword">int</span> v) { <span class="keyword">for</span> (; i &lt; N; i += i &amp; -i) bit[i] += v; }
+<span class="keyword">int</span> query(<span class="keyword">int</span> i) { <span class="keyword">int</span> s = <span class="number">0</span>; <span class="keyword">for</span> (; i &gt; <span class="number">0</span>; i -= i &amp; -i) s += bit[i]; <span class="keyword">return</span> s; }
+<span class="keyword">int</span> query(<span class="keyword">int</span> l, <span class="keyword">int</span> r) { <span class="keyword">return</span> query(r) - query(l - <span class="number">1</span>); }
+
+<span class="comment">// Benchmark: BIT sum query ~150ns vs SegTree ~350ns (n = 10^6)</span>
+</pre>
+            </div>
+            <div id="bit-python" class="code-content">
+<pre>
+<span class="comment"># BIT: entire implementation in ~10 lines</span>
+bit = [<span class="number">0</span>] * N
+<span class="keyword">def</span> update(i, v):
+    <span class="keyword">while</span> i &lt; N:
+        bit[i] += v
+        i += i &amp; -i
+
+<span class="keyword">def</span> query(i):
+    s = <span class="number">0</span>
+    <span class="keyword">while</span> i &gt; <span class="number">0</span>:
+        s += bit[i]
+        i -= i &amp; -i
+    <span class="keyword">return</span> s
+
+<span class="keyword">def</span> range_query(l, r):
+    <span class="keyword">return</span> query(r) - query(l - <span class="number">1</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>When Segment Tree is Necessary</h2>
+        <p>The Segment Tree becomes the only practical choice when:</p>
+
+        <ul>
+            <li><strong>Non-invertible operations:</strong> min, max, GCD cannot use prefix decomposition, so BIT cannot help. Segment Tree handles any associative merge function.</li>
+            <li><strong>Lazy propagation:</strong> Range updates + range queries (e.g., "add v to all elements in [l,r], then query sum of [l,r]") require lazy propagation, which only Segment Tree supports naturally.</li>
+            <li><strong>Persistence:</strong> You need to query historical versions of the array. Persistent Segment Tree creates new path nodes per update in O(log n) time and space.</li>
+            <li><strong>Complex merge operations:</strong> Maximum subarray sum, count of distinct values, merging intervals -- these need custom node structures that only Segment Tree accommodates.</li>
+            <li><strong>Segment Tree Beats:</strong> Maintaining min/max with "set all values in range to min(val, x)" operations (Ji Driver Segment Tree).</li>
+        </ul>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'seg-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'seg-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'seg-python')">Python</button>
+            </div>
+            <div id="seg-cpp" class="code-content active">
+<pre>
+<span class="comment">// Segment Tree with Lazy Propagation (range add + range sum)</span>
+<span class="keyword">struct</span> SegTree {
+    <span class="keyword">int</span> n;
+    vector&lt;<span class="keyword">long long</span>&gt; tree, lazy;
+
+    SegTree(<span class="keyword">int</span> n) : n(n), tree(<span class="number">4</span> * n, <span class="number">0</span>), lazy(<span class="number">4</span> * n, <span class="number">0</span>) {}
+
+    <span class="keyword">void</span> push(<span class="keyword">int</span> v, <span class="keyword">int</span> tl, <span class="keyword">int</span> tr) {
+        <span class="keyword">if</span> (lazy[v]) {
+            tree[v] += lazy[v] * (tr - tl + <span class="number">1</span>);
+            <span class="keyword">if</span> (tl != tr) {
+                lazy[<span class="number">2</span>*v] += lazy[v];
+                lazy[<span class="number">2</span>*v+<span class="number">1</span>] += lazy[v];
+            }
+            lazy[v] = <span class="number">0</span>;
+        }
+    }
+
+    <span class="keyword">void</span> update(<span class="keyword">int</span> v, <span class="keyword">int</span> tl, <span class="keyword">int</span> tr, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">long long</span> val) {
+        push(v, tl, tr);
+        <span class="keyword">if</span> (l &gt; tr || r &lt; tl) <span class="keyword">return</span>;
+        <span class="keyword">if</span> (l &lt;= tl &amp;&amp; tr &lt;= r) {
+            lazy[v] += val;
+            push(v, tl, tr);
+            <span class="keyword">return</span>;
+        }
+        <span class="keyword">int</span> mid = (tl + tr) / <span class="number">2</span>;
+        update(<span class="number">2</span>*v, tl, mid, l, r, val);
+        update(<span class="number">2</span>*v+<span class="number">1</span>, mid+<span class="number">1</span>, tr, l, r, val);
+        tree[v] = tree[<span class="number">2</span>*v] + tree[<span class="number">2</span>*v+<span class="number">1</span>];
+    }
+
+    <span class="keyword">long long</span> query(<span class="keyword">int</span> v, <span class="keyword">int</span> tl, <span class="keyword">int</span> tr, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        push(v, tl, tr);
+        <span class="keyword">if</span> (l &gt; tr || r &lt; tl) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (l &lt;= tl &amp;&amp; tr &lt;= r) <span class="keyword">return</span> tree[v];
+        <span class="keyword">int</span> mid = (tl + tr) / <span class="number">2</span>;
+        <span class="keyword">return</span> query(<span class="number">2</span>*v, tl, mid, l, r) + query(<span class="number">2</span>*v+<span class="number">1</span>, mid+<span class="number">1</span>, tr, l, r);
+    }
+};
+</pre>
+            </div>
+            <div id="seg-java" class="code-content">
+<pre>
+<span class="comment">// Segment Tree with Lazy Propagation (range add + range sum)</span>
+<span class="keyword">class</span> <span class="type">SegTree</span> {
+    <span class="keyword">int</span> n;
+    <span class="keyword">long</span>[] tree, lazy;
+
+    <span class="type">SegTree</span>(<span class="keyword">int</span> n) {
+        <span class="keyword">this</span>.n = n;
+        tree = <span class="keyword">new long</span>[<span class="number">4</span> * n];
+        lazy = <span class="keyword">new long</span>[<span class="number">4</span> * n];
+    }
+
+    <span class="keyword">void</span> push(<span class="keyword">int</span> v, <span class="keyword">int</span> tl, <span class="keyword">int</span> tr) {
+        <span class="keyword">if</span> (lazy[v] != <span class="number">0</span>) {
+            tree[v] += lazy[v] * (tr - tl + <span class="number">1</span>);
+            <span class="keyword">if</span> (tl != tr) {
+                lazy[<span class="number">2</span>*v] += lazy[v];
+                lazy[<span class="number">2</span>*v+<span class="number">1</span>] += lazy[v];
+            }
+            lazy[v] = <span class="number">0</span>;
+        }
+    }
+
+    <span class="keyword">void</span> update(<span class="keyword">int</span> v, <span class="keyword">int</span> tl, <span class="keyword">int</span> tr, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">long</span> val) {
+        push(v, tl, tr);
+        <span class="keyword">if</span> (l &gt; tr || r &lt; tl) <span class="keyword">return</span>;
+        <span class="keyword">if</span> (l &lt;= tl &amp;&amp; tr &lt;= r) { lazy[v] += val; push(v, tl, tr); <span class="keyword">return</span>; }
+        <span class="keyword">int</span> mid = (tl + tr) / <span class="number">2</span>;
+        update(<span class="number">2</span>*v, tl, mid, l, r, val);
+        update(<span class="number">2</span>*v+<span class="number">1</span>, mid+<span class="number">1</span>, tr, l, r, val);
+        tree[v] = tree[<span class="number">2</span>*v] + tree[<span class="number">2</span>*v+<span class="number">1</span>];
+    }
+
+    <span class="keyword">long</span> query(<span class="keyword">int</span> v, <span class="keyword">int</span> tl, <span class="keyword">int</span> tr, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        push(v, tl, tr);
+        <span class="keyword">if</span> (l &gt; tr || r &lt; tl) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (l &lt;= tl &amp;&amp; tr &lt;= r) <span class="keyword">return</span> tree[v];
+        <span class="keyword">int</span> mid = (tl + tr) / <span class="number">2</span>;
+        <span class="keyword">return</span> query(<span class="number">2</span>*v, tl, mid, l, r) + query(<span class="number">2</span>*v+<span class="number">1</span>, mid+<span class="number">1</span>, tr, l, r);
+    }
+}
+</pre>
+            </div>
+            <div id="seg-python" class="code-content">
+<pre>
+<span class="comment"># Segment Tree with Lazy Propagation (range add + range sum)</span>
+<span class="keyword">class</span> <span class="type">SegTree</span>:
+    <span class="keyword">def</span> __init__(self, n):
+        self.n = n
+        self.tree = [<span class="number">0</span>] * (<span class="number">4</span> * n)
+        self.lazy = [<span class="number">0</span>] * (<span class="number">4</span> * n)
+
+    <span class="keyword">def</span> push(self, v, tl, tr):
+        <span class="keyword">if</span> self.lazy[v]:
+            self.tree[v] += self.lazy[v] * (tr - tl + <span class="number">1</span>)
+            <span class="keyword">if</span> tl != tr:
+                self.lazy[<span class="number">2</span>*v] += self.lazy[v]
+                self.lazy[<span class="number">2</span>*v+<span class="number">1</span>] += self.lazy[v]
+            self.lazy[v] = <span class="number">0</span>
+
+    <span class="keyword">def</span> update(self, v, tl, tr, l, r, val):
+        self.push(v, tl, tr)
+        <span class="keyword">if</span> l &gt; tr <span class="keyword">or</span> r &lt; tl: <span class="keyword">return</span>
+        <span class="keyword">if</span> l &lt;= tl <span class="keyword">and</span> tr &lt;= r:
+            self.lazy[v] += val
+            self.push(v, tl, tr)
+            <span class="keyword">return</span>
+        mid = (tl + tr) // <span class="number">2</span>
+        self.update(<span class="number">2</span>*v, tl, mid, l, r, val)
+        self.update(<span class="number">2</span>*v+<span class="number">1</span>, mid+<span class="number">1</span>, tr, l, r, val)
+        self.tree[v] = self.tree[<span class="number">2</span>*v] + self.tree[<span class="number">2</span>*v+<span class="number">1</span>]
+
+    <span class="keyword">def</span> query(self, v, tl, tr, l, r):
+        self.push(v, tl, tr)
+        <span class="keyword">if</span> l &gt; tr <span class="keyword">or</span> r &lt; tl: <span class="keyword">return</span> <span class="number">0</span>
+        <span class="keyword">if</span> l &lt;= tl <span class="keyword">and</span> tr &lt;= r: <span class="keyword">return</span> self.tree[v]
+        mid = (tl + tr) // <span class="number">2</span>
+        <span class="keyword">return</span> self.query(<span class="number">2</span>*v, tl, mid, l, r) + self.query(<span class="number">2</span>*v+<span class="number">1</span>, mid+<span class="number">1</span>, tr, l, r)
+</pre>
+            </div>
+        </div>
+
+        <h2>When Sqrt Decomposition is Useful</h2>
+        <p>Sqrt Decomposition often gets overlooked because its O(sqrt n) per query seems slow compared to O(log n). But it shines in specific scenarios:</p>
+
+        <ul>
+            <li><strong>Mo's Algorithm:</strong> For offline range queries where the answer can be maintained incrementally (add/remove one element). Answers Q queries in O((N + Q) * sqrt(N)). Classic use: count distinct elements in range.</li>
+            <li><strong>Simpler implementation:</strong> When the merge operation is complex and hard to express in a segment tree node, sqrt decomposition lets you process partial blocks with brute force and full blocks with precomputed answers.</li>
+            <li><strong>Cache-friendly:</strong> Processing blocks of contiguous memory can be faster in practice than tree pointer-chasing for certain problems.</li>
+            <li><strong>Update flexibility:</strong> Some operations (like "sort a range") are trivial with sqrt decomposition but extremely hard with segment trees.</li>
+        </ul>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'sqrt-cpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'sqrt-java')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'sqrt-python')">Python</button>
+            </div>
+            <div id="sqrt-cpp" class="code-content active">
+<pre>
+<span class="comment">// Mo's Algorithm: count distinct elements in range queries</span>
+<span class="keyword">int</span> block;
+<span class="keyword">struct</span> Query { <span class="keyword">int</span> l, r, idx; };
+
+<span class="keyword">bool</span> cmp(Query&amp; a, Query&amp; b) {
+    <span class="keyword">int</span> ba = a.l / block, bb = b.l / block;
+    <span class="keyword">if</span> (ba != bb) <span class="keyword">return</span> ba &lt; bb;
+    <span class="keyword">return</span> (ba &amp; <span class="number">1</span>) ? (a.r &gt; b.r) : (a.r &lt; b.r);  <span class="comment">// zigzag optimization</span>
+}
+
+<span class="keyword">int</span> cnt[MAXVAL], cur_ans = <span class="number">0</span>;
+<span class="keyword">void</span> add(<span class="keyword">int</span> x) { <span class="keyword">if</span> (++cnt[x] == <span class="number">1</span>) cur_ans++; }
+<span class="keyword">void</span> rem(<span class="keyword">int</span> x) { <span class="keyword">if</span> (--cnt[x] == <span class="number">0</span>) cur_ans--; }
+
+<span class="keyword">void</span> solve(vector&lt;<span class="keyword">int</span>&gt;&amp; a, vector&lt;Query&gt;&amp; queries) {
+    block = max(<span class="number">1</span>, (<span class="keyword">int</span>)sqrt(a.size()));
+    sort(queries.begin(), queries.end(), cmp);
+
+    <span class="keyword">int</span> cl = <span class="number">0</span>, cr = -<span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; q : queries) {
+        <span class="keyword">while</span> (cr &lt; q.r) add(a[++cr]);
+        <span class="keyword">while</span> (cl &gt; q.l) add(a[--cl]);
+        <span class="keyword">while</span> (cr &gt; q.r) rem(a[cr--]);
+        <span class="keyword">while</span> (cl &lt; q.l) rem(a[cl++]);
+        ans[q.idx] = cur_ans;
+    }
+}
+</pre>
+            </div>
+            <div id="sqrt-java" class="code-content">
+<pre>
+<span class="comment">// Mo's Algorithm: count distinct elements in range queries</span>
+<span class="keyword">int</span> block;
+<span class="keyword">int</span>[] cnt = <span class="keyword">new int</span>[MAXVAL];
+<span class="keyword">int</span> curAns = <span class="number">0</span>;
+
+<span class="keyword">void</span> add(<span class="keyword">int</span> x) { <span class="keyword">if</span> (++cnt[x] == <span class="number">1</span>) curAns++; }
+<span class="keyword">void</span> rem(<span class="keyword">int</span> x) { <span class="keyword">if</span> (--cnt[x] == <span class="number">0</span>) curAns--; }
+
+<span class="keyword">void</span> solve(<span class="keyword">int</span>[] a, <span class="keyword">int</span>[][] queries) {
+    block = Math.max(<span class="number">1</span>, (<span class="keyword">int</span>) Math.sqrt(a.length));
+    <span class="comment">// Sort queries by (l/block, r) with zigzag</span>
+    Arrays.sort(queries, (p, q) -&gt; {
+        <span class="keyword">int</span> ba = p[<span class="number">0</span>] / block, bb = q[<span class="number">0</span>] / block;
+        <span class="keyword">if</span> (ba != bb) <span class="keyword">return</span> ba - bb;
+        <span class="keyword">return</span> (ba % <span class="number">2</span> == <span class="number">0</span>) ? p[<span class="number">1</span>] - q[<span class="number">1</span>] : q[<span class="number">1</span>] - p[<span class="number">1</span>];
+    });
+
+    <span class="keyword">int</span> cl = <span class="number">0</span>, cr = -<span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span>[] q : queries) {
+        <span class="keyword">while</span> (cr &lt; q[<span class="number">1</span>]) add(a[++cr]);
+        <span class="keyword">while</span> (cl &gt; q[<span class="number">0</span>]) add(a[--cl]);
+        <span class="keyword">while</span> (cr &gt; q[<span class="number">1</span>]) rem(a[cr--]);
+        <span class="keyword">while</span> (cl &lt; q[<span class="number">0</span>]) rem(a[cl++]);
+        ans[q[<span class="number">2</span>]] = curAns;
+    }
+}
+</pre>
+            </div>
+            <div id="sqrt-python" class="code-content">
+<pre>
+<span class="comment"># Mo's Algorithm: count distinct elements in range queries</span>
+<span class="keyword">import</span> math
+
+<span class="keyword">def</span> solve(a, queries):
+    n = len(a)
+    block = max(<span class="number">1</span>, <span class="keyword">int</span>(math.sqrt(n)))
+
+    <span class="comment"># Sort by (l // block, r) with zigzag</span>
+    <span class="keyword">def</span> mo_cmp(q):
+        b = q[<span class="number">0</span>] // block
+        <span class="keyword">return</span> (b, q[<span class="number">1</span>] <span class="keyword">if</span> b % <span class="number">2</span> == <span class="number">0</span> <span class="keyword">else</span> -q[<span class="number">1</span>])
+
+    queries = sorted(enumerate(queries), key=<span class="keyword">lambda</span> x: mo_cmp(x[<span class="number">1</span>]))
+
+    cnt = [<span class="number">0</span>] * (max(a) + <span class="number">1</span>)
+    cur_ans = <span class="number">0</span>
+    cl, cr = <span class="number">0</span>, -<span class="number">1</span>
+    ans = [<span class="number">0</span>] * len(queries)
+
+    <span class="keyword">def</span> add(x):
+        <span class="keyword">nonlocal</span> cur_ans
+        cnt[x] += <span class="number">1</span>
+        <span class="keyword">if</span> cnt[x] == <span class="number">1</span>: cur_ans += <span class="number">1</span>
+
+    <span class="keyword">def</span> rem(x):
+        <span class="keyword">nonlocal</span> cur_ans
+        cnt[x] -= <span class="number">1</span>
+        <span class="keyword">if</span> cnt[x] == <span class="number">0</span>: cur_ans -= <span class="number">1</span>
+
+    <span class="keyword">for</span> idx, (l, r) <span class="keyword">in</span> queries:
+        <span class="keyword">while</span> cr &lt; r: cr += <span class="number">1</span>; add(a[cr])
+        <span class="keyword">while</span> cl &gt; l: cl -= <span class="number">1</span>; add(a[cl])
+        <span class="keyword">while</span> cr &gt; r: rem(a[cr]); cr -= <span class="number">1</span>
+        <span class="keyword">while</span> cl &lt; l: rem(a[cl]); cl += <span class="number">1</span>
+        ans[idx] = cur_ans
+    <span class="keyword">return</span> ans
+</pre>
+            </div>
+        </div>
+
+        <h2>Head-to-Head: Practical Performance</h2>
+        <table>
+            <tr>
+                <th>Scenario (n = 10^6, q = 10^6)</th>
+                <th>Best Structure</th>
+                <th>Typical Runtime</th>
+            </tr>
+            <tr>
+                <td>Static range sum</td>
+                <td>Prefix Sums</td>
+                <td>~50ms</td>
+            </tr>
+            <tr>
+                <td>Static range min</td>
+                <td>Sparse Table</td>
+                <td>~100ms</td>
+            </tr>
+            <tr>
+                <td>Point update + range sum</td>
+                <td>Fenwick Tree</td>
+                <td>~200ms</td>
+            </tr>
+            <tr>
+                <td>Point update + range min</td>
+                <td>Segment Tree</td>
+                <td>~400ms</td>
+            </tr>
+            <tr>
+                <td>Range update + range sum</td>
+                <td>Segment Tree + Lazy</td>
+                <td>~500ms</td>
+            </tr>
+            <tr>
+                <td>Offline distinct count</td>
+                <td>Mo's Algorithm</td>
+                <td>~800ms</td>
+            </tr>
+        </table>
+
+        <div class="note">
+            <strong>Quick Decision Rules:</strong>
+            <ul>
+                <li><strong>No updates?</strong> Use Prefix Sums (sum) or Sparse Table (min/max/GCD).</li>
+                <li><strong>Point updates + sum/XOR?</strong> Use Fenwick Tree -- it is simpler and faster.</li>
+                <li><strong>Point updates + min/max?</strong> Use Segment Tree -- BIT cannot do non-invertible ops.</li>
+                <li><strong>Range updates?</strong> Use Segment Tree with Lazy Propagation.</li>
+                <li><strong>Offline queries, hard merge?</strong> Consider Mo's Algorithm (Sqrt Decomposition).</li>
+                <li><strong>Need persistence?</strong> Persistent Segment Tree is your only real option.</li>
+                <li><strong>When in doubt?</strong> Segment Tree handles everything (just with more code).</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent Segment Tree - Range Queries Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Persistent Segment Tree</h1>
+        <p>A <strong>Persistent Segment Tree</strong> maintains the full version history of a segment tree across updates. Instead of modifying nodes in-place, each update creates a new version by copying only the nodes along the path from the root to the updated leaf &mdash; a technique called <strong>copy-on-write</strong>.</p>
+
+        <h2>Concept: Copy-on-Write</h2>
+        <p>In a standard segment tree, an update overwrites nodes in-place. In a persistent segment tree:</p>
+        <ul>
+            <li>Each update creates <strong>O(log n) new nodes</strong> (the path from root to leaf)</li>
+            <li>Unchanged subtrees are <strong>shared</strong> between versions via pointers</li>
+            <li>Every previous root remains valid and accessible</li>
+            <li>We store an array of roots: <code>roots[v]</code> gives the root of version <code>v</code></li>
+        </ul>
+        <p>This gives us the ability to query any historical version in O(log n) without storing a full copy of the tree for each version.</p>
+
+        <h2>Visual: Version Sharing</h2>
+        <div class="visual">
+<pre>
+Array: [1, 3, 2, 4]   (frequency counts on values 1..4)
+
+Version 0 (initial build):
+
+         [10]  root0
+        /    \
+      [4]    [6]
+      / \    / \
+    [1] [3] [2] [4]
+
+Update: increment index 2 (value 2's count: 2 -> 3)
+Version 1 creates NEW nodes along root-to-leaf path:
+
+         [11]  root1        (NEW)
+        /    \
+      [4]    [7]            (NEW right child)
+      / \    / \
+    [1] [3] [3] [4]        (NEW leaf at index 2)
+              ^
+          only this path is new
+
+Shared structure (nodes reused from Version 0):
+  - Left subtree [4] -> [1], [3] is shared entirely
+  - Right child [4] (leaf at index 3) is shared
+
+Memory: Version 0 uses 7 nodes
+        Version 1 adds only 3 new nodes (not 7)
+        Total: 10 nodes instead of 14
+
+roots[] = [root0, root1]
+  root0 -> tree at Version 0
+  root1 -> tree at Version 1
+</pre>
+        </div>
+
+        <h2>Kth Smallest Element in Range [l, r]</h2>
+        <p>The classic application of persistent segment trees. Given an array, answer queries: "What is the kth smallest element in the subarray arr[l..r]?"</p>
+
+        <h3>Approach</h3>
+        <ol>
+            <li><strong>Coordinate compress</strong> the array values into range [0, m-1]</li>
+            <li>Build the persistent segment tree on <strong>prefix frequency arrays</strong>:
+                <ul>
+                    <li>Version 0: empty tree (all zeros)</li>
+                    <li>Version i: insert arr[i] into Version i-1 (increment count at compressed index)</li>
+                </ul>
+            </li>
+            <li>To query kth smallest in [l, r]: subtract <code>roots[l-1]</code> from <code>roots[r]</code> to get the frequency tree for the subarray, then walk down to find kth element</li>
+        </ol>
+
+        <div class="visual">
+<pre>
+Array: [5, 1, 3, 2, 4]
+Sorted unique: [1, 2, 3, 4, 5] -> compressed indices 0..4
+
+Build versions by inserting elements left to right:
+  Version 0: []           -> all zeros
+  Version 1: [5]         -> increment index 4
+  Version 2: [5,1]       -> increment index 0
+  Version 3: [5,1,3]     -> increment index 2
+  Version 4: [5,1,3,2]   -> increment index 1
+  Version 5: [5,1,3,2,4] -> increment index 3
+
+Query: 2nd smallest in arr[2..4] = subarray [3, 2, 4]
+
+  Use roots[4] - roots[1] to get frequency in range [2,4]:
+  Freq tree for [3,2,4]: indices [0,1,2,3,4] -> [0,1,1,1,0]
+
+  Walk down to find kth = 2:
+    Root [3]: left_count = 1 (indices 0..2)
+              Since k=2 > left_count=1? No, left has [0,1,1]=2
+              k=2 <= left_count=2, go left
+    Left [2]: left_count = 1 (indices 0..1)
+              k=2 > left_count=1, go right, k = 2-1 = 1
+    Leaf at index 2 -> sorted[2] = 3
+
+  Answer: 3 (the 2nd smallest in [3,2,4] is 3)
+</pre>
+        </div>
+
+        <h2>Building from Sorted Values</h2>
+        <p>The persistent segment tree for kth queries is built over the <strong>value domain</strong> (sorted unique values), not the index domain. Each version i represents the frequency histogram of the first i elements.</p>
+        <p>This is closely related to <strong>merge sort trees</strong>: a merge sort tree stores sorted sublists at each node, while the persistent segment tree stores prefix frequency counts over the value domain. Both solve the same problems, but the persistent approach uses O(n log n) space vs O(n log n) for merge sort tree, with better query time O(log n) vs O(log^2 n).</p>
+
+        <h2>Code Implementation</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> cnt;
+    Node *left, *right;
+    Node(<span class="keyword">int</span> c, Node* l, Node* r) : cnt(c), left(l), right(r) {}
+};
+
+Node* NIL;
+
+<span class="keyword">void</span> init() {
+    NIL = <span class="keyword">new</span> Node(<span class="number">0</span>, <span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>);
+    NIL-&gt;left = NIL-&gt;right = NIL;
+}
+
+<span class="comment">// Build empty tree over value range [l, r]</span>
+Node* build(<span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+    <span class="keyword">if</span> (l == r) <span class="keyword">return</span> NIL;
+    <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+    <span class="keyword">return new</span> Node(<span class="number">0</span>, build(l, mid), build(mid + <span class="number">1</span>, r));
+}
+
+<span class="comment">// Insert: increment count at position pos, return new root</span>
+Node* update(Node* prev, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> pos) {
+    <span class="keyword">if</span> (l == r)
+        <span class="keyword">return new</span> Node(prev-&gt;cnt + <span class="number">1</span>, NIL, NIL);
+    <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+    <span class="keyword">if</span> (pos &lt;= mid)
+        <span class="keyword">return new</span> Node(prev-&gt;cnt + <span class="number">1</span>,
+                       update(prev-&gt;left, l, mid, pos),
+                       prev-&gt;right);
+    <span class="keyword">else</span>
+        <span class="keyword">return new</span> Node(prev-&gt;cnt + <span class="number">1</span>,
+                       prev-&gt;left,
+                       update(prev-&gt;right, mid + <span class="number">1</span>, r, pos));
+}
+
+<span class="comment">// Query: kth smallest in range using roots[r] - roots[l-1]</span>
+<span class="keyword">int</span> query(Node* lt, Node* rt, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> k) {
+    <span class="keyword">if</span> (l == r) <span class="keyword">return</span> l;
+    <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+    <span class="keyword">int</span> left_count = rt-&gt;left-&gt;cnt - lt-&gt;left-&gt;cnt;
+    <span class="keyword">if</span> (k &lt;= left_count)
+        <span class="keyword">return</span> query(lt-&gt;left, rt-&gt;left, l, mid, k);
+    <span class="keyword">else</span>
+        <span class="keyword">return</span> query(lt-&gt;right, rt-&gt;right, mid + <span class="number">1</span>, r, k - left_count);
+}
+
+<span class="keyword">int</span> main() {
+    init();
+    <span class="keyword">int</span> n, q;
+    cin &gt;&gt; n &gt;&gt; q;
+    vector&lt;<span class="keyword">int</span>&gt; arr(n);
+    <span class="keyword">for</span> (<span class="keyword">int</span>&amp; x : arr) cin &gt;&gt; x;
+
+    <span class="comment">// Coordinate compression</span>
+    vector&lt;<span class="keyword">int</span>&gt; sorted_vals(arr);
+    sort(sorted_vals.begin(), sorted_vals.end());
+    sorted_vals.erase(unique(sorted_vals.begin(), sorted_vals.end()), sorted_vals.end());
+    <span class="keyword">int</span> m = sorted_vals.size();
+
+    <span class="keyword">auto</span> compress = [&amp;](<span class="keyword">int</span> x) {
+        <span class="keyword">return</span> lower_bound(sorted_vals.begin(), sorted_vals.end(), x) - sorted_vals.begin();
+    };
+
+    <span class="comment">// Build persistent segment tree</span>
+    vector&lt;Node*&gt; roots(n + <span class="number">1</span>);
+    roots[<span class="number">0</span>] = build(<span class="number">0</span>, m - <span class="number">1</span>);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+        roots[i + <span class="number">1</span>] = update(roots[i], <span class="number">0</span>, m - <span class="number">1</span>, compress(arr[i]));
+
+    <span class="comment">// Answer queries: kth smallest in arr[l..r] (1-indexed)</span>
+    <span class="keyword">while</span> (q--) {
+        <span class="keyword">int</span> l, r, k;
+        cin &gt;&gt; l &gt;&gt; r &gt;&gt; k;
+        <span class="keyword">int</span> idx = query(roots[l - <span class="number">1</span>], roots[r], <span class="number">0</span>, m - <span class="number">1</span>, k);
+        cout &lt;&lt; sorted_vals[idx] &lt;&lt; <span class="string">"\n"</span>;
+    }
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> <span class="type">PersistentSegTree</span> {
+    <span class="keyword">static int</span> MAXNODES = <span class="number">20_000_000</span>;
+    <span class="keyword">static int</span>[] cnt = <span class="keyword">new int</span>[MAXNODES];
+    <span class="keyword">static int</span>[] left = <span class="keyword">new int</span>[MAXNODES];
+    <span class="keyword">static int</span>[] right = <span class="keyword">new int</span>[MAXNODES];
+    <span class="keyword">static int</span> tot = <span class="number">0</span>;
+
+    <span class="keyword">static int</span> newNode(<span class="keyword">int</span> c, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">int</span> id = ++tot;
+        cnt[id] = c; left[id] = l; right[id] = r;
+        <span class="keyword">return</span> id;
+    }
+
+    <span class="comment">// Build empty tree over [l, r]</span>
+    <span class="keyword">static int</span> build(<span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (l == r) <span class="keyword">return</span> newNode(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">return</span> newNode(<span class="number">0</span>, build(l, mid), build(mid + <span class="number">1</span>, r));
+    }
+
+    <span class="comment">// Insert: increment at pos, return new root id</span>
+    <span class="keyword">static int</span> update(<span class="keyword">int</span> prev, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> pos) {
+        <span class="keyword">if</span> (l == r)
+            <span class="keyword">return</span> newNode(cnt[prev] + <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">if</span> (pos &lt;= mid)
+            <span class="keyword">return</span> newNode(cnt[prev] + <span class="number">1</span>,
+                          update(left[prev], l, mid, pos),
+                          right[prev]);
+        <span class="keyword">else</span>
+            <span class="keyword">return</span> newNode(cnt[prev] + <span class="number">1</span>,
+                          left[prev],
+                          update(right[prev], mid + <span class="number">1</span>, r, pos));
+    }
+
+    <span class="comment">// Query kth smallest using roots[r] - roots[l-1]</span>
+    <span class="keyword">static int</span> query(<span class="keyword">int</span> lt, <span class="keyword">int</span> rt, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> k) {
+        <span class="keyword">if</span> (l == r) <span class="keyword">return</span> l;
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">int</span> leftCount = cnt[left[rt]] - cnt[left[lt]];
+        <span class="keyword">if</span> (k &lt;= leftCount)
+            <span class="keyword">return</span> query(left[lt], left[rt], l, mid, k);
+        <span class="keyword">else</span>
+            <span class="keyword">return</span> query(right[lt], right[rt], mid + <span class="number">1</span>, r, k - leftCount);
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        Scanner sc = <span class="keyword">new</span> Scanner(System.in);
+        <span class="keyword">int</span> n = sc.nextInt(), q = sc.nextInt();
+        <span class="keyword">int</span>[] arr = <span class="keyword">new int</span>[n];
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) arr[i] = sc.nextInt();
+
+        <span class="comment">// Coordinate compression</span>
+        <span class="keyword">int</span>[] sorted = arr.clone();
+        Arrays.sort(sorted);
+        <span class="keyword">int</span> m = <span class="number">0</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+            <span class="keyword">if</span> (i == <span class="number">0</span> || sorted[i] != sorted[i - <span class="number">1</span>])
+                sorted[m++] = sorted[i];
+
+        <span class="comment">// Build persistent segment tree</span>
+        <span class="keyword">int</span>[] roots = <span class="keyword">new int</span>[n + <span class="number">1</span>];
+        roots[<span class="number">0</span>] = build(<span class="number">0</span>, m - <span class="number">1</span>);
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) {
+            <span class="keyword">int</span> pos = Arrays.binarySearch(sorted, <span class="number">0</span>, m, arr[i]);
+            roots[i + <span class="number">1</span>] = update(roots[i], <span class="number">0</span>, m - <span class="number">1</span>, pos);
+        }
+
+        <span class="comment">// Answer queries</span>
+        StringBuilder sb = <span class="keyword">new</span> StringBuilder();
+        <span class="keyword">while</span> (q-- &gt; <span class="number">0</span>) {
+            <span class="keyword">int</span> l = sc.nextInt(), r = sc.nextInt(), k = sc.nextInt();
+            <span class="keyword">int</span> idx = query(roots[l - <span class="number">1</span>], roots[r], <span class="number">0</span>, m - <span class="number">1</span>, k);
+            sb.append(sorted[idx]).append(<span class="string">"\n"</span>);
+        }
+        System.out.print(sb);
+    }
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">import</span> sys
+<span class="keyword">from</span> bisect <span class="keyword">import</span> bisect_left
+input = sys.stdin.readline
+
+<span class="keyword">class</span> <span class="type">Node</span>:
+    __slots__ = [<span class="string">'cnt'</span>, <span class="string">'left'</span>, <span class="string">'right'</span>]
+    <span class="keyword">def</span> __init__(self, cnt=<span class="number">0</span>, left=<span class="keyword">None</span>, right=<span class="keyword">None</span>):
+        self.cnt = cnt
+        self.left = left
+        self.right = right
+
+<span class="keyword">def</span> build(l, r):
+    <span class="keyword">if</span> l == r:
+        <span class="keyword">return</span> Node()
+    mid = (l + r) // <span class="number">2</span>
+    <span class="keyword">return</span> Node(<span class="number">0</span>, build(l, mid), build(mid + <span class="number">1</span>, r))
+
+<span class="keyword">def</span> update(prev, l, r, pos):
+    <span class="keyword">if</span> l == r:
+        <span class="keyword">return</span> Node(prev.cnt + <span class="number">1</span>)
+    mid = (l + r) // <span class="number">2</span>
+    <span class="keyword">if</span> pos &lt;= mid:
+        <span class="keyword">return</span> Node(prev.cnt + <span class="number">1</span>,
+                   update(prev.left, l, mid, pos),
+                   prev.right)
+    <span class="keyword">else</span>:
+        <span class="keyword">return</span> Node(prev.cnt + <span class="number">1</span>,
+                   prev.left,
+                   update(prev.right, mid + <span class="number">1</span>, r, pos))
+
+<span class="keyword">def</span> query(lt, rt, l, r, k):
+    <span class="keyword">if</span> l == r:
+        <span class="keyword">return</span> l
+    mid = (l + r) // <span class="number">2</span>
+    left_count = rt.left.cnt - lt.left.cnt
+    <span class="keyword">if</span> k &lt;= left_count:
+        <span class="keyword">return</span> query(lt.left, rt.left, l, mid, k)
+    <span class="keyword">else</span>:
+        <span class="keyword">return</span> query(lt.right, rt.right, mid + <span class="number">1</span>, r, k - left_count)
+
+<span class="keyword">def</span> main():
+    n, q = map(int, input().split())
+    arr = list(map(int, input().split()))
+
+    <span class="comment"># Coordinate compression</span>
+    sorted_vals = sorted(set(arr))
+    m = len(sorted_vals)
+    compress = {v: i <span class="keyword">for</span> i, v <span class="keyword">in</span> enumerate(sorted_vals)}
+
+    <span class="comment"># Build persistent segment tree</span>
+    roots = [<span class="keyword">None</span>] * (n + <span class="number">1</span>)
+    roots[<span class="number">0</span>] = build(<span class="number">0</span>, m - <span class="number">1</span>)
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+        roots[i + <span class="number">1</span>] = update(roots[i], <span class="number">0</span>, m - <span class="number">1</span>, compress[arr[i]])
+
+    <span class="comment"># Answer queries: kth smallest in arr[l..r] (1-indexed)</span>
+    out = []
+    <span class="keyword">for</span> _ <span class="keyword">in</span> range(q):
+        l, r, k = map(int, input().split())
+        idx = query(roots[l - <span class="number">1</span>], roots[r], <span class="number">0</span>, m - <span class="number">1</span>, k)
+        out.append(str(sorted_vals[idx]))
+    print(<span class="string">"\n"</span>.join(out))
+
+main()
+</pre>
+            </div>
+        </div>
+
+        <h2>Memory Analysis</h2>
+        <p>Each update creates exactly <strong>O(log n) new nodes</strong> (one per level of the tree). For n insertions:</p>
+        <ul>
+            <li>Initial tree: O(m) nodes where m is the value range (after compression, m &le; n)</li>
+            <li>Each of n updates: O(log m) new nodes</li>
+            <li><strong>Total nodes: O(n log n)</strong></li>
+        </ul>
+        <p>In practice, for n = 10^5 with values up to 10^9 (compressed to 10^5 unique values), total nodes are approximately n * log2(n) + n &asymp; 10^5 * 17 + 10^5 &asymp; 1.8 * 10^6 nodes. Each node stores a count and two pointers (or indices), so memory is manageable.</p>
+
+        <div class="note">
+            <strong>Implementation tip:</strong> For competitive programming, use a flat array with indices instead of pointers to avoid memory allocation overhead. Pre-allocate an array of size <code>n * 20</code> (since log2(10^5) &lt; 17, and adding some buffer). The Java implementation above demonstrates this approach.
+        </div>
+
+        <h2>Complexity</h2>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Build (empty tree)</td><td>O(m)</td><td>O(m)</td></tr>
+            <tr><td>Single Update (new version)</td><td>O(log m)</td><td>O(log m) new nodes</td></tr>
+            <tr><td>Build all n versions</td><td>O(n log m)</td><td>O(n log m) total</td></tr>
+            <tr><td>Kth Smallest Query</td><td>O(log m)</td><td>O(1)</td></tr>
+            <tr><td>Count elements &lt; k in [l, r]</td><td>O(log m)</td><td>O(1)</td></tr>
+        </table>
+        <p>Where m is the number of distinct values (at most n after coordinate compression).</p>
+
+        <h2>Applications</h2>
+        <div class="note">
+            <strong>Key applications of Persistent Segment Trees:</strong>
+            <ul>
+                <li><strong>Version queries:</strong> Query or rollback to any previous state of the data structure in O(log n)</li>
+                <li><strong>Kth smallest in range [l, r]:</strong> The classic application using prefix version subtraction (described above)</li>
+                <li><strong>Count elements in range less than k:</strong> Walk the persistent tree to count frequencies in [0, k-1] for a given subarray</li>
+                <li><strong>Online queries:</strong> Unlike merge sort tree approaches that need offline processing, persistent ST handles online queries naturally</li>
+                <li><strong>Persistent data on trees:</strong> Combined with Euler tour or HLD for path/subtree version queries on trees</li>
+                <li><strong>2D problems:</strong> Replace one dimension with persistence (e.g., sweep line + persistent structure)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

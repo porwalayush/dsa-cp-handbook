@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge Sort Tree - Range Queries Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Merge Sort Tree</h1>
+        <p>A <strong>Merge Sort Tree</strong> is a segment tree where each node stores the <strong>sorted array</strong> of all elements in its range. This allows answering order-statistic queries like "count of elements in [l, r] that are less than or equal to k" efficiently using binary search at each visited node.</p>
+
+        <h2>What is a Merge Sort Tree?</h2>
+        <p>In a standard segment tree, each node stores a single aggregate value (sum, min, max). In a Merge Sort Tree, each node stores the <strong>entire sorted subarray</strong> of elements in its range. The name comes from the fact that the build process mirrors merge sort: leaf nodes hold single elements, and internal nodes merge their children's sorted arrays.</p>
+        <ul>
+            <li>Each leaf node stores a single-element array <code>[arr[i]]</code></li>
+            <li>Each internal node stores the sorted merge of its two children's arrays</li>
+            <li>The root stores the fully sorted array (same as the output of merge sort)</li>
+            <li>The structure is <strong>static</strong> (no point updates supported efficiently)</li>
+        </ul>
+
+        <h2>Visual: Tree Structure</h2>
+        <div class="visual">
+<pre>
+Array: [3, 1, 4, 1, 5, 9, 2, 6]  (n = 8)
+
+Merge Sort Tree:
+                  [1,1,2,3,4,5,6,9]               node 1: [0,7]
+                 /                  \
+        [1,1,3,4]                  [2,5,6,9]       nodes 2,3
+        /        \                 /        \
+    [1,3]       [1,4]         [5,9]       [2,6]    nodes 4-7
+    /   \       /   \         /   \       /   \
+  [3]   [1]  [4]   [1]     [5]   [9]  [2]   [6]   nodes 8-15 (leaves)
+
+Each node stores the SORTED array of elements in its range.
+Node 2 covers [0,3]: elements {3,1,4,1} stored sorted as [1,1,3,4]
+Node 6 covers [4,5]: elements {5,9} stored sorted as [5,9]
+</pre>
+        </div>
+
+        <h2>Build Operation</h2>
+        <p>Building a Merge Sort Tree follows the same recursive structure as a segment tree. At each internal node, we merge the sorted arrays from the left and right children (exactly like the merge step in merge sort).</p>
+        <div class="visual">
+<pre>
+build(node, l, r):
+  if l == r:
+    tree[node] = [arr[l]]        // leaf: single element
+    return
+  mid = (l + r) / 2
+  build(2*node, l, mid)          // build left child
+  build(2*node+1, mid+1, r)     // build right child
+  tree[node] = merge(tree[2*node], tree[2*node+1])  // merge sorted arrays
+
+Time:  O(n log n)  -- each element appears in O(log n) nodes
+Space: O(n log n)  -- total storage across all levels
+</pre>
+        </div>
+
+        <div class="note">
+            <strong>Space Analysis:</strong>
+            <ul>
+                <li>At each level of the tree, every element appears exactly once</li>
+                <li>There are O(log n) levels in the tree</li>
+                <li>Total storage: n elements per level x log n levels = O(n log n)</li>
+            </ul>
+        </div>
+
+        <h2>Query: Count Elements &le; k in [l, r]</h2>
+        <p>The primary query on a Merge Sort Tree is: given a range [l, r] and a value k, count how many elements in that range are less than or equal to k. Since each node stores a sorted array, we use <code>upper_bound</code> (binary search) at each visited node.</p>
+
+        <div class="visual">
+<pre>
+Query: count elements &le; 4 in range [1, 6]
+Array: [3, 1, 4, 1, 5, 9, 2, 6]
+
+Traversal (same as standard segment tree query):
+  Node 1 [0,7]: partial overlap with [1,6] -> recurse both
+    Node 2 [0,3]: partial overlap -> recurse both
+      Node 4 [0,1]: partial overlap -> recurse both
+        Node 8 [0,0]: outside [1,6] -> return 0
+        Node 9 [1,1]: fully inside -> upper_bound([1], 4) = 1
+      Node 5 [2,3]: fully inside -> upper_bound([1,4], 4) = 2
+    Node 3 [4,7]: partial overlap -> recurse both
+      Node 6 [4,5]: fully inside -> upper_bound([5,9], 4) = 0
+      Node 7 [6,7]: partial overlap -> recurse both
+        Node 14 [6,6]: fully inside -> upper_bound([2], 4) = 1
+        Node 15 [7,7]: outside [1,6] -> return 0
+
+Answer = 0 + 1 + 2 + 0 + 1 + 0 = 4
+Verify: elements in [1,6] are {1,4,1,5,9,2}, those &le; 4: {1,4,1,2} = 4 items
+</pre>
+        </div>
+
+        <h3>Query Algorithm</h3>
+        <div class="visual">
+<pre>
+query(node, l, r, ql, qr, k):
+  if qr &lt; l or r &lt; ql:          // no overlap
+    return 0
+  if ql &lt;= l and r &lt;= qr:       // full overlap
+    return upper_bound(tree[node], k)  // binary search
+  mid = (l + r) / 2
+  return query(2*node, l, mid, ql, qr, k) +
+         query(2*node+1, mid+1, r, ql, qr, k)
+
+Time per query: O(log^2 n)
+  - O(log n) nodes visited
+  - O(log n) binary search at each node
+</pre>
+        </div>
+
+        <h2>Complexity</h2>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Build</td><td>O(n log n)</td><td>O(n log n)</td></tr>
+            <tr><td>Query (count &le; k)</td><td>O(log<sup>2</sup> n)</td><td>-</td></tr>
+            <tr><td>Query (kth smallest via binary search)</td><td>O(log<sup>3</sup> n)</td><td>-</td></tr>
+        </table>
+
+        <h2>Full Implementation</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> MergeSortTree {
+    <span class="keyword">int</span> n;
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; tree;
+
+    MergeSortTree(vector&lt;<span class="keyword">int</span>&gt;&amp; arr) {
+        n = arr.size();
+        tree.resize(<span class="number">4</span> * n);
+        build(arr, <span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>);
+    }
+
+    <span class="keyword">void</span> build(vector&lt;<span class="keyword">int</span>&gt;&amp; arr, <span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (l == r) {
+            tree[node] = {arr[l]};
+            <span class="keyword">return</span>;
+        }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        build(arr, <span class="number">2</span> * node, l, mid);
+        build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r);
+        <span class="comment">// Merge two sorted arrays</span>
+        merge(tree[<span class="number">2</span> * node].begin(), tree[<span class="number">2</span> * node].end(),
+              tree[<span class="number">2</span> * node + <span class="number">1</span>].begin(), tree[<span class="number">2</span> * node + <span class="number">1</span>].end(),
+              back_inserter(tree[node]));
+    }
+
+    <span class="comment">// Count elements in [ql, qr] that are &lt;= k</span>
+    <span class="keyword">int</span> query(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="keyword">int</span> k) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) {
+            <span class="comment">// upper_bound gives count of elements &lt;= k</span>
+            <span class="keyword">return</span> upper_bound(tree[node].begin(),
+                               tree[node].end(), k) - tree[node].begin();
+        }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">return</span> query(<span class="number">2</span> * node, l, mid, ql, qr, k) +
+               query(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr, k);
+    }
+
+    <span class="keyword">int</span> countLessOrEqual(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="keyword">int</span> k) {
+        <span class="keyword">return</span> query(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr, k);
+    }
+
+    <span class="comment">// Kth smallest in [ql, qr] using binary search on answer</span>
+    <span class="keyword">int</span> kthSmallest(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="keyword">int</span> k) {
+        <span class="keyword">int</span> lo = *min_element(tree[<span class="number">1</span>].begin(), tree[<span class="number">1</span>].end());
+        <span class="keyword">int</span> hi = *max_element(tree[<span class="number">1</span>].begin(), tree[<span class="number">1</span>].end());
+        <span class="keyword">int</span> ans = lo;
+        <span class="keyword">while</span> (lo &lt;= hi) {
+            <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;
+            <span class="keyword">if</span> (countLessOrEqual(ql, qr, mid) &gt;= k) {
+                ans = mid;
+                hi = mid - <span class="number">1</span>;
+            } <span class="keyword">else</span> {
+                lo = mid + <span class="number">1</span>;
+            }
+        }
+        <span class="keyword">return</span> ans;
+    }
+};
+
+<span class="keyword">int</span> main() {
+    vector&lt;<span class="keyword">int</span>&gt; arr = {<span class="number">3</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">2</span>, <span class="number">6</span>};
+    MergeSortTree mst(arr);
+
+    <span class="comment">// Count elements &lt;= 4 in range [1, 6]</span>
+    cout &lt;&lt; mst.countLessOrEqual(<span class="number">1</span>, <span class="number">6</span>, <span class="number">4</span>) &lt;&lt; endl;  <span class="comment">// 4</span>
+
+    <span class="comment">// 3rd smallest in range [0, 7]</span>
+    cout &lt;&lt; mst.kthSmallest(<span class="number">0</span>, <span class="number">7</span>, <span class="number">3</span>) &lt;&lt; endl;  <span class="comment">// 2</span>
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> <span class="type">MergeSortTree</span> {
+    <span class="keyword">int</span> n;
+    <span class="keyword">int</span>[][] tree;
+
+    MergeSortTree(<span class="keyword">int</span>[] arr) {
+        n = arr.length;
+        tree = <span class="keyword">new int</span>[<span class="number">4</span> * n][];
+        build(arr, <span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>);
+    }
+
+    <span class="keyword">void</span> build(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (l == r) {
+            tree[node] = <span class="keyword">new int</span>[]{arr[l]};
+            <span class="keyword">return</span>;
+        }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        build(arr, <span class="number">2</span> * node, l, mid);
+        build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r);
+        <span class="comment">// Merge two sorted arrays</span>
+        tree[node] = mergeSorted(tree[<span class="number">2</span> * node], tree[<span class="number">2</span> * node + <span class="number">1</span>]);
+    }
+
+    <span class="keyword">int</span>[] mergeSorted(<span class="keyword">int</span>[] a, <span class="keyword">int</span>[] b) {
+        <span class="keyword">int</span>[] res = <span class="keyword">new int</span>[a.length + b.length];
+        <span class="keyword">int</span> i = <span class="number">0</span>, j = <span class="number">0</span>, k = <span class="number">0</span>;
+        <span class="keyword">while</span> (i &lt; a.length &amp;&amp; j &lt; b.length)
+            res[k++] = (a[i] &lt;= b[j]) ? a[i++] : b[j++];
+        <span class="keyword">while</span> (i &lt; a.length) res[k++] = a[i++];
+        <span class="keyword">while</span> (j &lt; b.length) res[k++] = b[j++];
+        <span class="keyword">return</span> res;
+    }
+
+    <span class="comment">// Count elements in [ql, qr] that are &lt;= k</span>
+    <span class="keyword">int</span> query(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="keyword">int</span> k) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) {
+            <span class="comment">// Binary search: count of elements &lt;= k</span>
+            <span class="keyword">return</span> upperBound(tree[node], k);
+        }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">return</span> query(<span class="number">2</span> * node, l, mid, ql, qr, k) +
+               query(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr, k);
+    }
+
+    <span class="comment">// Returns index of first element &gt; k (i.e., count of elements &lt;= k)</span>
+    <span class="keyword">int</span> upperBound(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> k) {
+        <span class="keyword">int</span> lo = <span class="number">0</span>, hi = arr.length;
+        <span class="keyword">while</span> (lo &lt; hi) {
+            <span class="keyword">int</span> mid = (lo + hi) / <span class="number">2</span>;
+            <span class="keyword">if</span> (arr[mid] &lt;= k) lo = mid + <span class="number">1</span>;
+            <span class="keyword">else</span> hi = mid;
+        }
+        <span class="keyword">return</span> lo;
+    }
+
+    <span class="keyword">int</span> countLessOrEqual(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="keyword">int</span> k) {
+        <span class="keyword">return</span> query(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr, k);
+    }
+
+    <span class="comment">// Kth smallest in [ql, qr] using binary search on answer</span>
+    <span class="keyword">int</span> kthSmallest(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="keyword">int</span> k) {
+        <span class="keyword">int</span> lo = tree[<span class="number">1</span>][<span class="number">0</span>];
+        <span class="keyword">int</span> hi = tree[<span class="number">1</span>][tree[<span class="number">1</span>].length - <span class="number">1</span>];
+        <span class="keyword">int</span> ans = lo;
+        <span class="keyword">while</span> (lo &lt;= hi) {
+            <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;
+            <span class="keyword">if</span> (countLessOrEqual(ql, qr, mid) &gt;= k) {
+                ans = mid;
+                hi = mid - <span class="number">1</span>;
+            } <span class="keyword">else</span> {
+                lo = mid + <span class="number">1</span>;
+            }
+        }
+        <span class="keyword">return</span> ans;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span>[] arr = {<span class="number">3</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">2</span>, <span class="number">6</span>};
+        MergeSortTree mst = <span class="keyword">new</span> MergeSortTree(arr);
+
+        <span class="comment">// Count elements &lt;= 4 in range [1, 6]</span>
+        System.out.println(mst.countLessOrEqual(<span class="number">1</span>, <span class="number">6</span>, <span class="number">4</span>));  <span class="comment">// 4</span>
+
+        <span class="comment">// 3rd smallest in range [0, 7]</span>
+        System.out.println(mst.kthSmallest(<span class="number">0</span>, <span class="number">7</span>, <span class="number">3</span>));  <span class="comment">// 2</span>
+    }
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">from</span> bisect <span class="keyword">import</span> bisect_right
+
+<span class="keyword">class</span> <span class="type">MergeSortTree</span>:
+    <span class="keyword">def</span> __init__(self, arr):
+        self.n = len(arr)
+        self.tree = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">4</span> * self.n)]
+        self._build(arr, <span class="number">1</span>, <span class="number">0</span>, self.n - <span class="number">1</span>)
+
+    <span class="keyword">def</span> _build(self, arr, node, l, r):
+        <span class="keyword">if</span> l == r:
+            self.tree[node] = [arr[l]]
+            <span class="keyword">return</span>
+        mid = (l + r) // <span class="number">2</span>
+        self._build(arr, <span class="number">2</span> * node, l, mid)
+        self._build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r)
+        <span class="comment"># Merge two sorted lists</span>
+        left = self.tree[<span class="number">2</span> * node]
+        right = self.tree[<span class="number">2</span> * node + <span class="number">1</span>]
+        merged = []
+        i = j = <span class="number">0</span>
+        <span class="keyword">while</span> i &lt; len(left) <span class="keyword">and</span> j &lt; len(right):
+            <span class="keyword">if</span> left[i] &lt;= right[j]:
+                merged.append(left[i]); i += <span class="number">1</span>
+            <span class="keyword">else</span>:
+                merged.append(right[j]); j += <span class="number">1</span>
+        merged.extend(left[i:])
+        merged.extend(right[j:])
+        self.tree[node] = merged
+
+    <span class="keyword">def</span> _query(self, node, l, r, ql, qr, k):
+        <span class="keyword">if</span> qr &lt; l <span class="keyword">or</span> r &lt; ql:
+            <span class="keyword">return</span> <span class="number">0</span>
+        <span class="keyword">if</span> ql &lt;= l <span class="keyword">and</span> r &lt;= qr:
+            <span class="comment"># bisect_right gives count of elements &lt;= k</span>
+            <span class="keyword">return</span> bisect_right(self.tree[node], k)
+        mid = (l + r) // <span class="number">2</span>
+        <span class="keyword">return</span> (self._query(<span class="number">2</span> * node, l, mid, ql, qr, k) +
+                self._query(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr, k))
+
+    <span class="keyword">def</span> count_less_or_equal(self, ql, qr, k):
+        <span class="keyword">return</span> self._query(<span class="number">1</span>, <span class="number">0</span>, self.n - <span class="number">1</span>, ql, qr, k)
+
+    <span class="keyword">def</span> kth_smallest(self, ql, qr, k):
+        <span class="string">"""Find kth smallest element in arr[ql..qr]"""</span>
+        lo = self.tree[<span class="number">1</span>][<span class="number">0</span>]
+        hi = self.tree[<span class="number">1</span>][-<span class="number">1</span>]
+        ans = lo
+        <span class="keyword">while</span> lo &lt;= hi:
+            mid = (lo + hi) // <span class="number">2</span>
+            <span class="keyword">if</span> self.count_less_or_equal(ql, qr, mid) &gt;= k:
+                ans = mid
+                hi = mid - <span class="number">1</span>
+            <span class="keyword">else</span>:
+                lo = mid + <span class="number">1</span>
+        <span class="keyword">return</span> ans
+
+<span class="comment"># Usage</span>
+arr = [<span class="number">3</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">2</span>, <span class="number">6</span>]
+mst = MergeSortTree(arr)
+
+<span class="comment"># Count elements &lt;= 4 in range [1, 6]</span>
+<span class="keyword">print</span>(mst.count_less_or_equal(<span class="number">1</span>, <span class="number">6</span>, <span class="number">4</span>))  <span class="comment"># 4</span>
+
+<span class="comment"># 3rd smallest in range [0, 7]</span>
+<span class="keyword">print</span>(mst.kth_smallest(<span class="number">0</span>, <span class="number">7</span>, <span class="number">3</span>))  <span class="comment"># 2</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Comparison with Persistent Segment Tree</h2>
+        <p>Both Merge Sort Trees and Persistent Segment Trees can answer order-statistic queries on ranges. Here is how they compare:</p>
+        <table>
+            <tr><th>Aspect</th><th>Merge Sort Tree</th><th>Persistent Segment Tree</th></tr>
+            <tr><td>Build Time</td><td>O(n log n)</td><td>O(n log n)</td></tr>
+            <tr><td>Build Space</td><td>O(n log n)</td><td>O(n log n)</td></tr>
+            <tr><td>Count &le; k in [l,r]</td><td>O(log<sup>2</sup> n)</td><td>O(log n)</td></tr>
+            <tr><td>Kth smallest in [l,r]</td><td>O(log<sup>3</sup> n)</td><td>O(log n)</td></tr>
+            <tr><td>Implementation</td><td>Simple (arrays + binary search)</td><td>Complex (pointer-based nodes)</td></tr>
+            <tr><td>Point Updates</td><td>Not efficient</td><td>O(log<sup>2</sup> n) with persistence</td></tr>
+            <tr><td>Memory Locality</td><td>Good (contiguous arrays)</td><td>Poor (scattered nodes)</td></tr>
+            <tr><td>Constant Factor</td><td>Small</td><td>Large (pointer overhead)</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>When to use which:</strong>
+            <ul>
+                <li><strong>Merge Sort Tree:</strong> When implementation simplicity matters, or when the log<sup>2</sup> n factor is acceptable for the constraints (n, q &le; 10<sup>5</sup>)</li>
+                <li><strong>Persistent Segment Tree:</strong> When you need O(log n) per query, need updates, or constraints are tight (n, q &le; 10<sup>6</sup>)</li>
+            </ul>
+        </div>
+
+        <h2>Applications</h2>
+
+        <h3>1. Kth Smallest in a Range (Binary Search on Answer)</h3>
+        <p>Binary search on the answer value. For a candidate value <code>mid</code>, count how many elements in [l, r] are &le; mid. If that count is &ge; k, the answer is at most <code>mid</code>; otherwise it is larger.</p>
+        <div class="visual">
+<pre>
+kthSmallest(l, r, k):
+  lo = min(arr), hi = max(arr)
+  while lo &lt;= hi:
+    mid = (lo + hi) / 2
+    if countLessOrEqual(l, r, mid) &gt;= k:
+      ans = mid
+      hi = mid - 1          // try smaller
+    else:
+      lo = mid + 1          // need larger
+  return ans
+
+Time: O(log(max_val) * log^2(n)) = O(log^3 n) for values in [1, n]
+</pre>
+        </div>
+
+        <h3>2. Count Elements in Value Range [a, b] within Index Range [l, r]</h3>
+        <p>Count elements with value in [a, b] within positions [l, r]:</p>
+        <div class="visual">
+<pre>
+countInRange(l, r, a, b):
+  return countLessOrEqual(l, r, b) - countLessOrEqual(l, r, a - 1)
+
+Example: count elements in [2, 5] within arr[1..6]
+  Array: [3, 1, 4, 1, 5, 9, 2, 6]
+  countLessOrEqual(1, 6, 5) = 5  (elements: 1,4,1,5,2)
+  countLessOrEqual(1, 6, 1) = 2  (elements: 1,1)
+  Answer = 5 - 2 = 3             (elements: 4,5,2)
+</pre>
+        </div>
+
+        <h3>3. Other Applications</h3>
+        <ul>
+            <li><strong>Number of inversions in a range:</strong> for each element at position i in [l, r], count elements in [l, i-1] that are greater</li>
+            <li><strong>Count of distinct elements &le; k:</strong> combine with coordinate compression</li>
+            <li><strong>Offline queries with sorting:</strong> process queries sorted by k to avoid repeated binary searches</li>
+        </ul>
+
+        <div class="note">
+            <strong>Key Takeaways:</strong>
+            <ul>
+                <li>Merge Sort Tree trades query speed (log<sup>2</sup> n vs log n) for implementation simplicity</li>
+                <li>Best suited for problems with moderate constraints where a Persistent Segment Tree would be overkill</li>
+                <li>The "binary search on answer + count &le; k" pattern is extremely versatile</li>
+                <li>No efficient point updates -- use offline processing or a Persistent Segment Tree if updates are needed</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

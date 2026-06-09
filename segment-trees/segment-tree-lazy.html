@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazy Propagation in Segment Trees - Range Queries Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Lazy Propagation in Segment Trees</h1>
+        <p>Lazy Propagation is a technique that defers updates to segment tree nodes until they are actually needed. This enables <strong>range updates</strong> in O(log n) instead of O(n), making it essential for problems that combine range updates with range queries.</p>
+
+        <h2>Why Lazy Propagation?</h2>
+        <p>Consider the problem: "Add a value <code>v</code> to every element in range <code>[l, r]</code>." Without lazy propagation, you would need to update each of the <code>r - l + 1</code> elements individually, each taking O(log n), giving O(n log n) per range update. With lazy propagation, this drops to <strong>O(log n)</strong>.</p>
+
+        <div class="visual">
+<pre>
+Problem: Range Add + Range Sum Query
+
+Without Lazy Propagation:
+  range_add(l, r, val) = point_update each index in [l,r]
+  Time per range update: O((r-l+1) * log n) = O(n log n) worst case
+
+With Lazy Propagation:
+  range_add(l, r, val) = mark nodes covering [l,r] as "pending"
+  Time per range update: O(log n)
+
+Example: 100,000 operations on array of size 100,000
+  Without lazy: up to 10^10 operations (TLE)
+  With lazy:    up to 10^5 * 17 = 1.7 * 10^6 operations (fast)
+</pre>
+        </div>
+
+        <h2>Core Idea: Deferred Updates</h2>
+        <p>Instead of updating every leaf node in a range, we store a <strong>pending update</strong> (lazy value) at the highest possible nodes. The update is only pushed down to children when we need to access those children.</p>
+
+        <div class="visual">
+<pre>
+Operation: Add 3 to range [0, 3]
+Array: [2, 1, 5, 3, 4, 7, 6, 8]
+
+BEFORE: Standard segment tree (sum)
+                     [36]                 node 1: [0,7]
+                   /      \
+              [11]           [25]         nodes 2,3
+             /    \         /    \
+          [3]     [8]    [11]    [14]    nodes 4-7
+          / \     / \     / \     / \
+        [2] [1] [5] [3] [4] [7] [6] [8] leaves
+
+AFTER: With lazy propagation (add 3 to [0,3])
+                     [36+12=48]           tree updated
+                   /      \
+              [11+12=23]    [25]          tree updated
+             /    \         /    \
+          [3]     [8]    [11]    [14]    NOT visited!
+          / \     / \     / \     / \
+        [2] [1] [5] [3] [4] [7] [6] [8] NOT visited!
+
+Lazy array:
+  lazy[2] = 3   (node 2 covers [0,3], pending +3 for children)
+  All other lazy values = 0
+
+Key insight: Node 2 covers [0,3] exactly, so we:
+  1. Update tree[2] += 3 * 4 = 12  (val * count of elements)
+  2. Store lazy[2] = 3  (pending for children)
+  3. STOP - don't recurse deeper!
+</pre>
+        </div>
+
+        <h2>The Push-Down Operation</h2>
+        <p>The <code>push_down</code> (or <code>propagate</code>) function transfers pending lazy values from a parent to its children. This is called <strong>before</strong> we recurse into children during updates or queries.</p>
+
+        <div class="visual">
+<pre>
+push_down(node, l, r):
+  If lazy[node] != 0:
+    mid = (l + r) / 2
+    left_count  = mid - l + 1
+    right_count = r - mid
+
+    // Push to left child
+    tree[2*node]     += lazy[node] * left_count
+    lazy[2*node]     += lazy[node]
+
+    // Push to right child
+    tree[2*node + 1] += lazy[node] * right_count
+    lazy[2*node + 1] += lazy[node]
+
+    // Clear parent's lazy
+    lazy[node] = 0
+</pre>
+        </div>
+
+        <h3>Visualization of Push-Down</h3>
+        <div class="visual">
+<pre>
+State: lazy[2] = 3, node 2 covers [0,3]
+
+Now we query sum([0,1]). Must recurse into children of node 2.
+BEFORE push_down(node=2, l=0, r=3):
+
+         Node 2
+        sum=23, lazy=3
+        /          \
+    Node 4          Node 5
+   sum=3, lazy=0   sum=8, lazy=0
+   covers [0,1]    covers [2,3]
+
+AFTER push_down(node=2, l=0, r=3):
+
+         Node 2
+        sum=23, lazy=0      <- lazy cleared
+        /          \
+    Node 4          Node 5
+   sum=3+3*2=9     sum=8+3*2=14    <- tree updated
+   lazy=0+3=3      lazy=0+3=3     <- lazy inherited
+   covers [0,1]    covers [2,3]
+
+The +3 is propagated ONE level down, not all the way to leaves.
+If we later need node 4's children, we push_down again.
+</pre>
+        </div>
+
+        <h2>Range Add + Range Sum Query</h2>
+        <p>This is the most common lazy propagation variant. We support two operations:</p>
+        <ul>
+            <li><strong>range_add(l, r, val):</strong> Add <code>val</code> to every element in <code>[l, r]</code></li>
+            <li><strong>range_sum(l, r):</strong> Query the sum of elements in <code>[l, r]</code></li>
+        </ul>
+
+        <div class="visual">
+<pre>
+Example walkthrough: Array = [1, 3, 5, 7, 9, 11]
+
+Initial tree (sum):
+                  [36]
+                /      \
+           [9]           [27]
+          /   \         /    \
+       [4]    [5]    [16]    [11]
+       / \     |     /  \      |
+     [1] [3] [5]  [7]  [9]  [11]
+
+Step 1: range_add(1, 4, 2)  -- add 2 to indices 1..4
+
+Visit node 1 [0,5]: partial overlap, push_down (lazy=0, nothing), recurse
+  Visit node 2 [0,2]: partial overlap, push_down, recurse
+    Visit node 4 [0,1]: partial overlap, push_down, recurse
+      Visit node 8 [0,0]: outside [1,4], return
+      Visit node 9 [1,1]: fully inside
+        tree[9] += 2*1 = 2  -> tree[9] = 5
+        lazy[9] += 2 (leaf, no children, but consistent)
+    tree[4] = tree[8] + tree[9] = 1 + 5 = 6
+    Visit node 5 [2,2]: fully inside [1,4]
+      tree[5] += 2*1 = 2  -> tree[5] = 7
+      lazy[5] += 2
+  tree[2] = tree[4] + tree[5] = 6 + 7 = 13
+  Visit node 3 [3,5]: partial overlap, push_down, recurse
+    Visit node 6 [3,4]: fully inside [1,4]
+      tree[6] += 2*2 = 4  -> tree[6] = 20
+      lazy[6] += 2          <- STOP here, don't go deeper!
+    Visit node 7 [5,5]: outside [1,4], return
+  tree[3] = tree[6] + tree[7] = 20 + 11 = 31
+tree[1] = tree[2] + tree[3] = 13 + 31 = 44
+
+Result: tree[1] = 44 (was 36, added 2 to 4 elements = +8)
+
+Step 2: range_sum(3, 5)  -- query sum of indices 3..5
+
+Visit node 1 [0,5]: partial, recurse
+  Visit node 2 [0,2]: outside [3,5], return 0
+  Visit node 3 [3,5]: fully inside, return tree[3] = 31
+
+Answer = 31
+(Original: 7+9+11=27, after +2 to [1,4]: 9+11+11=31) Correct!
+
+Note: We never needed to push_down into node 6's children!
+</pre>
+        </div>
+
+        <h2>Range Set + Range Query Variant</h2>
+        <p>Another common variant where range updates <strong>set</strong> all elements to a value (assignment) rather than adding. The key difference is that new lazy values <strong>override</strong> (replace) old ones instead of accumulating.</p>
+
+        <div class="visual">
+<pre>
+Range Set: set all elements in [l,r] to val
+
+Differences from Range Add:
+  1. lazy stores the assigned value (use sentinel like -1 or INT_MIN for "no pending")
+  2. push_down REPLACES children's values (not adds)
+  3. New set OVERWRITES any existing lazy
+
+push_down for Range Set:
+  if lazy[node] != NO_PENDING:
+    mid = (l + r) / 2
+    tree[2*node]     = lazy[node] * (mid - l + 1)
+    tree[2*node + 1] = lazy[node] * (r - mid)
+    lazy[2*node]     = lazy[node]       // override child lazy
+    lazy[2*node + 1] = lazy[node]       // override child lazy
+    lazy[node] = NO_PENDING
+
+Example: set [0,3] = 5, then set [2,5] = 2
+
+After set [0,3] = 5:  Array conceptually: [5, 5, 5, 5, 9, 11]
+After set [2,5] = 2:  Array conceptually: [5, 5, 2, 2, 2, 2]
+
+The second set at index 2,3 overwrites the first set.
+lazy is replaced, not accumulated.
+</pre>
+        </div>
+
+        <h2>Full Implementation: Range Add + Range Sum</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> LazySegTree {
+    vector&lt;<span class="type">long long</span>&gt; tree, lazy;
+    <span class="keyword">int</span> n;
+
+    LazySegTree(vector&lt;<span class="keyword">int</span>&gt;&amp; arr) {
+        n = arr.size();
+        tree.resize(<span class="number">4</span> * n, <span class="number">0</span>);
+        lazy.resize(<span class="number">4</span> * n, <span class="number">0</span>);
+        build(arr, <span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>);
+    }
+
+    <span class="keyword">void</span> build(vector&lt;<span class="keyword">int</span>&gt;&amp; arr, <span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (l == r) {
+            tree[node] = arr[l];
+            <span class="keyword">return</span>;
+        }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        build(arr, <span class="number">2</span> * node, l, mid);
+        build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="comment">// Push pending lazy value down to children</span>
+    <span class="keyword">void</span> push_down(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (lazy[node] != <span class="number">0</span>) {
+            <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+            <span class="comment">// Update left child</span>
+            tree[<span class="number">2</span> * node] += lazy[node] * (mid - l + <span class="number">1</span>);
+            lazy[<span class="number">2</span> * node] += lazy[node];
+            <span class="comment">// Update right child</span>
+            tree[<span class="number">2</span> * node + <span class="number">1</span>] += lazy[node] * (r - mid);
+            lazy[<span class="number">2</span> * node + <span class="number">1</span>] += lazy[node];
+            <span class="comment">// Clear current node's lazy</span>
+            lazy[node] = <span class="number">0</span>;
+        }
+    }
+
+    <span class="comment">// Range update: add val to all elements in [ql, qr]</span>
+    <span class="keyword">void</span> range_add(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long long</span> val) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span>;          <span class="comment">// no overlap</span>
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) {              <span class="comment">// full overlap</span>
+            tree[node] += val * (r - l + <span class="number">1</span>);
+            lazy[node] += val;
+            <span class="keyword">return</span>;
+        }
+        push_down(node, l, r);                  <span class="comment">// partial overlap</span>
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        range_add(<span class="number">2</span> * node, l, mid, ql, qr, val);
+        range_add(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr, val);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> range_add(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long long</span> val) {
+        range_add(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr, val);
+    }
+
+    <span class="comment">// Range query: sum of elements in [ql, qr]</span>
+    <span class="type">long long</span> range_sum(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;        <span class="comment">// no overlap</span>
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> tree[node]; <span class="comment">// full overlap</span>
+        push_down(node, l, r);                  <span class="comment">// partial overlap</span>
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">return</span> range_sum(<span class="number">2</span> * node, l, mid, ql, qr) +
+               range_sum(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr);
+    }
+
+    <span class="type">long long</span> range_sum(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">return</span> range_sum(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr);
+    }
+};
+
+<span class="keyword">int</span> main() {
+    vector&lt;<span class="keyword">int</span>&gt; arr = {<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>, <span class="number">11</span>};
+    LazySegTree st(arr);
+
+    cout &lt;&lt; st.range_sum(<span class="number">0</span>, <span class="number">5</span>) &lt;&lt; endl;   <span class="comment">// 36</span>
+    st.range_add(<span class="number">1</span>, <span class="number">4</span>, <span class="number">2</span>);                <span class="comment">// add 2 to [1,4]</span>
+    cout &lt;&lt; st.range_sum(<span class="number">1</span>, <span class="number">4</span>) &lt;&lt; endl;   <span class="comment">// 5+7+9+11 + 4*2 = 32</span>
+    cout &lt;&lt; st.range_sum(<span class="number">0</span>, <span class="number">5</span>) &lt;&lt; endl;   <span class="comment">// 44</span>
+    st.range_add(<span class="number">0</span>, <span class="number">2</span>, <span class="number">-1</span>);               <span class="comment">// subtract 1 from [0,2]</span>
+    cout &lt;&lt; st.range_sum(<span class="number">0</span>, <span class="number">2</span>) &lt;&lt; endl;   <span class="comment">// 0+4+6 = 10</span>
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">LazySegTree</span> {
+    <span class="type">long</span>[] tree, lazy;
+    <span class="keyword">int</span> n;
+
+    LazySegTree(<span class="keyword">int</span>[] arr) {
+        n = arr.length;
+        tree = <span class="keyword">new</span> <span class="type">long</span>[<span class="number">4</span> * n];
+        lazy = <span class="keyword">new</span> <span class="type">long</span>[<span class="number">4</span> * n];
+        build(arr, <span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>);
+    }
+
+    <span class="keyword">void</span> build(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (l == r) { tree[node] = arr[l]; <span class="keyword">return</span>; }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        build(arr, <span class="number">2</span> * node, l, mid);
+        build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> pushDown(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (lazy[node] != <span class="number">0</span>) {
+            <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+            tree[<span class="number">2</span> * node] += lazy[node] * (mid - l + <span class="number">1</span>);
+            lazy[<span class="number">2</span> * node] += lazy[node];
+            tree[<span class="number">2</span> * node + <span class="number">1</span>] += lazy[node] * (r - mid);
+            lazy[<span class="number">2</span> * node + <span class="number">1</span>] += lazy[node];
+            lazy[node] = <span class="number">0</span>;
+        }
+    }
+
+    <span class="keyword">void</span> rangeAdd(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long</span> val) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) {
+            tree[node] += val * (r - l + <span class="number">1</span>);
+            lazy[node] += val;
+            <span class="keyword">return</span>;
+        }
+        pushDown(node, l, r);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        rangeAdd(<span class="number">2</span> * node, l, mid, ql, qr, val);
+        rangeAdd(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr, val);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> rangeAdd(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long</span> val) {
+        rangeAdd(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr, val);
+    }
+
+    <span class="type">long</span> rangeSum(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> tree[node];
+        pushDown(node, l, r);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">return</span> rangeSum(<span class="number">2</span> * node, l, mid, ql, qr) +
+               rangeSum(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr);
+    }
+
+    <span class="type">long</span> rangeSum(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">return</span> rangeSum(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr);
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span>[] arr = {<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>, <span class="number">11</span>};
+        LazySegTree st = <span class="keyword">new</span> LazySegTree(arr);
+
+        System.out.println(st.rangeSum(<span class="number">0</span>, <span class="number">5</span>));  <span class="comment">// 36</span>
+        st.rangeAdd(<span class="number">1</span>, <span class="number">4</span>, <span class="number">2</span>);                     <span class="comment">// add 2 to [1,4]</span>
+        System.out.println(st.rangeSum(<span class="number">1</span>, <span class="number">4</span>));  <span class="comment">// 32</span>
+        System.out.println(st.rangeSum(<span class="number">0</span>, <span class="number">5</span>));  <span class="comment">// 44</span>
+        st.rangeAdd(<span class="number">0</span>, <span class="number">2</span>, -<span class="number">1</span>);                    <span class="comment">// subtract 1 from [0,2]</span>
+        System.out.println(st.rangeSum(<span class="number">0</span>, <span class="number">2</span>));  <span class="comment">// 10</span>
+    }
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">LazySegTree</span>:
+    <span class="keyword">def</span> __init__(self, arr):
+        self.n = len(arr)
+        self.tree = [<span class="number">0</span>] * (<span class="number">4</span> * self.n)
+        self.lazy = [<span class="number">0</span>] * (<span class="number">4</span> * self.n)
+        self._build(arr, <span class="number">1</span>, <span class="number">0</span>, self.n - <span class="number">1</span>)
+
+    <span class="keyword">def</span> _build(self, arr, node, l, r):
+        <span class="keyword">if</span> l == r:
+            self.tree[node] = arr[l]
+            <span class="keyword">return</span>
+        mid = (l + r) // <span class="number">2</span>
+        self._build(arr, <span class="number">2</span> * node, l, mid)
+        self._build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r)
+        self.tree[node] = self.tree[<span class="number">2</span> * node] + self.tree[<span class="number">2</span> * node + <span class="number">1</span>]
+
+    <span class="keyword">def</span> _push_down(self, node, l, r):
+        <span class="keyword">if</span> self.lazy[node] != <span class="number">0</span>:
+            mid = (l + r) // <span class="number">2</span>
+            <span class="comment"># Push to left child</span>
+            self.tree[<span class="number">2</span> * node] += self.lazy[node] * (mid - l + <span class="number">1</span>)
+            self.lazy[<span class="number">2</span> * node] += self.lazy[node]
+            <span class="comment"># Push to right child</span>
+            self.tree[<span class="number">2</span> * node + <span class="number">1</span>] += self.lazy[node] * (r - mid)
+            self.lazy[<span class="number">2</span> * node + <span class="number">1</span>] += self.lazy[node]
+            <span class="comment"># Clear current lazy</span>
+            self.lazy[node] = <span class="number">0</span>
+
+    <span class="keyword">def</span> range_add(self, ql, qr, val, node=<span class="number">1</span>, l=<span class="number">0</span>, r=<span class="keyword">None</span>):
+        <span class="keyword">if</span> r <span class="keyword">is None</span>: r = self.n - <span class="number">1</span>
+        <span class="keyword">if</span> qr &lt; l <span class="keyword">or</span> r &lt; ql:
+            <span class="keyword">return</span>                          <span class="comment"># no overlap</span>
+        <span class="keyword">if</span> ql &lt;= l <span class="keyword">and</span> r &lt;= qr:
+            self.tree[node] += val * (r - l + <span class="number">1</span>)
+            self.lazy[node] += val
+            <span class="keyword">return</span>                          <span class="comment"># full overlap</span>
+        self._push_down(node, l, r)         <span class="comment"># partial overlap</span>
+        mid = (l + r) // <span class="number">2</span>
+        self.range_add(ql, qr, val, <span class="number">2</span> * node, l, mid)
+        self.range_add(ql, qr, val, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r)
+        self.tree[node] = self.tree[<span class="number">2</span> * node] + self.tree[<span class="number">2</span> * node + <span class="number">1</span>]
+
+    <span class="keyword">def</span> range_sum(self, ql, qr, node=<span class="number">1</span>, l=<span class="number">0</span>, r=<span class="keyword">None</span>):
+        <span class="keyword">if</span> r <span class="keyword">is None</span>: r = self.n - <span class="number">1</span>
+        <span class="keyword">if</span> qr &lt; l <span class="keyword">or</span> r &lt; ql:
+            <span class="keyword">return</span> <span class="number">0</span>                       <span class="comment"># no overlap</span>
+        <span class="keyword">if</span> ql &lt;= l <span class="keyword">and</span> r &lt;= qr:
+            <span class="keyword">return</span> self.tree[node]          <span class="comment"># full overlap</span>
+        self._push_down(node, l, r)         <span class="comment"># partial overlap</span>
+        mid = (l + r) // <span class="number">2</span>
+        <span class="keyword">return</span> (self.range_sum(ql, qr, <span class="number">2</span> * node, l, mid) +
+                self.range_sum(ql, qr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r))
+
+
+<span class="comment"># Usage</span>
+arr = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>, <span class="number">11</span>]
+st = LazySegTree(arr)
+
+<span class="keyword">print</span>(st.range_sum(<span class="number">0</span>, <span class="number">5</span>))   <span class="comment"># 36</span>
+st.range_add(<span class="number">1</span>, <span class="number">4</span>, <span class="number">2</span>)        <span class="comment"># add 2 to indices [1,4]</span>
+<span class="keyword">print</span>(st.range_sum(<span class="number">1</span>, <span class="number">4</span>))   <span class="comment"># 32</span>
+<span class="keyword">print</span>(st.range_sum(<span class="number">0</span>, <span class="number">5</span>))   <span class="comment"># 44</span>
+st.range_add(<span class="number">0</span>, <span class="number">2</span>, -<span class="number">1</span>)       <span class="comment"># subtract 1 from [0,2]</span>
+<span class="keyword">print</span>(st.range_sum(<span class="number">0</span>, <span class="number">2</span>))   <span class="comment"># 10</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Range Set Implementation</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> LazySegTreeSet {
+    vector&lt;<span class="type">long long</span>&gt; tree;
+    vector&lt;<span class="type">long long</span>&gt; lazy;
+    <span class="keyword">int</span> n;
+    <span class="keyword">const</span> <span class="type">long long</span> NO_PENDING = LLONG_MIN;
+
+    LazySegTreeSet(vector&lt;<span class="keyword">int</span>&gt;&amp; arr) {
+        n = arr.size();
+        tree.resize(<span class="number">4</span> * n, <span class="number">0</span>);
+        lazy.assign(<span class="number">4</span> * n, NO_PENDING);
+        build(arr, <span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>);
+    }
+
+    <span class="keyword">void</span> build(vector&lt;<span class="keyword">int</span>&gt;&amp; arr, <span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (l == r) { tree[node] = arr[l]; <span class="keyword">return</span>; }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        build(arr, <span class="number">2</span> * node, l, mid);
+        build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> push_down(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (lazy[node] != NO_PENDING) {
+            <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+            <span class="comment">// Set (not add) children's values</span>
+            tree[<span class="number">2</span> * node] = lazy[node] * (mid - l + <span class="number">1</span>);
+            lazy[<span class="number">2</span> * node] = lazy[node];
+            tree[<span class="number">2</span> * node + <span class="number">1</span>] = lazy[node] * (r - mid);
+            lazy[<span class="number">2</span> * node + <span class="number">1</span>] = lazy[node];
+            lazy[node] = NO_PENDING;
+        }
+    }
+
+    <span class="keyword">void</span> range_set(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long long</span> val) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) {
+            tree[node] = val * (r - l + <span class="number">1</span>);
+            lazy[node] = val;
+            <span class="keyword">return</span>;
+        }
+        push_down(node, l, r);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        range_set(<span class="number">2</span> * node, l, mid, ql, qr, val);
+        range_set(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr, val);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> range_set(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long long</span> val) {
+        range_set(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr, val);
+    }
+
+    <span class="type">long long</span> range_sum(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> tree[node];
+        push_down(node, l, r);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">return</span> range_sum(<span class="number">2</span> * node, l, mid, ql, qr) +
+               range_sum(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr);
+    }
+
+    <span class="type">long long</span> range_sum(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">return</span> range_sum(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr);
+    }
+};
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">LazySegTreeSet</span> {
+    <span class="type">long</span>[] tree, lazy;
+    <span class="keyword">boolean</span>[] hasLazy;  <span class="comment">// track if lazy is pending</span>
+    <span class="keyword">int</span> n;
+
+    LazySegTreeSet(<span class="keyword">int</span>[] arr) {
+        n = arr.length;
+        tree = <span class="keyword">new</span> <span class="type">long</span>[<span class="number">4</span> * n];
+        lazy = <span class="keyword">new</span> <span class="type">long</span>[<span class="number">4</span> * n];
+        hasLazy = <span class="keyword">new</span> <span class="keyword">boolean</span>[<span class="number">4</span> * n];
+        build(arr, <span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>);
+    }
+
+    <span class="keyword">void</span> build(<span class="keyword">int</span>[] arr, <span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (l == r) { tree[node] = arr[l]; <span class="keyword">return</span>; }
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        build(arr, <span class="number">2</span> * node, l, mid);
+        build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> pushDown(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">if</span> (hasLazy[node]) {
+            <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+            tree[<span class="number">2</span> * node] = lazy[node] * (mid - l + <span class="number">1</span>);
+            lazy[<span class="number">2</span> * node] = lazy[node];
+            hasLazy[<span class="number">2</span> * node] = <span class="keyword">true</span>;
+            tree[<span class="number">2</span> * node + <span class="number">1</span>] = lazy[node] * (r - mid);
+            lazy[<span class="number">2</span> * node + <span class="number">1</span>] = lazy[node];
+            hasLazy[<span class="number">2</span> * node + <span class="number">1</span>] = <span class="keyword">true</span>;
+            hasLazy[node] = <span class="keyword">false</span>;
+        }
+    }
+
+    <span class="keyword">void</span> rangeSet(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long</span> val) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) {
+            tree[node] = val * (r - l + <span class="number">1</span>);
+            lazy[node] = val;
+            hasLazy[node] = <span class="keyword">true</span>;
+            <span class="keyword">return</span>;
+        }
+        pushDown(node, l, r);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        rangeSet(<span class="number">2</span> * node, l, mid, ql, qr, val);
+        rangeSet(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr, val);
+        tree[node] = tree[<span class="number">2</span> * node] + tree[<span class="number">2</span> * node + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> rangeSet(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr, <span class="type">long</span> val) {
+        rangeSet(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr, val);
+    }
+
+    <span class="type">long</span> rangeSum(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">if</span> (qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> tree[node];
+        pushDown(node, l, r);
+        <span class="keyword">int</span> mid = (l + r) / <span class="number">2</span>;
+        <span class="keyword">return</span> rangeSum(<span class="number">2</span> * node, l, mid, ql, qr) +
+               rangeSum(<span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r, ql, qr);
+    }
+
+    <span class="type">long</span> rangeSum(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">return</span> rangeSum(<span class="number">1</span>, <span class="number">0</span>, n - <span class="number">1</span>, ql, qr);
+    }
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">LazySegTreeSet</span>:
+    <span class="keyword">def</span> __init__(self, arr):
+        self.n = len(arr)
+        self.tree = [<span class="number">0</span>] * (<span class="number">4</span> * self.n)
+        self.lazy = [<span class="keyword">None</span>] * (<span class="number">4</span> * self.n)  <span class="comment"># None = no pending</span>
+        self._build(arr, <span class="number">1</span>, <span class="number">0</span>, self.n - <span class="number">1</span>)
+
+    <span class="keyword">def</span> _build(self, arr, node, l, r):
+        <span class="keyword">if</span> l == r:
+            self.tree[node] = arr[l]
+            <span class="keyword">return</span>
+        mid = (l + r) // <span class="number">2</span>
+        self._build(arr, <span class="number">2</span> * node, l, mid)
+        self._build(arr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r)
+        self.tree[node] = self.tree[<span class="number">2</span> * node] + self.tree[<span class="number">2</span> * node + <span class="number">1</span>]
+
+    <span class="keyword">def</span> _push_down(self, node, l, r):
+        <span class="keyword">if</span> self.lazy[node] <span class="keyword">is not None</span>:
+            mid = (l + r) // <span class="number">2</span>
+            val = self.lazy[node]
+            self.tree[<span class="number">2</span> * node] = val * (mid - l + <span class="number">1</span>)
+            self.lazy[<span class="number">2</span> * node] = val
+            self.tree[<span class="number">2</span> * node + <span class="number">1</span>] = val * (r - mid)
+            self.lazy[<span class="number">2</span> * node + <span class="number">1</span>] = val
+            self.lazy[node] = <span class="keyword">None</span>
+
+    <span class="keyword">def</span> range_set(self, ql, qr, val, node=<span class="number">1</span>, l=<span class="number">0</span>, r=<span class="keyword">None</span>):
+        <span class="keyword">if</span> r <span class="keyword">is None</span>: r = self.n - <span class="number">1</span>
+        <span class="keyword">if</span> qr &lt; l <span class="keyword">or</span> r &lt; ql: <span class="keyword">return</span>
+        <span class="keyword">if</span> ql &lt;= l <span class="keyword">and</span> r &lt;= qr:
+            self.tree[node] = val * (r - l + <span class="number">1</span>)
+            self.lazy[node] = val
+            <span class="keyword">return</span>
+        self._push_down(node, l, r)
+        mid = (l + r) // <span class="number">2</span>
+        self.range_set(ql, qr, val, <span class="number">2</span> * node, l, mid)
+        self.range_set(ql, qr, val, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r)
+        self.tree[node] = self.tree[<span class="number">2</span> * node] + self.tree[<span class="number">2</span> * node + <span class="number">1</span>]
+
+    <span class="keyword">def</span> range_sum(self, ql, qr, node=<span class="number">1</span>, l=<span class="number">0</span>, r=<span class="keyword">None</span>):
+        <span class="keyword">if</span> r <span class="keyword">is None</span>: r = self.n - <span class="number">1</span>
+        <span class="keyword">if</span> qr &lt; l <span class="keyword">or</span> r &lt; ql: <span class="keyword">return</span> <span class="number">0</span>
+        <span class="keyword">if</span> ql &lt;= l <span class="keyword">and</span> r &lt;= qr: <span class="keyword">return</span> self.tree[node]
+        self._push_down(node, l, r)
+        mid = (l + r) // <span class="number">2</span>
+        <span class="keyword">return</span> (self.range_sum(ql, qr, <span class="number">2</span> * node, l, mid) +
+                self.range_sum(ql, qr, <span class="number">2</span> * node + <span class="number">1</span>, mid + <span class="number">1</span>, r))
+
+
+<span class="comment"># Usage</span>
+arr = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>, <span class="number">11</span>]
+st = LazySegTreeSet(arr)
+<span class="keyword">print</span>(st.range_sum(<span class="number">0</span>, <span class="number">5</span>))     <span class="comment"># 36</span>
+st.range_set(<span class="number">0</span>, <span class="number">3</span>, <span class="number">5</span>)          <span class="comment"># set [0,3] = 5</span>
+<span class="keyword">print</span>(st.range_sum(<span class="number">0</span>, <span class="number">5</span>))     <span class="comment"># 5*4 + 9 + 11 = 40</span>
+st.range_set(<span class="number">2</span>, <span class="number">5</span>, <span class="number">2</span>)          <span class="comment"># set [2,5] = 2</span>
+<span class="keyword">print</span>(st.range_sum(<span class="number">0</span>, <span class="number">5</span>))     <span class="comment"># 5+5+2+2+2+2 = 18</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity</h2>
+        <table>
+            <tr><th>Operation</th><th>Without Lazy</th><th>With Lazy</th><th>Space</th></tr>
+            <tr><td>Build</td><td>O(n)</td><td>O(n)</td><td>O(4n) tree + O(4n) lazy</td></tr>
+            <tr><td>Point Update</td><td>O(log n)</td><td>O(log n)</td><td>-</td></tr>
+            <tr><td>Range Update</td><td>O(n log n)</td><td>O(log n)</td><td>-</td></tr>
+            <tr><td>Range Query</td><td>O(log n)</td><td>O(log n)</td><td>-</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>When do you need Lazy Propagation?</strong>
+            <ul>
+                <li><strong>You NEED lazy</strong> when you have <strong>range updates + range queries</strong> together (e.g., add val to [l,r], then query sum of [l,r])</li>
+                <li><strong>You DON'T need lazy</strong> for <strong>point updates + range queries</strong> (standard segment tree suffices)</li>
+                <li><strong>You DON'T need lazy</strong> for <strong>range updates + point queries</strong> (can use difference arrays or BIT with range update)</li>
+                <li><strong>Key rule:</strong> Lazy is required when the update operation is "compatible" with the query -- i.e., you can compute the new aggregate for a range without visiting every element (e.g., adding v to n elements increases sum by v*n)</li>
+                <li><strong>Common lazy variants:</strong> Range Add + Sum, Range Set + Sum, Range Add + Min/Max, Range Set + Min/Max, Range XOR + Sum (for bits)</li>
+                <li><strong>Cannot use simple lazy:</strong> Range Set + Count of Distinct Values (need more complex node info)</li>
+            </ul>
+        </div>
+
+        <h2>How Updates and Queries Interact</h2>
+        <div class="visual">
+<pre>
+Execution flow of range_add and range_sum:
+
+range_add(node, l, r, ql, qr, val):
+  ┌─────────────────────────────────┐
+  │ 1. No overlap? -> return        │
+  │ 2. Full overlap?                │
+  │    -> tree[node] += val*(r-l+1) │
+  │    -> lazy[node] += val         │
+  │    -> return (STOP here!)       │
+  │ 3. Partial overlap?             │
+  │    -> push_down(node)           │
+  │    -> recurse left child        │
+  │    -> recurse right child       │
+  │    -> tree[node] = left + right │
+  └─────────────────────────────────┘
+
+range_sum(node, l, r, ql, qr):
+  ┌─────────────────────────────────┐
+  │ 1. No overlap? -> return 0      │
+  │ 2. Full overlap? -> return      │
+  │    tree[node]  (already correct │
+  │    because update maintained it)│
+  │ 3. Partial overlap?             │
+  │    -> push_down(node)           │
+  │    -> return left + right       │
+  └─────────────────────────────────┘
+
+Critical insight: push_down is called ONLY on partial overlap.
+  - Full overlap: node's tree value is already correct
+  - No overlap: we don't touch the node at all
+  - Partial: we MUST push before accessing children
+</pre>
+        </div>
+
+        <h2>Multiple Pending Updates</h2>
+        <div class="visual">
+<pre>
+What happens with multiple range_adds before any query?
+
+Array: [1, 2, 3, 4]  (n=4)
+
+Operation 1: range_add(0, 3, 5)   -- add 5 to all
+Operation 2: range_add(0, 1, 3)   -- add 3 to first half
+
+After Op 1:
+         Node 1 [0,3]
+        tree=10+5*4=30, lazy=5
+        /              \
+    Node 2 [0,1]      Node 3 [2,3]
+   tree=3, lazy=0     tree=7, lazy=0
+
+  Node 1 fully covers [0,3], so we just update node 1.
+  Children are NOT touched.
+
+After Op 2 (add 3 to [0,1]):
+  Node 1 [0,3]: partial overlap with [0,1]
+    -> push_down node 1!
+       Node 2: tree=3+5*2=13, lazy=0+5=5
+       Node 3: tree=7+5*2=17, lazy=0+5=5
+       Node 1: lazy=0
+    -> recurse left: Node 2 [0,1] fully inside [0,1]
+       tree=13+3*2=19, lazy=5+3=8
+    -> recurse right: Node 3 [2,3] outside [0,1]
+       return
+    -> tree[1] = tree[2] + tree[3] = 19 + 17 = 36
+
+Final state:
+         Node 1 [0,3]
+        tree=36, lazy=0
+        /              \
+    Node 2 [0,1]      Node 3 [2,3]
+   tree=19, lazy=8    tree=17, lazy=5
+   (1+5+3)+(2+5+3)   (3+5)+(4+5)
+     = 9 + 10 = 19     = 8 + 9 = 17
+
+Lazy values accumulate: node 2 has lazy=8 (5 from op1 + 3 from op2)
+</pre>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

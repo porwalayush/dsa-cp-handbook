@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segment Tree with Coordinate Compression - Range Queries Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Segment Tree with Coordinate Compression</h1>
+        <p><strong>Coordinate compression</strong> is a technique that maps large, sparse values into a compact range of contiguous integers (ranks). This lets us use array-based structures like segment trees and BITs even when the value domain is huge (up to 10<sup>9</sup>) but the number of distinct values is small (up to 10<sup>5</sup>).</p>
+
+        <h2>Why We Need Coordinate Compression</h2>
+        <p>Consider counting inversions in an array where values can be up to 10<sup>9</sup>. A BIT or segment tree indexed by value would need 10<sup>9</sup> cells &mdash; far too much memory. But if the array has only <code>n</code> elements, there are at most <code>n</code> distinct values. We can remap them to the range <code>[0, n-1]</code> and build our data structure over just <code>n</code> positions.</p>
+
+        <div class="note">
+            <strong>Key Insight:</strong>
+            <ul>
+                <li>Values can span up to 10<sup>9</sup>, but we only have up to 10<sup>5</sup> distinct values</li>
+                <li>We only care about the <strong>relative order</strong> of values, not their absolute magnitudes</li>
+                <li>Mapping to ranks preserves all ordering relationships needed for comparisons</li>
+            </ul>
+        </div>
+
+        <h2>Visual: Mapping Large Values to Contiguous Ranks</h2>
+        <div class="visual">
+<pre>
+Original array: [1000000, 3, 999999999, 50, 3, 1000000]
+
+Step 1: Collect all values
+  vals = [1000000, 3, 999999999, 50, 3, 1000000]
+
+Step 2: Sort
+  sorted = [3, 50, 1000000, 999999999]
+
+Step 3: Deduplicate
+  unique = [3, 50, 1000000, 999999999]
+
+Step 4: Assign ranks (0-indexed via binary search)
+  3           -> rank 0
+  50          -> rank 1
+  1000000     -> rank 2
+  999999999   -> rank 3
+
+Step 5: Replace original values with ranks
+  Original:   [1000000, 3, 999999999, 50, 3, 1000000]
+  Compressed: [   2,    0,     3,      1,  0,    2   ]
+
+Now we only need a BIT/segment tree of size 4 instead of 10^9!
+</pre>
+        </div>
+
+        <h2>Step-by-Step Algorithm</h2>
+        <ol>
+            <li><strong>Collect</strong> all relevant values into an auxiliary array</li>
+            <li><strong>Sort</strong> the auxiliary array</li>
+            <li><strong>Deduplicate</strong> (remove consecutive duplicates)</li>
+            <li><strong>Binary search</strong> for each original value to get its rank (0-indexed position in the sorted unique array)</li>
+        </ol>
+
+        <div class="visual">
+<pre>
+compress(arr):
+  sorted_unique = sort(deduplicate(arr))
+  for each element x in arr:
+    rank[x] = lower_bound(sorted_unique, x)  // O(log n) per lookup
+  return rank
+
+Total time: O(n log n) for sort + O(n log n) for all lookups = O(n log n)
+Space: O(n)
+</pre>
+        </div>
+
+        <h2>Classic Problem: Count Inversions with Large Values</h2>
+        <p>An <strong>inversion</strong> is a pair (i, j) where i &lt; j but arr[i] &gt; arr[j]. When values are up to 10<sup>9</sup>, we compress them first, then use a BIT to count how many previously seen elements have a larger rank than the current one.</p>
+
+        <div class="visual">
+<pre>
+Array: [5, 3, 8, 1, 4]   (after compression: [2, 1, 4, 0, 3])
+                           ranks use 0-based indexing
+
+Process left to right, maintaining BIT of "elements seen so far":
+
+i=0: rank=2, elements seen with rank > 2: query(3,4) = 0
+     Insert rank 2 into BIT.  inversions += 0
+
+i=1: rank=1, elements seen with rank > 1: query(2,4) = 1  (rank 2 is present)
+     Insert rank 1 into BIT.  inversions += 1
+
+i=2: rank=4, elements seen with rank > 4: query(5,4) = 0
+     Insert rank 4 into BIT.  inversions += 0
+
+i=3: rank=0, elements seen with rank > 0: query(1,4) = 3  (ranks 1,2,4 present)
+     Insert rank 0 into BIT.  inversions += 3
+
+i=4: rank=3, elements seen with rank > 3: query(4,4) = 1  (rank 4 is present)
+     Insert rank 3 into BIT.  inversions += 1
+
+Total inversions = 0 + 1 + 0 + 3 + 1 = 5
+</pre>
+        </div>
+
+        <h2>Classic Problem: Count Elements Less Than k in a Range (Offline)</h2>
+        <p>Given an array and queries of the form "how many elements in arr[l..r] are less than k?", we can solve this offline by sorting queries by <code>k</code> and sweeping through compressed values.</p>
+
+        <div class="visual">
+<pre>
+Array: [10, 30, 20, 50, 40]
+Queries: (l=0, r=3, k=25), (l=1, r=4, k=45)
+
+Step 1: Compress array values AND query thresholds together
+  All values: [10, 20, 25, 30, 40, 45, 50]
+  Ranks:        0   1   2   3   4   5   6
+
+Step 2: Sort queries by k (ascending)
+  Q1: (l=0, r=3, k=25, rank_k=2)
+  Q2: (l=1, r=4, k=45, rank_k=5)
+
+Step 3: Sort array elements by value: (10,idx=0), (20,idx=2), (30,idx=1), ...
+
+Step 4: Sweep - for each query, insert all elements with value < k into BIT by index
+  For Q1 (k=25): insert positions of values < 25 -> insert idx 0 (val 10), idx 2 (val 20)
+    BIT query(0,3) = 2   (positions 0 and 2 are in [0,3])
+
+  For Q2 (k=45): insert positions of values < 45 -> also insert idx 1 (val 30), idx 4 (val 40)
+    BIT query(1,4) = 3   (positions 1, 2, 4 are in [1,4])
+
+Answers: Q1 = 2, Q2 = 3
+</pre>
+        </div>
+
+        <h2>Full Code: Inversion Count with Coordinate Compression + BIT</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> BIT {
+    vector&lt;<span class="keyword">int</span>&gt; tree;
+    <span class="keyword">int</span> n;
+
+    BIT(<span class="keyword">int</span> n) : n(n), tree(n + <span class="number">1</span>, <span class="number">0</span>) {}
+
+    <span class="keyword">void</span> update(<span class="keyword">int</span> i, <span class="keyword">int</span> delta) {
+        <span class="keyword">for</span> (++i; i &lt;= n; i += i &amp; (-i))
+            tree[i] += delta;
+    }
+
+    <span class="keyword">int</span> query(<span class="keyword">int</span> i) {  <span class="comment">// prefix sum [0, i]</span>
+        <span class="keyword">int</span> s = <span class="number">0</span>;
+        <span class="keyword">for</span> (++i; i &gt; <span class="number">0</span>; i -= i &amp; (-i))
+            s += tree[i];
+        <span class="keyword">return</span> s;
+    }
+
+    <span class="keyword">int</span> query(<span class="keyword">int</span> l, <span class="keyword">int</span> r) {  <span class="comment">// range sum [l, r]</span>
+        <span class="keyword">return</span> query(r) - (l ? query(l - <span class="number">1</span>) : <span class="number">0</span>);
+    }
+};
+
+<span class="comment">// Coordinate compression: maps values to ranks [0, m-1]</span>
+vector&lt;<span class="keyword">int</span>&gt; compress(vector&lt;<span class="keyword">int</span>&gt;&amp; arr) {
+    vector&lt;<span class="keyword">int</span>&gt; sorted_vals(arr);
+    sort(sorted_vals.begin(), sorted_vals.end());
+    sorted_vals.erase(unique(sorted_vals.begin(), sorted_vals.end()), sorted_vals.end());
+
+    vector&lt;<span class="keyword">int</span>&gt; ranks(arr.size());
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; arr.size(); i++) {
+        ranks[i] = lower_bound(sorted_vals.begin(), sorted_vals.end(), arr[i])
+                   - sorted_vals.begin();
+    }
+    <span class="keyword">return</span> ranks;
+}
+
+<span class="keyword">long long</span> countInversions(vector&lt;<span class="keyword">int</span>&gt;&amp; arr) {
+    <span class="keyword">int</span> n = arr.size();
+    vector&lt;<span class="keyword">int</span>&gt; ranks = compress(arr);
+    <span class="keyword">int</span> m = *max_element(ranks.begin(), ranks.end()) + <span class="number">1</span>;
+
+    BIT bit(m);
+    <span class="keyword">long long</span> inversions = <span class="number">0</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) {
+        <span class="comment">// Count elements already inserted with rank > ranks[i]</span>
+        inversions += bit.query(ranks[i] + <span class="number">1</span>, m - <span class="number">1</span>);
+        <span class="comment">// Insert current rank</span>
+        bit.update(ranks[i], <span class="number">1</span>);
+    }
+    <span class="keyword">return</span> inversions;
+}
+
+<span class="keyword">int</span> main() {
+    vector&lt;<span class="keyword">int</span>&gt; arr = {<span class="number">1000000000</span>, <span class="number">3</span>, <span class="number">999999999</span>, <span class="number">50</span>, <span class="number">7</span>};
+    cout &lt;&lt; <span class="string">"Inversions: "</span> &lt;&lt; countInversions(arr) &lt;&lt; endl;
+    <span class="comment">// Output: Inversions: 6</span>
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> <span class="type">BIT</span> {
+    <span class="keyword">int</span>[] tree;
+    <span class="keyword">int</span> n;
+
+    BIT(<span class="keyword">int</span> n) {
+        <span class="keyword">this</span>.n = n;
+        tree = <span class="keyword">new int</span>[n + <span class="number">1</span>];
+    }
+
+    <span class="keyword">void</span> update(<span class="keyword">int</span> i, <span class="keyword">int</span> delta) {
+        <span class="keyword">for</span> (++i; i &lt;= n; i += i &amp; (-i))
+            tree[i] += delta;
+    }
+
+    <span class="keyword">int</span> query(<span class="keyword">int</span> i) { <span class="comment">// prefix sum [0, i]</span>
+        <span class="keyword">int</span> s = <span class="number">0</span>;
+        <span class="keyword">for</span> (++i; i &gt; <span class="number">0</span>; i -= i &amp; (-i))
+            s += tree[i];
+        <span class="keyword">return</span> s;
+    }
+
+    <span class="keyword">int</span> query(<span class="keyword">int</span> l, <span class="keyword">int</span> r) { <span class="comment">// range sum [l, r]</span>
+        <span class="keyword">return</span> query(r) - (l &gt; <span class="number">0</span> ? query(l - <span class="number">1</span>) : <span class="number">0</span>);
+    }
+}
+
+<span class="keyword">public class</span> <span class="type">InversionCount</span> {
+    <span class="keyword">static int</span>[] compress(<span class="keyword">int</span>[] arr) {
+        <span class="keyword">int</span>[] sorted = arr.clone();
+        Arrays.sort(sorted);
+        <span class="comment">// Deduplicate</span>
+        <span class="keyword">int</span> m = <span class="number">0</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sorted.length; i++)
+            <span class="keyword">if</span> (i == <span class="number">0</span> || sorted[i] != sorted[i - <span class="number">1</span>])
+                sorted[m++] = sorted[i];
+        sorted = Arrays.copyOf(sorted, m);
+
+        <span class="keyword">int</span>[] ranks = <span class="keyword">new int</span>[arr.length];
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; arr.length; i++)
+            ranks[i] = Arrays.binarySearch(sorted, arr[i]);
+        <span class="keyword">return</span> ranks;
+    }
+
+    <span class="keyword">static long</span> countInversions(<span class="keyword">int</span>[] arr) {
+        <span class="keyword">int</span> n = arr.length;
+        <span class="keyword">int</span>[] ranks = compress(arr);
+        <span class="keyword">int</span> m = <span class="number">0</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> r : ranks) m = Math.max(m, r);
+        m++;
+
+        BIT bit = <span class="keyword">new</span> BIT(m);
+        <span class="keyword">long</span> inversions = <span class="number">0</span>;
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) {
+            <span class="comment">// Count elements already inserted with rank > ranks[i]</span>
+            <span class="keyword">if</span> (ranks[i] + <span class="number">1</span> &lt;= m - <span class="number">1</span>)
+                inversions += bit.query(ranks[i] + <span class="number">1</span>, m - <span class="number">1</span>);
+            <span class="comment">// Insert current rank</span>
+            bit.update(ranks[i], <span class="number">1</span>);
+        }
+        <span class="keyword">return</span> inversions;
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span>[] arr = {<span class="number">1000000000</span>, <span class="number">3</span>, <span class="number">999999999</span>, <span class="number">50</span>, <span class="number">7</span>};
+        System.out.println(<span class="string">"Inversions: "</span> + countInversions(arr));
+        <span class="comment">// Output: Inversions: 6</span>
+    }
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">from</span> bisect <span class="keyword">import</span> bisect_left
+
+<span class="keyword">class</span> <span class="type">BIT</span>:
+    <span class="keyword">def</span> __init__(self, n):
+        self.n = n
+        self.tree = [<span class="number">0</span>] * (n + <span class="number">1</span>)
+
+    <span class="keyword">def</span> update(self, i, delta=<span class="number">1</span>):
+        i += <span class="number">1</span>  <span class="comment"># 1-indexed internally</span>
+        <span class="keyword">while</span> i &lt;= self.n:
+            self.tree[i] += delta
+            i += i &amp; (-i)
+
+    <span class="keyword">def</span> query(self, i):
+        <span class="string">"""Prefix sum [0, i]"""</span>
+        s = <span class="number">0</span>
+        i += <span class="number">1</span>
+        <span class="keyword">while</span> i &gt; <span class="number">0</span>:
+            s += self.tree[i]
+            i -= i &amp; (-i)
+        <span class="keyword">return</span> s
+
+    <span class="keyword">def</span> range_query(self, l, r):
+        <span class="string">"""Range sum [l, r]"""</span>
+        <span class="keyword">return</span> self.query(r) - (self.query(l - <span class="number">1</span>) <span class="keyword">if</span> l &gt; <span class="number">0</span> <span class="keyword">else</span> <span class="number">0</span>)
+
+
+<span class="keyword">def</span> compress(arr):
+    <span class="string">"""Map values to contiguous ranks [0, m-1]"""</span>
+    sorted_unique = sorted(set(arr))
+    <span class="keyword">return</span> [bisect_left(sorted_unique, x) <span class="keyword">for</span> x <span class="keyword">in</span> arr], len(sorted_unique)
+
+
+<span class="keyword">def</span> count_inversions(arr):
+    ranks, m = compress(arr)
+    bit = BIT(m)
+    inversions = <span class="number">0</span>
+
+    <span class="keyword">for</span> rank <span class="keyword">in</span> ranks:
+        <span class="comment"># Count elements already inserted with rank > current rank</span>
+        <span class="keyword">if</span> rank + <span class="number">1</span> &lt;= m - <span class="number">1</span>:
+            inversions += bit.range_query(rank + <span class="number">1</span>, m - <span class="number">1</span>)
+        <span class="comment"># Insert current rank</span>
+        bit.update(rank)
+
+    <span class="keyword">return</span> inversions
+
+
+<span class="comment"># Example with large values</span>
+arr = [<span class="number">1000000000</span>, <span class="number">3</span>, <span class="number">999999999</span>, <span class="number">50</span>, <span class="number">7</span>]
+<span class="keyword">print</span>(f<span class="string">"Inversions: {count_inversions(arr)}"</span>)
+<span class="comment"># Output: Inversions: 6</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>When to Use Coordinate Compression vs Dynamic Segment Tree</h2>
+        <table>
+            <tr><th>Criteria</th><th>Coordinate Compression</th><th>Dynamic Segment Tree</th></tr>
+            <tr><td>All values known upfront?</td><td>Yes (offline)</td><td>Not required (online)</td></tr>
+            <tr><td>Memory</td><td>O(n) &mdash; compact</td><td>O(n log V) &mdash; allocates nodes on demand</td></tr>
+            <tr><td>Implementation</td><td>Simple &mdash; sort + binary search</td><td>More complex &mdash; pointer-based or implicit</td></tr>
+            <tr><td>Value range</td><td>Irrelevant after compression</td><td>Must handle full range [0, V]</td></tr>
+            <tr><td>New values at runtime?</td><td>Cannot handle &mdash; ranks are fixed</td><td>Can insert new values dynamically</td></tr>
+            <tr><td>Constant factor</td><td>Low &mdash; uses arrays</td><td>Higher &mdash; pointer chasing, allocation</td></tr>
+            <tr><td>Best for</td><td>Offline problems, competitive programming</td><td>Online queries with unknown future values</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>Rule of Thumb:</strong>
+            <ul>
+                <li>If all queries and updates are known in advance, prefer coordinate compression for its simplicity and speed</li>
+                <li>If queries arrive online and may introduce new values never seen before, use a dynamic segment tree or a balanced BST (e.g., policy-based tree in C++)</li>
+            </ul>
+        </div>
+
+        <h2>Offline vs Online Trade-offs</h2>
+
+        <h3>Offline Approach (Coordinate Compression)</h3>
+        <ul>
+            <li><strong>Requirement:</strong> All values (from the array AND queries) must be known before processing</li>
+            <li><strong>Advantage:</strong> Minimal memory, fast constant factor, simple to implement</li>
+            <li><strong>Technique:</strong> Collect all values, compress, then process queries using the compressed indices</li>
+            <li><strong>Limitation:</strong> Cannot handle truly interactive problems where future values are unknown</li>
+        </ul>
+
+        <h3>Online Approach (Dynamic Segment Tree / Merge Sort Tree)</h3>
+        <ul>
+            <li><strong>Requirement:</strong> None &mdash; handles arbitrary values at any time</li>
+            <li><strong>Advantage:</strong> Fully general, works with streaming data</li>
+            <li><strong>Technique:</strong> Allocate tree nodes only when accessed; the tree spans [0, 10<sup>9</sup>] but only materializes O(n log V) nodes</li>
+            <li><strong>Limitation:</strong> Higher memory overhead, slower due to allocation and pointer indirection</li>
+        </ul>
+
+        <table>
+            <tr><th>Scenario</th><th>Recommended Approach</th></tr>
+            <tr><td>Count inversions in a static array</td><td>Coordinate compression + BIT</td></tr>
+            <tr><td>Range frequency queries (all queries given)</td><td>Offline compression + persistent seg tree</td></tr>
+            <tr><td>Online insert + count less than k</td><td>Dynamic segment tree or balanced BST</td></tr>
+            <tr><td>2D queries with large coordinates</td><td>Compress both dimensions independently</td></tr>
+            <tr><td>Interactive judge with unknown values</td><td>Dynamic segment tree (no choice)</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>Competitive Programming Tip:</strong>
+            <ul>
+                <li>Most contest problems allow offline processing &mdash; always check if coordinate compression works before reaching for heavier structures</li>
+                <li>When both query thresholds and array values need compression, combine them into a single sorted unique array</li>
+                <li>Time complexity is the same (O(n log n)) for both approaches &mdash; the difference is in constant factor and memory</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>

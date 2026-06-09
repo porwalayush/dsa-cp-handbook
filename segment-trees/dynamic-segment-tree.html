@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Segment Tree - Range Queries Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Index</a>
+        <h1>Dynamic Segment Tree</h1>
+        <p>A <strong>Dynamic Segment Tree</strong> (also called an implicit or sparse segment tree) creates nodes only when they are actually needed. This lets you handle ranges as large as <code>[0, 10^9]</code> while using memory proportional to the number of operations, not the range size.</p>
+
+        <h2>When to Use</h2>
+        <ul>
+            <li>The value range is <strong>huge</strong> (e.g., <code>[0, 10^9]</code> or <code>[0, 10^18]</code>)</li>
+            <li>But the number of actual updates/queries is <strong>small</strong> (e.g., <code>10^5</code>)</li>
+            <li>You cannot (or don't want to) apply coordinate compression</li>
+            <li>Queries arrive <strong>online</strong> and you cannot pre-process all positions</li>
+        </ul>
+
+        <div class="note">
+            <strong>Rule of thumb:</strong> If range N is huge but operations Q are few, a dynamic segment tree uses O(Q log N) memory instead of O(N).
+        </div>
+
+        <h2>Concept: Create Nodes on Demand</h2>
+        <p>In a standard segment tree over <code>[0, N-1]</code>, we allocate <code>4N</code> entries. When N = 10^9, that is 16 GB of memory for integers alone. A dynamic segment tree starts with just a root and creates child nodes only when an update touches that region.</p>
+        <p>Each node stores pointers (or indices) to its left and right children instead of using the <code>2*i</code> / <code>2*i+1</code> formula. If a child has never been accessed, its pointer remains null (or 0), implicitly representing a subtree of all zeros.</p>
+
+        <h2>Visual: Sparse Tree Structure</h2>
+        <div class="visual">
+<pre>
+Range: [0, 15]   Operations: update(2, 5), update(11, 3), update(14, 7)
+
+Full tree would have 31 nodes. Dynamic tree creates only what's needed:
+
+                        [15]                root: [0,15]
+                       /    \
+                   [5]        [10]          [0,7] and [8,15]
+                  /               \
+              [5]                   [10]     [0,3] and [12,15]
+             /    \               /    \
+          [0]     [5]          [0]     [7]  [0,1] [2,3] [12,13] [14,15]
+                 /                            \
+              [5]                              [3]  [2,2] and [11,11] (missing)
+                                                    ^-- stored at leaf
+
+Nodes created: 11 out of 31 possible
+Branches that are NULL represent all-zero subtrees (never allocated)
+
+Legend:
+  [val] = node with sum value
+  /  \  = pointer to child (only exists if created)
+  Missing branches = NULL pointer (implicit zeros)
+</pre>
+        </div>
+
+        <h2>Comparison: Dynamic ST vs. Coordinate Compression</h2>
+        <table>
+            <tr><th>Aspect</th><th>Coordinate Compression</th><th>Dynamic Segment Tree</th></tr>
+            <tr><td>Setup</td><td>Collect all values, sort, remap</td><td>No preprocessing needed</td></tr>
+            <tr><td>Online queries</td><td>Difficult (need all values upfront)</td><td>Naturally supports online queries</td></tr>
+            <tr><td>Memory</td><td>O(Q) for the array + O(4Q) for tree</td><td>O(Q log N) nodes</td></tr>
+            <tr><td>Implementation</td><td>Simpler once compressed</td><td>Pointer/pool management</td></tr>
+            <tr><td>Range answers</td><td>Exact values after remap</td><td>Directly on original values</td></tr>
+            <tr><td>Merge operations</td><td>Requires re-compression</td><td>Easy to merge trees</td></tr>
+            <tr><td>Persistent version</td><td>Harder with static array</td><td>Natural extension</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>When to prefer coordinate compression:</strong>
+            <ul>
+                <li>All queries are known offline (competitive programming with offline approach)</li>
+                <li>Simpler code is a priority and memory is tight</li>
+            </ul>
+            <strong>When to prefer dynamic segment tree:</strong>
+            <ul>
+                <li>Online queries (cannot see future queries)</li>
+                <li>Need to merge segment trees (e.g., small-to-large merge on trees)</li>
+                <li>Persistent segment tree required</li>
+            </ul>
+        </div>
+
+        <h2>Implementation: Node Pool for Cache Efficiency</h2>
+        <p>Instead of using <code>new</code>/heap allocation per node (which causes cache misses), we pre-allocate a <strong>node pool</strong> (a flat array of node structs). Each "pointer" is just an index into this pool. This gives us:</p>
+        <ul>
+            <li><strong>Cache locality</strong> - nodes are contiguous in memory</li>
+            <li><strong>No memory fragmentation</strong> - predictable allocation</li>
+            <li><strong>Fast allocation</strong> - just increment a counter</li>
+            <li><strong>Easy reset</strong> - set counter back to 0 to "free" everything</li>
+        </ul>
+
+        <div class="visual">
+<pre>
+Node Pool (array-based):
++-------+-------+-------+-------+-------+-------+-------+
+| idx 0 | idx 1 | idx 2 | idx 3 | idx 4 | idx 5 | idx 6 | ...
++-------+-------+-------+-------+-------+-------+-------+
+| root  | L of 0| R of 0| L of 1| R of 1| L of 2|       |
+| sum=15| sum=5 | sum=10| sum=5 | (null)| (null)| sum=10|
+| L=1   | L=3   | L=0   | L=0   | ...   |       | L=0   |
+| R=2   | R=4   | R=6   | R=5   |       |       | R=....|
++-------+-------+-------+-------+-------+-------+-------+
+           ^                                        ^
+     pool_cnt increments as nodes are created
+
+Each node: { sum, left_child_idx, right_child_idx }
+Null pointer = 0 (index 0 is reserved or sum=0 sentinel)
+</pre>
+        </div>
+
+        <h2>Code: Pointer-Based Version</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp-ptr')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java-ptr')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python-ptr')">Python</button>
+            </div>
+            <div id="cpp-ptr" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">struct</span> Node {
+    <span class="keyword">long long</span> sum;
+    Node *left, *right;
+    Node() : sum(<span class="number">0</span>), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+
+<span class="keyword">class</span> <span class="type">DynamicSegTree</span> {
+    Node* root;
+    <span class="keyword">int</span> L, R;  <span class="comment">// range [L, R]</span>
+
+<span class="keyword">public</span>:
+    DynamicSegTree(<span class="keyword">int</span> l, <span class="keyword">int</span> r) : L(l), R(r) {
+        root = <span class="keyword">new</span> Node();
+    }
+
+    <span class="keyword">void</span> update(<span class="keyword">int</span> pos, <span class="keyword">long long</span> val) {
+        update(root, L, R, pos, val);
+    }
+
+    <span class="keyword">long long</span> query(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">return</span> query(root, L, R, ql, qr);
+    }
+
+<span class="keyword">private</span>:
+    <span class="keyword">void</span> update(Node* node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> pos, <span class="keyword">long long</span> val) {
+        <span class="keyword">if</span> (l == r) {
+            node-&gt;sum += val;
+            <span class="keyword">return</span>;
+        }
+        <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+        <span class="keyword">if</span> (pos &lt;= mid) {
+            <span class="keyword">if</span> (!node-&gt;left) node-&gt;left = <span class="keyword">new</span> Node();
+            update(node-&gt;left, l, mid, pos, val);
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (!node-&gt;right) node-&gt;right = <span class="keyword">new</span> Node();
+            update(node-&gt;right, mid + <span class="number">1</span>, r, pos, val);
+        }
+        <span class="keyword">long long</span> ls = node-&gt;left ? node-&gt;left-&gt;sum : <span class="number">0</span>;
+        <span class="keyword">long long</span> rs = node-&gt;right ? node-&gt;right-&gt;sum : <span class="number">0</span>;
+        node-&gt;sum = ls + rs;
+    }
+
+    <span class="keyword">long long</span> query(Node* node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">if</span> (!node || qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> node-&gt;sum;
+        <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+        <span class="keyword">return</span> query(node-&gt;left, l, mid, ql, qr) +
+               query(node-&gt;right, mid + <span class="number">1</span>, r, ql, qr);
+    }
+};
+
+<span class="keyword">int</span> main() {
+    DynamicSegTree dst(<span class="number">0</span>, <span class="number">1000000000</span>);
+    dst.update(<span class="number">5</span>, <span class="number">10</span>);
+    dst.update(<span class="number">999999999</span>, <span class="number">7</span>);
+    dst.update(<span class="number">42</span>, <span class="number">3</span>);
+    cout &lt;&lt; dst.query(<span class="number">0</span>, <span class="number">1000000000</span>) &lt;&lt; <span class="string">"\n"</span>;  <span class="comment">// 20</span>
+    cout &lt;&lt; dst.query(<span class="number">5</span>, <span class="number">42</span>) &lt;&lt; <span class="string">"\n"</span>;           <span class="comment">// 13</span>
+}
+</pre>
+            </div>
+            <div id="java-ptr" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">DynamicSegTree</span> {
+    <span class="keyword">static class</span> <span class="type">Node</span> {
+        <span class="keyword">long</span> sum;
+        Node left, right;
+        Node() { sum = <span class="number">0</span>; left = <span class="keyword">null</span>; right = <span class="keyword">null</span>; }
+    }
+
+    Node root;
+    <span class="keyword">int</span> L, R;
+
+    DynamicSegTree(<span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        L = l; R = r;
+        root = <span class="keyword">new</span> Node();
+    }
+
+    <span class="keyword">void</span> update(<span class="keyword">int</span> pos, <span class="keyword">long</span> val) {
+        update(root, L, R, pos, val);
+    }
+
+    <span class="keyword">long</span> query(<span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">return</span> query(root, L, R, ql, qr);
+    }
+
+    <span class="keyword">private void</span> update(Node node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> pos, <span class="keyword">long</span> val) {
+        <span class="keyword">if</span> (l == r) {
+            node.sum += val;
+            <span class="keyword">return</span>;
+        }
+        <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+        <span class="keyword">if</span> (pos &lt;= mid) {
+            <span class="keyword">if</span> (node.left == <span class="keyword">null</span>) node.left = <span class="keyword">new</span> Node();
+            update(node.left, l, mid, pos, val);
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (node.right == <span class="keyword">null</span>) node.right = <span class="keyword">new</span> Node();
+            update(node.right, mid + <span class="number">1</span>, r, pos, val);
+        }
+        <span class="keyword">long</span> ls = node.left != <span class="keyword">null</span> ? node.left.sum : <span class="number">0</span>;
+        <span class="keyword">long</span> rs = node.right != <span class="keyword">null</span> ? node.right.sum : <span class="number">0</span>;
+        node.sum = ls + rs;
+    }
+
+    <span class="keyword">private long</span> query(Node node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">if</span> (node == <span class="keyword">null</span> || qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> node.sum;
+        <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+        <span class="keyword">return</span> query(node.left, l, mid, ql, qr) +
+               query(node.right, mid + <span class="number">1</span>, r, ql, qr);
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        DynamicSegTree dst = <span class="keyword">new</span> DynamicSegTree(<span class="number">0</span>, <span class="number">1000000000</span>);
+        dst.update(<span class="number">5</span>, <span class="number">10</span>);
+        dst.update(<span class="number">999999999</span>, <span class="number">7</span>);
+        dst.update(<span class="number">42</span>, <span class="number">3</span>);
+        System.out.println(dst.query(<span class="number">0</span>, <span class="number">1000000000</span>)); <span class="comment">// 20</span>
+        System.out.println(dst.query(<span class="number">5</span>, <span class="number">42</span>));           <span class="comment">// 13</span>
+    }
+}
+</pre>
+            </div>
+            <div id="python-ptr" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    __slots__ = [<span class="string">'sum'</span>, <span class="string">'left'</span>, <span class="string">'right'</span>]
+    <span class="keyword">def</span> __init__(self):
+        self.sum = <span class="number">0</span>
+        self.left = <span class="keyword">None</span>
+        self.right = <span class="keyword">None</span>
+
+<span class="keyword">class</span> <span class="type">DynamicSegTree</span>:
+    <span class="keyword">def</span> __init__(self, l, r):
+        self.L, self.R = l, r
+        self.root = Node()
+
+    <span class="keyword">def</span> update(self, pos, val):
+        self._update(self.root, self.L, self.R, pos, val)
+
+    <span class="keyword">def</span> query(self, ql, qr):
+        <span class="keyword">return</span> self._query(self.root, self.L, self.R, ql, qr)
+
+    <span class="keyword">def</span> _update(self, node, l, r, pos, val):
+        <span class="keyword">if</span> l == r:
+            node.sum += val
+            <span class="keyword">return</span>
+        mid = (l + r) // <span class="number">2</span>
+        <span class="keyword">if</span> pos &lt;= mid:
+            <span class="keyword">if not</span> node.left:
+                node.left = Node()
+            self._update(node.left, l, mid, pos, val)
+        <span class="keyword">else</span>:
+            <span class="keyword">if not</span> node.right:
+                node.right = Node()
+            self._update(node.right, mid + <span class="number">1</span>, r, pos, val)
+        ls = node.left.sum <span class="keyword">if</span> node.left <span class="keyword">else</span> <span class="number">0</span>
+        rs = node.right.sum <span class="keyword">if</span> node.right <span class="keyword">else</span> <span class="number">0</span>
+        node.sum = ls + rs
+
+    <span class="keyword">def</span> _query(self, node, l, r, ql, qr):
+        <span class="keyword">if not</span> node <span class="keyword">or</span> qr &lt; l <span class="keyword">or</span> r &lt; ql:
+            <span class="keyword">return</span> <span class="number">0</span>
+        <span class="keyword">if</span> ql &lt;= l <span class="keyword">and</span> r &lt;= qr:
+            <span class="keyword">return</span> node.sum
+        mid = (l + r) // <span class="number">2</span>
+        <span class="keyword">return</span> (self._query(node.left, l, mid, ql, qr) +
+                self._query(node.right, mid + <span class="number">1</span>, r, ql, qr))
+
+<span class="comment"># Usage</span>
+dst = DynamicSegTree(<span class="number">0</span>, <span class="number">10</span>**<span class="number">9</span>)
+dst.update(<span class="number">5</span>, <span class="number">10</span>)
+dst.update(<span class="number">999999999</span>, <span class="number">7</span>)
+dst.update(<span class="number">42</span>, <span class="number">3</span>)
+<span class="keyword">print</span>(dst.query(<span class="number">0</span>, <span class="number">10</span>**<span class="number">9</span>))  <span class="comment"># 20</span>
+<span class="keyword">print</span>(dst.query(<span class="number">5</span>, <span class="number">42</span>))      <span class="comment"># 13</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Code: Array-Pool Version (Cache-Friendly)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp-pool')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java-pool')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python-pool')">Python</button>
+            </div>
+            <div id="cpp-pool" class="code-content active">
+<pre>
+<span class="keyword">#include</span> &lt;bits/stdc++.h&gt;
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">const int</span> MAXNODES = <span class="number">4000000</span>;  <span class="comment">// Q * log(N) upper bound</span>
+
+<span class="keyword">struct</span> Node {
+    <span class="keyword">long long</span> sum;
+    <span class="keyword">int</span> left, right;  <span class="comment">// indices into pool (0 = null)</span>
+} pool[MAXNODES];
+
+<span class="keyword">int</span> pool_cnt = <span class="number">1</span>;  <span class="comment">// 0 is reserved as null sentinel</span>
+
+<span class="keyword">int</span> newNode() {
+    pool[pool_cnt] = {<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>};
+    <span class="keyword">return</span> pool_cnt++;
+}
+
+<span class="keyword">void</span> update(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> pos, <span class="keyword">long long</span> val) {
+    <span class="keyword">if</span> (l == r) {
+        pool[node].sum += val;
+        <span class="keyword">return</span>;
+    }
+    <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+    <span class="keyword">if</span> (pos &lt;= mid) {
+        <span class="keyword">if</span> (!pool[node].left) pool[node].left = newNode();
+        update(pool[node].left, l, mid, pos, val);
+    } <span class="keyword">else</span> {
+        <span class="keyword">if</span> (!pool[node].right) pool[node].right = newNode();
+        update(pool[node].right, mid + <span class="number">1</span>, r, pos, val);
+    }
+    pool[node].sum = pool[pool[node].left].sum + pool[pool[node].right].sum;
+}
+
+<span class="keyword">long long</span> query(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+    <span class="keyword">if</span> (!node || qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> pool[node].sum;
+    <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+    <span class="keyword">return</span> query(pool[node].left, l, mid, ql, qr) +
+           query(pool[node].right, mid + <span class="number">1</span>, r, ql, qr);
+}
+
+<span class="keyword">int</span> main() {
+    <span class="keyword">const int</span> N = <span class="number">1000000000</span>;
+    <span class="keyword">int</span> root = newNode();  <span class="comment">// root is pool index 1</span>
+
+    update(root, <span class="number">0</span>, N, <span class="number">5</span>, <span class="number">10</span>);
+    update(root, <span class="number">0</span>, N, <span class="number">999999999</span>, <span class="number">7</span>);
+    update(root, <span class="number">0</span>, N, <span class="number">42</span>, <span class="number">3</span>);
+
+    cout &lt;&lt; query(root, <span class="number">0</span>, N, <span class="number">0</span>, N) &lt;&lt; <span class="string">"\n"</span>;   <span class="comment">// 20</span>
+    cout &lt;&lt; query(root, <span class="number">0</span>, N, <span class="number">5</span>, <span class="number">42</span>) &lt;&lt; <span class="string">"\n"</span>;  <span class="comment">// 13</span>
+    cout &lt;&lt; <span class="string">"Nodes used: "</span> &lt;&lt; pool_cnt &lt;&lt; <span class="string">"\n"</span>;
+}
+</pre>
+            </div>
+            <div id="java-pool" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">DynamicSegTreePool</span> {
+    <span class="keyword">static final int</span> MAXNODES = <span class="number">4000000</span>;
+    <span class="keyword">static long</span>[] sum = <span class="keyword">new long</span>[MAXNODES];
+    <span class="keyword">static int</span>[] left = <span class="keyword">new int</span>[MAXNODES];
+    <span class="keyword">static int</span>[] right = <span class="keyword">new int</span>[MAXNODES];
+    <span class="keyword">static int</span> poolCnt = <span class="number">1</span>;  <span class="comment">// 0 = null sentinel</span>
+
+    <span class="keyword">static int</span> newNode() {
+        sum[poolCnt] = <span class="number">0</span>;
+        left[poolCnt] = <span class="number">0</span>;
+        right[poolCnt] = <span class="number">0</span>;
+        <span class="keyword">return</span> poolCnt++;
+    }
+
+    <span class="keyword">static void</span> update(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> pos, <span class="keyword">long</span> val) {
+        <span class="keyword">if</span> (l == r) {
+            sum[node] += val;
+            <span class="keyword">return</span>;
+        }
+        <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+        <span class="keyword">if</span> (pos &lt;= mid) {
+            <span class="keyword">if</span> (left[node] == <span class="number">0</span>) left[node] = newNode();
+            update(left[node], l, mid, pos, val);
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (right[node] == <span class="number">0</span>) right[node] = newNode();
+            update(right[node], mid + <span class="number">1</span>, r, pos, val);
+        }
+        sum[node] = sum[left[node]] + sum[right[node]];
+    }
+
+    <span class="keyword">static long</span> query(<span class="keyword">int</span> node, <span class="keyword">int</span> l, <span class="keyword">int</span> r, <span class="keyword">int</span> ql, <span class="keyword">int</span> qr) {
+        <span class="keyword">if</span> (node == <span class="number">0</span> || qr &lt; l || r &lt; ql) <span class="keyword">return</span> <span class="number">0</span>;
+        <span class="keyword">if</span> (ql &lt;= l &amp;&amp; r &lt;= qr) <span class="keyword">return</span> sum[node];
+        <span class="keyword">int</span> mid = l + (r - l) / <span class="number">2</span>;
+        <span class="keyword">return</span> query(left[node], l, mid, ql, qr) +
+               query(right[node], mid + <span class="number">1</span>, r, ql, qr);
+    }
+
+    <span class="keyword">public static void</span> main(String[] args) {
+        <span class="keyword">int</span> N = <span class="number">1000000000</span>;
+        <span class="keyword">int</span> root = newNode();
+
+        update(root, <span class="number">0</span>, N, <span class="number">5</span>, <span class="number">10</span>);
+        update(root, <span class="number">0</span>, N, <span class="number">999999999</span>, <span class="number">7</span>);
+        update(root, <span class="number">0</span>, N, <span class="number">42</span>, <span class="number">3</span>);
+
+        System.out.println(query(root, <span class="number">0</span>, N, <span class="number">0</span>, N));   <span class="comment">// 20</span>
+        System.out.println(query(root, <span class="number">0</span>, N, <span class="number">5</span>, <span class="number">42</span>));  <span class="comment">// 13</span>
+        System.out.println(<span class="string">"Nodes used: "</span> + poolCnt);
+    }
+}
+</pre>
+            </div>
+            <div id="python-pool" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">DynamicSegTreePool</span>:
+    <span class="keyword">def</span> __init__(self, lo, hi, max_nodes=<span class="number">4000000</span>):
+        self.lo, self.hi = lo, hi
+        self.sum = [<span class="number">0</span>] * max_nodes
+        self.left = [<span class="number">0</span>] * max_nodes   <span class="comment"># 0 = null</span>
+        self.right = [<span class="number">0</span>] * max_nodes
+        self.cnt = <span class="number">1</span>  <span class="comment"># reserve 0 as null</span>
+        self.root = self._new_node()
+
+    <span class="keyword">def</span> _new_node(self):
+        idx = self.cnt
+        self.cnt += <span class="number">1</span>
+        <span class="keyword">return</span> idx
+
+    <span class="keyword">def</span> update(self, pos, val):
+        self._update(self.root, self.lo, self.hi, pos, val)
+
+    <span class="keyword">def</span> query(self, ql, qr):
+        <span class="keyword">return</span> self._query(self.root, self.lo, self.hi, ql, qr)
+
+    <span class="keyword">def</span> _update(self, node, l, r, pos, val):
+        <span class="keyword">if</span> l == r:
+            self.sum[node] += val
+            <span class="keyword">return</span>
+        mid = (l + r) // <span class="number">2</span>
+        <span class="keyword">if</span> pos &lt;= mid:
+            <span class="keyword">if not</span> self.left[node]:
+                self.left[node] = self._new_node()
+            self._update(self.left[node], l, mid, pos, val)
+        <span class="keyword">else</span>:
+            <span class="keyword">if not</span> self.right[node]:
+                self.right[node] = self._new_node()
+            self._update(self.right[node], mid + <span class="number">1</span>, r, pos, val)
+        self.sum[node] = self.sum[self.left[node]] + self.sum[self.right[node]]
+
+    <span class="keyword">def</span> _query(self, node, l, r, ql, qr):
+        <span class="keyword">if not</span> node <span class="keyword">or</span> qr &lt; l <span class="keyword">or</span> r &lt; ql:
+            <span class="keyword">return</span> <span class="number">0</span>
+        <span class="keyword">if</span> ql &lt;= l <span class="keyword">and</span> r &lt;= qr:
+            <span class="keyword">return</span> self.sum[node]
+        mid = (l + r) // <span class="number">2</span>
+        <span class="keyword">return</span> (self._query(self.left[node], l, mid, ql, qr) +
+                self._query(self.right[node], mid + <span class="number">1</span>, r, ql, qr))
+
+<span class="comment"># Usage</span>
+dst = DynamicSegTreePool(<span class="number">0</span>, <span class="number">10</span>**<span class="number">9</span>)
+dst.update(<span class="number">5</span>, <span class="number">10</span>)
+dst.update(<span class="number">999999999</span>, <span class="number">7</span>)
+dst.update(<span class="number">42</span>, <span class="number">3</span>)
+<span class="keyword">print</span>(dst.query(<span class="number">0</span>, <span class="number">10</span>**<span class="number">9</span>))  <span class="comment"># 20</span>
+<span class="keyword">print</span>(dst.query(<span class="number">5</span>, <span class="number">42</span>))      <span class="comment"># 13</span>
+<span class="keyword">print</span>(<span class="string">f"Nodes used: </span>{dst.cnt}<span class="string">"</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>Memory Analysis</h2>
+        <p>Each update creates at most <code>O(log N)</code> new nodes (one per level of the tree). With Q operations over range [0, N-1]:</p>
+
+        <table>
+            <tr><th>Parameter</th><th>Value</th><th>Nodes Created</th></tr>
+            <tr><td>N = 10^9, Q = 10^5</td><td>log2(10^9) ~ 30</td><td>At most 3 * 10^6 nodes</td></tr>
+            <tr><td>N = 10^18, Q = 10^5</td><td>log2(10^18) ~ 60</td><td>At most 6 * 10^6 nodes</td></tr>
+            <tr><td>N = 10^9, Q = 10^6</td><td>log2(10^9) ~ 30</td><td>At most 30 * 10^6 nodes</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>Memory formula:</strong> O(Q * log N) nodes total. Each node stores a value + 2 child pointers. In the pool version with <code>long long sum</code> + 2 <code>int</code> children, that is 16 bytes per node. For Q=10^5, N=10^9: about 48 MB worst case.
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space (total)</th></tr>
+            <tr><td>Update (point)</td><td>O(log N)</td><td>O(log N) new nodes</td></tr>
+            <tr><td>Query (range)</td><td>O(log N)</td><td>No new nodes</td></tr>
+            <tr><td>Overall (Q ops)</td><td>O(Q log N)</td><td>O(Q log N)</td></tr>
+        </table>
+
+        <h2>Applications</h2>
+        <h3>1. Online Queries (Cannot Compress)</h3>
+        <p>When queries and updates come one at a time and you cannot see the future, coordinate compression is impossible. Dynamic segment trees handle this naturally.</p>
+
+        <h3>2. Interval Scheduling / Sweep Line</h3>
+        <p>Problems where intervals span <code>[0, 10^9]</code> but only ~10^5 intervals exist. Track coverage counts or maximum overlap without discretizing the full range.</p>
+
+        <h3>3. Persistent Segment Tree Foundation</h3>
+        <p>Persistent segment trees are built on the same "create nodes as needed" principle. Each version shares most nodes with previous versions, creating only O(log N) new nodes per update.</p>
+
+        <h3>4. Merge-Based Problems (Small-to-Large)</h3>
+        <p>When merging segment trees in DSU-on-tree or heavy-light problems, dynamic trees let you merge only the nodes that actually exist, avoiding O(N) per merge.</p>
+
+        <h3>5. 2D Problems with Sparse Second Dimension</h3>
+        <p>A segment tree of segment trees where the inner trees are dynamic: the outer tree covers rows [0, N], and each inner tree covers columns [0, M] but only allocates nodes for columns that have been updated in that row range.</p>
+
+        <div class="note">
+            <strong>Key Takeaways:</strong>
+            <ul>
+                <li>Use a dynamic segment tree when N is large but Q is small</li>
+                <li>Prefer the <strong>array-pool</strong> version in competitive programming for speed</li>
+                <li>Pointer-based version is cleaner for production code or when memory pooling is complex</li>
+                <li>Always estimate memory: Q * log(N) * (bytes per node)</li>
+                <li>Consider coordinate compression first if all queries are offline</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
