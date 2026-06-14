@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BST Range Operations - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .pg-controls label { font-size: 0.82em; color: #64748b; font-weight: 600; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .toggle { display: inline-flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
+        .toggle button { padding: 6px 12px; border: none; background: transparent; border-radius: 6px; font-size: 0.8em; font-weight: 600; color: #64748b; cursor: pointer; }
+        .toggle button.active { background: white; color: #6366f1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Binary Search Trees</a>
+        <h1>BST Range Operations</h1>
+        <p>Picture a BST as a sorted shelf of numbers that happens to be folded into a tree. A <strong>range</strong> like <code>[low, high]</code> is just a window onto that shelf — you only care about the values that fall between the two bookends. The magic is that you almost never have to look at the whole shelf: because every node already knows that everything to its left is smaller and everything to its right is larger, you can take one glance at a node and confidently <strong>throw away an entire branch</strong> that can't possibly hold anything in your window.</p>
+        <p>That one move — pruning branches that fall outside <code>[low, high]</code> — powers every operation on this page: trimming the tree to a range, summing the values inside it, deleting everything outside it, and counting what's left. They are all the same idea wearing different hats.</p>
+
+        <div class="note">
+            <strong>The pruning rule in one breath:</strong> at a node with value <code>v</code> —
+            <ul>
+                <li>if <code>v &lt; low</code>, the node <em>and its entire left subtree</em> are below the window — only the right side can still matter.</li>
+                <li>if <code>v &gt; high</code>, the node <em>and its entire right subtree</em> are above the window — only the left side can still matter.</li>
+                <li>if <code>low &le; v &le; high</code>, the node is a keeper, and both sides may still hold in-range values.</li>
+            </ul>
+        </div>
+
+        <h2>1. Trim a BST to a Range [low, high]</h2>
+        <p>Think of trimming like pruning a real hedge: you want to keep only the part of the tree whose values land inside <code>[low, high]</code>, and snip off everything else — but the result must still be a valid BST. The clever part is that you never delete one node at a time. When a node is too small, you don't just drop the node; you drop the node <em>and its whole left subtree in one stroke</em>, because in a BST everything left of a too-small node is even smaller.</p>
+        <p>The recursion almost writes itself once you see that:</p>
+        <ul>
+            <li>If <code>node.val &lt; low</code>: this node is out, and so is everything to its left. The only survivors live in the right subtree, so <strong>return <code>trim(node.right)</code></strong> — it replaces the current node entirely.</li>
+            <li>If <code>node.val &gt; high</code>: symmetric — everything to the right is gone, so <strong>return <code>trim(node.left)</code></strong>.</li>
+            <li>Otherwise the node stays; recursively trim both children and reattach the trimmed subtrees.</li>
+        </ul>
+
+        <div class="visual">
+<pre>
+Trim to [5, 13]:
+
+            8
+           / \
+          3   12
+         / \    \
+        1   6    15
+             \
+              7
+
+node 8: 5 &le; 8 &le; 13  -&gt; keep, trim both sides
+  node 3: 3 &lt; 5  -&gt; drop 3 AND its left (node 1), return trim(right=6)
+    node 6: in range -&gt; keep, trim both sides
+      node 7: in range -&gt; keep
+  node 12: in range -&gt; keep, trim both sides
+    node 15: 15 &gt; 13 -&gt; drop 15 AND its right, return trim(left=null) = null
+
+Result:
+            8
+           / \
+          6   12
+           \
+            7
+</pre>
+        </div>
+
+        <div class="warn">
+            <strong>Why returning the child works:</strong> trimming is "destructive rewiring." Each call returns <em>the new root of the trimmed subtree</em>, and the parent simply reattaches whatever comes back. When you <code>return trim(node.right)</code> for a too-small node, that returned subtree is spliced into the parent in place of the dropped node — which is exactly how the lone right child gets promoted up the tree.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node { <span class="keyword">int</span> val; Node *left, *right; };
+
+<span class="comment">// Returns the new root of the subtree trimmed to [low, high].</span>
+Node* trimBST(Node* node, <span class="keyword">int</span> low, <span class="keyword">int</span> high) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    <span class="keyword">if</span> (node-&gt;val &lt; low)                 <span class="comment">// node + entire LEFT subtree are too small</span>
+        <span class="keyword">return</span> trimBST(node-&gt;right, low, high);
+    <span class="keyword">if</span> (node-&gt;val &gt; high)                <span class="comment">// node + entire RIGHT subtree are too large</span>
+        <span class="keyword">return</span> trimBST(node-&gt;left, low, high);
+    <span class="comment">// in range: keep this node, trim and reattach both children</span>
+    node-&gt;left  = trimBST(node-&gt;left,  low, high);
+    node-&gt;right = trimBST(node-&gt;right, low, high);
+    <span class="keyword">return</span> node;
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> { <span class="keyword">int</span> val; Node left, right; }
+
+<span class="comment">// Returns the new root of the subtree trimmed to [low, high].</span>
+<span class="type">Node</span> trimBST(<span class="type">Node</span> node, <span class="keyword">int</span> low, <span class="keyword">int</span> high) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;
+    <span class="keyword">if</span> (node.val &lt; low)                 <span class="comment">// node + entire LEFT subtree are too small</span>
+        <span class="keyword">return</span> trimBST(node.right, low, high);
+    <span class="keyword">if</span> (node.val &gt; high)                <span class="comment">// node + entire RIGHT subtree are too large</span>
+        <span class="keyword">return</span> trimBST(node.left, low, high);
+    node.left  = trimBST(node.left,  low, high);
+    node.right = trimBST(node.right, low, high);
+    <span class="keyword">return</span> node;
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, val):
+        self.val = val
+        self.left = self.right = <span class="keyword">None</span>
+
+<span class="comment"># Returns the new root of the subtree trimmed to [low, high].</span>
+<span class="keyword">def</span> trim_bst(node, low, high):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="keyword">None</span>
+    <span class="keyword">if</span> node.val &lt; low:          <span class="comment"># node + entire LEFT subtree are too small</span>
+        <span class="keyword">return</span> trim_bst(node.right, low, high)
+    <span class="keyword">if</span> node.val &gt; high:         <span class="comment"># node + entire RIGHT subtree are too large</span>
+        <span class="keyword">return</span> trim_bst(node.left, low, high)
+    node.left  = trim_bst(node.left,  low, high)
+    node.right = trim_bst(node.right, low, high)
+    <span class="keyword">return</span> node
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Range Sum of a BST</h2>
+        <p>Now suppose you don't want to reshape the tree — you just want to add up every value inside <code>[low, high]</code>. A naive solution visits all <code>n</code> nodes. But the BST ordering lets you be lazy in the best way: before stepping into a subtree, ask "could anything in there possibly be in my window?" If the answer is no, skip it entirely.</p>
+        <p>Concretely, at a node with value <code>v</code>: only go <strong>left</strong> if <code>v &gt; low</code> (otherwise the left subtree is all <code>&le; v &le; low</code>, too small), and only go <strong>right</strong> if <code>v &lt; high</code> (otherwise the right subtree is all too large). Add <code>v</code> to the running total only when it actually lands in <code>[low, high]</code>.</p>
+
+        <div class="visual">
+<pre>
+rangeSum(low=5, high=13):
+
+            8
+           / \
+          3   12
+         / \    \
+        1   6    15
+             \
+              7
+
+node 8: in [5,13] -&gt; add 8. 8&gt;5 so explore left; 8&lt;13 so explore right
+  node 3: 3 &lt; 5  -&gt; do NOT add. 3 not &gt; 5, so PRUNE left (node 1 skipped).
+                    3 &lt; 13, explore right.
+    node 6: in range -&gt; add 6, explore both
+      node 7: in range -&gt; add 7
+  node 12: in range -&gt; add 12. 12&gt;5 explore left (none); 12&lt;13 explore right
+    node 15: 15 &gt; 13 -&gt; do NOT add, PRUNE right; 15 not &lt; 13 either.
+Sum = 8 + 6 + 7 + 12 = 33   (nodes 1 and 15's subtree pruned)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="comment">// Sum of all values in [low, high], pruning subtrees that can't help.</span>
+<span class="keyword">long long</span> rangeSumBST(Node* node, <span class="keyword">int</span> low, <span class="keyword">int</span> high) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">long long</span> total = <span class="number">0</span>;
+    <span class="keyword">if</span> (node-&gt;val &gt;= low &amp;&amp; node-&gt;val &lt;= high)
+        total += node-&gt;val;                 <span class="comment">// node is inside the window</span>
+    <span class="keyword">if</span> (node-&gt;val &gt; low)                       <span class="comment">// left may still hold in-range values</span>
+        total += rangeSumBST(node-&gt;left, low, high);
+    <span class="keyword">if</span> (node-&gt;val &lt; high)                      <span class="comment">// right may still hold in-range values</span>
+        total += rangeSumBST(node-&gt;right, low, high);
+    <span class="keyword">return</span> total;
+}
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="comment">// Sum of all values in [low, high], pruning subtrees that can't help.</span>
+<span class="keyword">long</span> rangeSumBST(<span class="type">Node</span> node, <span class="keyword">int</span> low, <span class="keyword">int</span> high) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">long</span> total = <span class="number">0</span>;
+    <span class="keyword">if</span> (node.val &gt;= low &amp;&amp; node.val &lt;= high)
+        total += node.val;                  <span class="comment">// node is inside the window</span>
+    <span class="keyword">if</span> (node.val &gt; low)                        <span class="comment">// left may still hold in-range values</span>
+        total += rangeSumBST(node.left, low, high);
+    <span class="keyword">if</span> (node.val &lt; high)                       <span class="comment">// right may still hold in-range values</span>
+        total += rangeSumBST(node.right, low, high);
+    <span class="keyword">return</span> total;
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="comment"># Sum of all values in [low, high], pruning subtrees that can't help.</span>
+<span class="keyword">def</span> range_sum_bst(node, low, high):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="number">0</span>
+    total = <span class="number">0</span>
+    <span class="keyword">if</span> low &lt;= node.val &lt;= high:
+        total += node.val               <span class="comment"># node is inside the window</span>
+    <span class="keyword">if</span> node.val &gt; low:                   <span class="comment"># left may still hold in-range values</span>
+        total += range_sum_bst(node.left, low, high)
+    <span class="keyword">if</span> node.val &lt; high:                  <span class="comment"># right may still hold in-range values</span>
+        total += range_sum_bst(node.right, low, high)
+    <span class="keyword">return</span> total
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Delete Nodes Inside (or Outside) a Range</h2>
+        <p>"Delete everything <em>outside</em> a range" is a riddle you already solved: that is precisely <strong>trim</strong> from Section 1 — keeping the inside is the same as deleting the outside. The more interesting cousin is <strong>delete everything <em>inside</em> a range</strong> <code>(low, high)</code>, which is what the classic "delete nodes and return forest" problem is really asking when the deleted set happens to be a contiguous interval.</p>
+        <p>The key realization: when you delete a node, its left and right subtrees may become <strong>new standalone trees</strong> (a forest). A subtree becomes a root of its own only if its parent got deleted. So we carry a flag — "is my parent still around?" — and whenever a surviving node has a deleted parent, it joins the forest of roots.</p>
+
+        <div class="visual">
+<pre>
+Delete all values in (low=5, high=13)  (i.e. delete 6..12):
+
+            8                         deleted: 6, 7, 8, 12
+           / \                        survivors form a forest
+          3   12
+         / \    \          Result forest (roots):   3            15
+        1   6    15                                 / \
+             \                                      1  (6 gone)
+              7
+
+- node 8 deleted: its kids 3 and 12 may become roots
+- node 3 survives, parent(8) deleted -&gt; 3 is a forest root; trim its kids
+    node 6 deleted (in range); node 1 survives, stays under 3
+- node 12 deleted; node 15 survives, parent deleted -&gt; 15 is a forest root
+</pre>
+        </div>
+
+        <div class="note">
+            <strong>Relating it back to trim:</strong> deleting an <em>open</em> interval <code>(low, high)</code> keeps values <code>&le; low</code> and <code>&ge; high</code>. Trim keeps a <em>closed</em> interval and returns one tree; delete-inside keeps the two outer pieces and returns several. Same pruning logic, different bookkeeping: trim re-splices into one root, delete collects a list of disconnected roots.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="comment">// Delete every value strictly inside (low, high). Surviving subtrees</span>
+<span class="comment">// whose parent was deleted become new roots collected in `forest`.</span>
+Node* deleteInRange(Node* node, <span class="keyword">int</span> low, <span class="keyword">int</span> high,
+                    <span class="keyword">bool</span> parentAlive, std::vector&lt;Node*&gt;&amp; forest) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    <span class="keyword">bool</span> deleted = node-&gt;val &gt; low &amp;&amp; node-&gt;val &lt; high;
+    <span class="comment">// A surviving node with no living parent starts a new tree.</span>
+    <span class="keyword">if</span> (!deleted &amp;&amp; !parentAlive) forest.push_back(node);
+    node-&gt;left  = deleteInRange(node-&gt;left,  low, high, !deleted, forest);
+    node-&gt;right = deleteInRange(node-&gt;right, low, high, !deleted, forest);
+    <span class="keyword">return</span> deleted ? <span class="keyword">nullptr</span> : node;   <span class="comment">// detach deleted nodes from parent</span>
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="comment">// Delete every value strictly inside (low, high). Surviving subtrees</span>
+<span class="comment">// whose parent was deleted become new roots collected in `forest`.</span>
+<span class="type">Node</span> deleteInRange(<span class="type">Node</span> node, <span class="keyword">int</span> low, <span class="keyword">int</span> high,
+                   <span class="keyword">boolean</span> parentAlive, <span class="type">List</span>&lt;<span class="type">Node</span>&gt; forest) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;
+    <span class="keyword">boolean</span> deleted = node.val &gt; low &amp;&amp; node.val &lt; high;
+    <span class="keyword">if</span> (!deleted &amp;&amp; !parentAlive) forest.add(node);
+    node.left  = deleteInRange(node.left,  low, high, !deleted, forest);
+    node.right = deleteInRange(node.right, low, high, !deleted, forest);
+    <span class="keyword">return</span> deleted ? <span class="keyword">null</span> : node;   <span class="comment">// detach deleted nodes from parent</span>
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="comment"># Delete every value strictly inside (low, high). Surviving subtrees</span>
+<span class="comment"># whose parent was deleted become new roots collected in `forest`.</span>
+<span class="keyword">def</span> delete_in_range(node, low, high, parent_alive, forest):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="keyword">None</span>
+    deleted = low &lt; node.val &lt; high
+    <span class="keyword">if</span> <span class="keyword">not</span> deleted <span class="keyword">and</span> <span class="keyword">not</span> parent_alive:
+        forest.append(node)          <span class="comment"># survivor with a dead parent = new root</span>
+    node.left  = delete_in_range(node.left,  low, high, <span class="keyword">not</span> deleted, forest)
+    node.right = delete_in_range(node.right, low, high, <span class="keyword">not</span> deleted, forest)
+    <span class="keyword">return</span> <span class="keyword">None</span> <span class="keyword">if</span> deleted <span class="keyword">else</span> node   <span class="comment"># detach deleted nodes from parent</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Count Nodes in Range [low, high]</h2>
+        <p>Counting is range-sum's twin — instead of adding values, you add <code>1</code> per in-range node, and you prune exactly the same way. This pruned traversal runs in <code>O(h + k)</code> time, where <code>k</code> is how many nodes are actually in the range.</p>
+
+        <div class="note">
+            <strong>Faster counting with order statistics:</strong> if your nodes are <strong>augmented with subtree sizes</strong>, you can count a range in <code>O(h)</code> flat — no dependence on <code>k</code> — using <code>countLess(high+1) - countLess(low)</code>, where <code>countLess</code> uses the stored subtree sizes. See the order-statistics page (<code>bst-order-statistics.html</code>) for the rank / size-augmented version. The pruned traversal below needs no extra fields and is the right tool when your nodes aren't augmented.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp4')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java4')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python4')">Python</button>
+            </div>
+            <div id="cpp4" class="code-content active">
+<pre>
+<span class="comment">// Count of values in [low, high] via pruned traversal (no augmentation).</span>
+<span class="keyword">int</span> rangeCount(Node* node, <span class="keyword">int</span> low, <span class="keyword">int</span> high) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> cnt = <span class="number">0</span>;
+    <span class="keyword">if</span> (node-&gt;val &gt;= low &amp;&amp; node-&gt;val &lt;= high) cnt = <span class="number">1</span>;
+    <span class="keyword">if</span> (node-&gt;val &gt; low)                       <span class="comment">// left can still contain matches</span>
+        cnt += rangeCount(node-&gt;left, low, high);
+    <span class="keyword">if</span> (node-&gt;val &lt; high)                      <span class="comment">// right can still contain matches</span>
+        cnt += rangeCount(node-&gt;right, low, high);
+    <span class="keyword">return</span> cnt;
+}
+</pre>
+            </div>
+            <div id="java4" class="code-content">
+<pre>
+<span class="comment">// Count of values in [low, high] via pruned traversal (no augmentation).</span>
+<span class="keyword">int</span> rangeCount(<span class="type">Node</span> node, <span class="keyword">int</span> low, <span class="keyword">int</span> high) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> cnt = <span class="number">0</span>;
+    <span class="keyword">if</span> (node.val &gt;= low &amp;&amp; node.val &lt;= high) cnt = <span class="number">1</span>;
+    <span class="keyword">if</span> (node.val &gt; low)                        <span class="comment">// left can still contain matches</span>
+        cnt += rangeCount(node.left, low, high);
+    <span class="keyword">if</span> (node.val &lt; high)                       <span class="comment">// right can still contain matches</span>
+        cnt += rangeCount(node.right, low, high);
+    <span class="keyword">return</span> cnt;
+}
+</pre>
+            </div>
+            <div id="python4" class="code-content">
+<pre>
+<span class="comment"># Count of values in [low, high] via pruned traversal (no augmentation).</span>
+<span class="keyword">def</span> range_count(node, low, high):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="number">0</span>
+    cnt = <span class="number">1</span> <span class="keyword">if</span> low &lt;= node.val &lt;= high <span class="keyword">else</span> <span class="number">0</span>
+    <span class="keyword">if</span> node.val &gt; low:                   <span class="comment"># left can still contain matches</span>
+        cnt += range_count(node.left, low, high)
+    <span class="keyword">if</span> node.val &lt; high:                  <span class="comment"># right can still contain matches</span>
+        cnt += range_count(node.right, low, high)
+    <span class="keyword">return</span> cnt
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Try It: Trim &amp; Range Sum Visualizer</h2>
+        <p>Set <code>low</code> and <code>high</code>, then step through the descent. In <strong>Trim</strong> mode the animation narrates each pruning decision and removes the out-of-range nodes, redrawing the trimmed tree at the end. Flip to <strong>Range Sum</strong> mode to highlight in-range nodes green and watch the running total accumulate while pruned branches stay untouched.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Trim &amp; Range Sum on a fixed BST</div>
+            <div class="pg-sub">Descends the same 9-node BST. Indigo = node being examined, green = kept / in-range, faded = pruned or dropped. The status line explains each decision.</div>
+            <div style="margin-bottom:14px">
+                <span class="toggle">
+                    <button id="mTrim" class="active" onclick="setMode('trim')">Trim to [low, high] ▶</button>
+                    <button id="mSum" onclick="setMode('sum')">Range Sum ▶</button>
+                </span>
+            </div>
+            <div class="pg-controls" style="margin-top:0;margin-bottom:14px">
+                <label>low <input type="number" id="lowIn" value="5"></label>
+                <label>high <input type="number" id="highIn" value="13"></label>
+                <span id="sumBadge" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-weight:700;color:#16a34a;display:none"></span>
+            </div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">Set low/high and press “Next Step ▶” to begin.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()">Next Step ▶</button>
+                <button class="btn btn-ghost" id="resetBtn" onclick="resetViz()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>6. Complexity Analysis</h2>
+        <p>Here <code>h</code> is the tree height — <code>O(log n)</code> for a balanced BST, <code>O(n)</code> for a skewed one — and <code>k</code> is the number of nodes that actually fall inside the range.</p>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Trim to range</td><td>O(n) worst case, O(h + kept) typical</td><td>O(h) recursion stack</td></tr>
+            <tr><td>Range sum (with pruning)</td><td>O(h + k)</td><td>O(h)</td></tr>
+            <tr><td>Delete inside range (forest)</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Count in range (pruned traversal)</td><td>O(h + k)</td><td>O(h)</td></tr>
+            <tr><td>Count in range (size-augmented)</td><td>O(h)</td><td>O(1)</td></tr>
+        </table>
+        <p>The pruning is what turns a would-be <code>O(n)</code> scan into <code>O(h + k)</code>: the algorithm only walks the boundary paths to <code>low</code> and <code>high</code> plus the in-range nodes between them, never touching the fully-out-of-range subtrees.</p>
+
+        <div class="note">
+            <strong>The unifying idea — prune what can't matter:</strong>
+            <ul>
+                <li><strong>Trim</strong> drops a too-small node together with its entire left subtree (and the mirror for too-large), splicing the surviving child upward.</li>
+                <li><strong>Range sum</strong> and <strong>count</strong> visit only the subtrees that could overlap <code>[low, high]</code>, skipping the rest outright.</li>
+                <li><strong>Delete-inside-range</strong> is trim turned inside out: keep the outer pieces, collect them as a forest.</li>
+            </ul>
+            Every operation here is the same observation — in a BST, one comparison at a node tells you a whole branch is irrelevant — applied with slightly different bookkeeping.
+        </div>
+
+        <p style="text-align:center;color:#94a3b8;font-size:0.85em;margin-top:48px;">Binary Search Trees Visualized | C++, Java &amp; Python | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Trim & Range Sum visualizer ----
+        const svg = document.getElementById('treeSvg');
+        const setStatus = t => document.getElementById('status').innerHTML = t;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        // Fixed sample BST (9 nodes):
+        //              8
+        //           /     \
+        //          3       12
+        //         / \     /  \
+        //        1   6   10   15
+        //       /     \
+        //      0       7
+        function baseTree() {
+            return {
+                n0: { val: 8,  left: 'n1', right: 'n2' },
+                n1: { val: 3,  left: 'n3', right: 'n4' },
+                n2: { val: 12, left: 'n7', right: 'n8' },
+                n3: { val: 1,  left: 'n5', right: null },
+                n4: { val: 6,  left: null, right: 'n6' },
+                n5: { val: 0,  left: null, right: null },
+                n6: { val: 7,  left: null, right: null },
+                n7: { val: 10, left: null, right: null },
+                n8: { val: 15, left: null, right: null }
+            };
+        }
+
+        let mode = 'trim';
+        let nodes, rootId;
+        let plan, planIdx, finished, busy;
+        let keep, dropped, inRange, runningSum;
+
+        // drawTree SVG helper: highlight (green), active (indigo pulse), dimmed (faded), visited (light fill)
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null || !nodes[id]) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        function getRange() {
+            let lo = parseInt(document.getElementById('lowIn').value, 10);
+            let hi = parseInt(document.getElementById('highIn').value, 10);
+            if (isNaN(lo)) lo = -Infinity;
+            if (isNaN(hi)) hi = Infinity;
+            return [lo, hi];
+        }
+
+        // Build a preorder descent plan that mirrors the pruned recursion.
+        // Each entry: { id, decision: 'keep'|'dropLeft'|'dropRight', goLeft, goRight }
+        function buildPlan() {
+            const [low, high] = getRange();
+            const steps = [];
+            (function walk(id) {
+                if (id == null || !nodes[id]) return;
+                const v = nodes[id].val;
+                if (v < low) {
+                    steps.push({ id, v, decision: 'dropLeft', goLeft: false, goRight: true });
+                    walk(nodes[id].right);
+                } else if (v > high) {
+                    steps.push({ id, v, decision: 'dropRight', goLeft: true, goRight: false });
+                    walk(nodes[id].left);
+                } else {
+                    steps.push({ id, v, decision: 'keep', goLeft: true, goRight: true });
+                    walk(nodes[id].left);
+                    walk(nodes[id].right);
+                }
+            })(rootId);
+            return steps;
+        }
+
+        // Collect every descendant id of a node on a given side (for dimming a dropped subtree).
+        function collectSubtree(id, set) {
+            if (id == null || !nodes[id]) return;
+            set.add(id);
+            collectSubtree(nodes[id].left, set);
+            collectSubtree(nodes[id].right, set);
+        }
+
+        function render(opts) { drawTree(svg, nodes, rootId, opts || {}); }
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('mTrim').classList.toggle('active', m === 'trim');
+            document.getElementById('mSum').classList.toggle('active', m === 'sum');
+            resetViz();
+        }
+
+        function resetViz() {
+            if (busy) return;
+            nodes = baseTree();
+            rootId = 'n0';
+            plan = buildPlan();
+            planIdx = 0;
+            finished = false;
+            keep = new Set();
+            dropped = new Set();
+            inRange = new Set();
+            runningSum = 0;
+            const badge = document.getElementById('sumBadge');
+            badge.style.display = mode === 'sum' ? 'inline' : 'none';
+            badge.textContent = 'sum = 0';
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('stepBtn').textContent = 'Next Step ▶';
+            render();
+            const [low, high] = getRange();
+            const fmt = x => x === Infinity ? '+∞' : x === -Infinity ? '-∞' : x;
+            setStatus(`Range = [<b>${fmt(low)}</b>, <b>${fmt(high)}</b>]. Press “Next Step ▶” to ${mode === 'trim' ? 'trim the tree' : 'sum in-range nodes'}.`);
+        }
+
+        function finishTrim() {
+            // Rebuild the trimmed tree: drop every node not in `keep`.
+            const trimmed = {};
+            keep.forEach(id => {
+                const n = nodes[id];
+                trimmed[id] = {
+                    val: n.val,
+                    left: (n.left && keep.has(n.left)) ? n.left : null,
+                    right: (n.right && keep.has(n.right)) ? n.right : null
+                };
+            });
+            // Find new root: the kept node that is no other kept node's child.
+            const childIds = new Set();
+            Object.values(trimmed).forEach(n => { if (n.left) childIds.add(n.left); if (n.right) childIds.add(n.right); });
+            let newRoot = null;
+            for (const id in trimmed) { if (!childIds.has(id)) { newRoot = id; break; } }
+            nodes = trimmed;
+            rootId = newRoot;
+            if (newRoot) {
+                drawTree(svg, nodes, rootId, { highlight: new Set(Object.keys(trimmed)) });
+            } else {
+                svg.innerHTML = '';
+            }
+        }
+
+        async function step() {
+            if (finished || busy) return;
+            busy = true;
+            document.getElementById('stepBtn').disabled = true;
+
+            const [low, high] = getRange();
+            const fmt = x => x === Infinity ? '+∞' : x === -Infinity ? '-∞' : x;
+            const s = plan[planIdx];
+            const v = s.v;
+
+            if (mode === 'trim') {
+                if (s.decision === 'keep') {
+                    keep.add(s.id);
+                    render({ active: s.id, highlight: new Set([...keep]), dimmed: dropped });
+                    setStatus(`node <b>${v}</b>: ${fmt(low)} ≤ ${v} ≤ ${fmt(high)} → <b style="color:#16a34a">keep</b>, trim both children.`);
+                } else if (s.decision === 'dropLeft') {
+                    const sub = new Set(); collectSubtree(nodes[s.id].left, sub); sub.add(s.id);
+                    sub.forEach(x => dropped.add(x));
+                    render({ active: s.id, highlight: new Set([...keep]), dimmed: dropped });
+                    setStatus(`node <b>${v}</b> &lt; low=${fmt(low)}, so <b style="color:#dc2626">drop it and its entire left subtree</b>, keep exploring right.`);
+                } else {
+                    const sub = new Set(); collectSubtree(nodes[s.id].right, sub); sub.add(s.id);
+                    sub.forEach(x => dropped.add(x));
+                    render({ active: s.id, highlight: new Set([...keep]), dimmed: dropped });
+                    setStatus(`node <b>${v}</b> &gt; high=${fmt(high)}, so <b style="color:#dc2626">drop it and its entire right subtree</b>, keep exploring left.`);
+                }
+            } else {
+                // range sum
+                if (s.decision === 'keep') {
+                    inRange.add(s.id);
+                    runningSum += v;
+                    render({ active: s.id, highlight: new Set([...inRange]), dimmed: dropped });
+                    document.getElementById('sumBadge').textContent = 'sum = ' + runningSum;
+                    setStatus(`node <b>${v}</b> in [${fmt(low)}, ${fmt(high)}] → <b style="color:#16a34a">add ${v}</b>. Running sum = <b>${runningSum}</b>. Explore both sides.`);
+                } else if (s.decision === 'dropLeft') {
+                    const sub = new Set(); collectSubtree(nodes[s.id].left, sub); sub.add(s.id);
+                    sub.forEach(x => dropped.add(x));
+                    render({ active: s.id, highlight: new Set([...inRange]), dimmed: dropped });
+                    setStatus(`node <b>${v}</b> &lt; low=${fmt(low)} → skip it; <b style="color:#dc2626">prune the left subtree</b> (all too small), explore right only.`);
+                } else {
+                    const sub = new Set(); collectSubtree(nodes[s.id].right, sub); sub.add(s.id);
+                    sub.forEach(x => dropped.add(x));
+                    render({ active: s.id, highlight: new Set([...inRange]), dimmed: dropped });
+                    setStatus(`node <b>${v}</b> &gt; high=${fmt(high)} → skip it; <b style="color:#dc2626">prune the right subtree</b> (all too large), explore left only.`);
+                }
+            }
+
+            planIdx++;
+            if (planIdx >= plan.length) {
+                finished = true;
+                document.getElementById('stepBtn').disabled = true;
+                document.getElementById('stepBtn').textContent = 'Done';
+                await sleep(450);
+                if (mode === 'trim') {
+                    finishTrim();
+                    const survivors = [...keep].map(id => baseTree()[id].val).sort((a, b) => a - b);
+                    setStatus(`Trim complete. Kept values in [${fmt(low)}, ${fmt(high)}]: <b style="color:#16a34a">${survivors.length ? survivors.join(', ') : '(none)'}</b>. Tree redrawn.`);
+                } else {
+                    setStatus(`Range sum complete. Sum of values in [${fmt(low)}, ${fmt(high)}] = <b style="color:#16a34a">${runningSum}</b>.`);
+                }
+            } else {
+                document.getElementById('stepBtn').disabled = false;
+            }
+            busy = false;
+        }
+
+        document.getElementById('lowIn').addEventListener('change', resetViz);
+        document.getElementById('highIn').addEventListener('change', resetViz);
+
+        resetViz();
+    </script>
+</body>
+</html>

@@ -41,6 +41,23 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .pg-toggle { display: inline-flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 10px; }
+        .pg-toggle button { padding: 6px 14px; border: none; background: transparent; border-radius: 7px; font-size: 0.8em; font-weight: 600; cursor: pointer; color: #64748b; font-family: 'Inter', sans-serif; }
+        .pg-toggle button.active { background: white; color: #6366f1; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,7 +65,8 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>AVL Trees (Self-Balancing BST)</h1>
-        <p>An <strong>AVL tree</strong> (Adelson-Velsky and Landis, 1962) is a binary search tree that keeps itself balanced by guaranteeing that, for every node, the heights of its two child subtrees differ by at most one. This bound is restored after every insertion and deletion using <strong>rotations</strong>, giving worst-case O(log n) search, insert, and delete.</p>
+        <p><strong>Picture a mobile hanging from the ceiling</strong> — the kind with little arms and dangling shapes. If one side gets too heavy, the whole thing tilts and looks wrong. A child watching would reach up and <em>rebalance</em> it by swinging an arm over to the lighter side. An <strong>AVL tree</strong> does exactly that, automatically, every time you add or remove a value: the moment one side of any node gets too tall, it performs a quick swing called a <strong>rotation</strong> to even things out.</p>
+        <p>Formally, an AVL tree (named after its inventors Adelson-Velsky and Landis, 1962) is a binary search tree with one promise: for <em>every</em> node, its left and right subtrees never differ in height by more than one. It keeps that promise after every insert and delete, which is what guarantees fast O(log n) search, insert, and delete — no matter how lopsided the data tries to make it.</p>
 
         <h2>Motivation: Why Balance?</h2>
         <p>A plain BST has O(log n) operations only when it stays bushy. Feed it <strong>already-sorted</strong> data and each new key becomes the right child of the previous one. The tree collapses into a linked list and every operation degrades to O(n).</p>
@@ -80,9 +98,10 @@ The same 5 keys in an AVL tree stay balanced:
         <p>AVL trees prevent this degeneration by enforcing a strict height invariant on every node, so the tree height stays O(log n) no matter what order the keys arrive in.</p>
 
         <h2>Balance Factor</h2>
-        <p>For any node, define its <strong>balance factor</strong> as:</p>
+        <p>Going back to the mobile: how does a node <em>know</em> it's tilting? It keeps a simple number called the <strong>balance factor</strong> — basically "how much taller is my left side than my right side?"</p>
         <p><code>balanceFactor(node) = height(node.left) - height(node.right)</code></p>
-        <p>An AVL tree requires <code>balanceFactor(node)</code> to be in <strong>{-1, 0, +1}</strong> for <em>every</em> node. A factor outside this range means the node is too left-heavy (&gt; +1) or too right-heavy (&lt; -1) and must be fixed by a rotation. By convention an empty subtree has height <code>-1</code> and a single leaf has height <code>0</code>. Each node caches its own height so the balance factor can be computed in O(1).</p>
+        <p>Read it like a seesaw reading. A balance factor of <code>0</code> means perfectly level. A small <code>+1</code> means slightly left-heavy, <code>-1</code> means slightly right-heavy — both still fine. The AVL rule is simply: <strong>every node must stay in {-1, 0, +1}</strong>. The instant a node hits <code>+2</code> (dangerously left-heavy) or <code>-2</code> (dangerously right-heavy), the tree triggers a rotation to fix it.</p>
+        <p>A couple of conventions make the math clean: an empty subtree has height <code>-1</code>, and a lone leaf has height <code>0</code>. Each node remembers its own height, so reading a balance factor is instant — O(1).</p>
 
         <div class="visual">
 <pre>
@@ -104,7 +123,25 @@ Every |bf| <= 1, so the tree is a valid AVL tree.
         </div>
 
         <h2>Rotations: The Core Primitive</h2>
-        <p>A rotation locally rearranges three pointers to change the height of a subtree while <strong>preserving the BST in-order ordering</strong>. There are two mirror-image rotations.</p>
+        <p>A rotation is the "swing the arm over" move. It grabs three nodes and re-hangs them so a tall side gets shorter — the deeper node moves <em>up</em> to become the local boss, and the old boss slides <em>down</em> to the lighter side. Crucially, it only shuffles a few pointers and never reorders the values: an in-order walk of the tree reads exactly the same before and after. There are two rotations, and they're mirror images of each other.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Watch a Rotation Fix an Unbalanced Node</div>
+            <div class="pg-sub">Pick a case, then press <strong>Rotate</strong>. The pivot swings up, the old root re-hangs on the lighter side, and the tree levels out. Notice the in-order order of values never changes.</div>
+            <div class="pg-controls" style="margin-top:0;margin-bottom:14px;">
+                <span style="font-size:0.8em;color:#64748b;">Case:</span>
+                <div class="pg-toggle" id="caseToggle">
+                    <button class="active" onclick="pickCase('RR', this)">RR (right-heavy)</button>
+                    <button onclick="pickCase('LL', this)">LL (left-heavy)</button>
+                </div>
+            </div>
+            <svg id="avlSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="avlStatus"></div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="rotateBtn" onclick="doRotate()">Rotate ▶</button>
+                <button class="btn btn-ghost" onclick="resetAvl()">↺ Reset</button>
+            </div>
+        </div>
 
         <h3>Right Rotation (around y)</h3>
         <p>Used when the left subtree is too tall. The left child <code>x</code> moves up to become the new root of the subtree; <code>y</code> becomes <code>x</code>'s right child; <code>x</code>'s former right subtree <code>T2</code> is re-parented as <code>y</code>'s left subtree.</p>
@@ -276,7 +313,14 @@ Node leftRotate(Node x) {
         </div>
 
         <h2>The Four Imbalance Cases</h2>
-        <p>When a node <code>z</code> becomes unbalanced (<code>|balanceFactor(z)| &gt; 1</code>), exactly one of four shapes applies, decided by the sign of <code>z</code>'s balance factor and the relevant child's balance factor. The fix is one or two rotations.</p>
+        <p>When a node tips over (balance factor hits <code>+2</code> or <code>-2</code>), there are only four ways it could have happened — and the names literally describe the path to the trouble. Read them as "which way did I lean, then which way did the heavy child lean?":</p>
+        <ul>
+            <li><strong>LL</strong> — left-heavy, and the heavy child also leans left. A straight line tilting left. One <em>right</em> rotation snaps it upright.</li>
+            <li><strong>RR</strong> — right-heavy, and the heavy child also leans right. A straight line tilting right. One <em>left</em> rotation fixes it. (This is the mirror of LL.)</li>
+            <li><strong>LR</strong> — left-heavy, but the heavy child leans <em>right</em>: a zig-zag. You can't fix a zig-zag with one swing. First rotate the child to straighten it into an LL shape, <em>then</em> do the LL fix.</li>
+            <li><strong>RL</strong> — right-heavy, but the heavy child leans <em>left</em>: the mirror zig-zag. Straighten it into RR first, then fix.</li>
+        </ul>
+        <p>The intuition: <strong>straight-line tilts need one rotation; zig-zags need two</strong> (one to straighten, one to lift). Below, <code>z</code> is the unbalanced node; the sign of its balance factor and its child's balance factor tell you which of the four you're in.</p>
 
         <h3>Case LL (Left-Left) &mdash; single right rotation</h3>
         <p>Trigger: <code>balance(z) &gt; 1</code> <strong>and</strong> <code>balance(z.left) &gt;= 0</code> (inserted into the left subtree of the left child).</p>
@@ -652,6 +696,122 @@ Compare Fibonacci:  F: 1, 1, 2, 3, 5, 8, 13, 21, 34, ...
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Reusable SVG tree renderer ----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const R = 22, vGap = 78, hGap = 56;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 44 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 44;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- AVL rotation demo ----
+        const avlSvg = document.getElementById('avlSvg');
+        const avlStatus = document.getElementById('avlStatus');
+        const rotateBtn = document.getElementById('rotateBtn');
+        let avlCase = 'RR';
+        let avlRotated = false;
+        let avlBusy = false;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        // Each scenario: unbalanced shape + balanced shape, sharing node ids.
+        const scenarios = {
+            RR: {
+                // 10 right-heavy; 10 -> 20 -> 30 down the right spine
+                before: { n10: { val: 10, left: null, right: 'n20' }, n20: { val: 20, left: null, right: 'n30' }, n30: { val: 30, left: null, right: null } },
+                beforeRoot: 'n10', pivot: 'n20', sink: 'n10',
+                after: { n20: { val: 20, left: 'n10', right: 'n30' }, n10: { val: 10, left: null, right: null }, n30: { val: 30, left: null, right: null } },
+                afterRoot: 'n20',
+                bfText: 'node 10 is right-heavy (balance −2)',
+                action: 'left rotation around 10'
+            },
+            LL: {
+                // 30 left-heavy; 30 -> 20 -> 10 down the left spine
+                before: { n30: { val: 30, left: 'n20', right: null }, n20: { val: 20, left: 'n10', right: null }, n10: { val: 10, left: null, right: null } },
+                beforeRoot: 'n30', pivot: 'n20', sink: 'n30',
+                after: { n20: { val: 20, left: 'n10', right: 'n30' }, n10: { val: 10, left: null, right: null }, n30: { val: 30, left: null, right: null } },
+                afterRoot: 'n20',
+                bfText: 'node 30 is left-heavy (balance +2)',
+                action: 'right rotation around 30'
+            }
+        };
+
+        function pickCase(c, btn) {
+            if (avlBusy) return;
+            avlCase = c;
+            document.querySelectorAll('#caseToggle button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            resetAvl();
+        }
+
+        function resetAvl() {
+            if (avlBusy) return;
+            avlRotated = false;
+            const s = scenarios[avlCase];
+            drawTree(avlSvg, s.before, s.beforeRoot, { active: s.sink });
+            avlStatus.innerHTML = `Unbalanced: <b style="color:#7c3aed">${s.bfText}</b>. The right path is too long. Press <b>Rotate</b> to fix it with a ${s.action}.`;
+            rotateBtn.disabled = false;
+            rotateBtn.textContent = 'Rotate ▶';
+        }
+
+        async function doRotate() {
+            if (avlBusy) return;
+            const s = scenarios[avlCase];
+            if (avlRotated) { resetAvl(); return; }
+            avlBusy = true;
+            rotateBtn.disabled = true;
+
+            // Step 1: spotlight the pivot that will rise
+            avlStatus.innerHTML = `<b style="color:#7c3aed">${s.bfText}</b> → ${s.action}: node ${scenarios[avlCase].before[s.pivot].val} will swing <b>up</b> to become the new root…`;
+            drawTree(avlSvg, s.before, s.beforeRoot, { active: s.pivot });
+            await sleep(900);
+
+            // Step 2: redraw rotated, pivot now on top, old root re-hung
+            avlRotated = true;
+            drawTree(avlSvg, s.after, s.afterRoot, { highlight: new Set([s.pivot]) });
+            avlStatus.innerHTML = `Done. Node ${s.after[s.afterRoot].val} is now the root; node ${scenarios[avlCase].before[s.sink].val} re-hangs on the lighter side. Every node’s balance is back to {−1, 0, +1}. Press Rotate to replay.`;
+            rotateBtn.disabled = false;
+            rotateBtn.textContent = '↺ Replay';
+            avlBusy = false;
+        }
+
+        resetAvl();
     </script>
 </body>
 </html>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Largest BST Subtree - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .toggle { display: inline-flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
+        .toggle button { padding: 6px 12px; border: none; background: transparent; border-radius: 6px; font-size: 0.8em; font-weight: 600; color: #64748b; cursor: pointer; }
+        .toggle button.active { background: white; color: #6366f1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Binary Search Trees</a>
+        <h1>Largest BST Subtree</h1>
+        <p>Imagine you've inherited a messy family org chart — a binary tree where the numbers were filled in by hand and nobody enforced any ordering rule. Somewhere inside that mess there are pockets that <em>accidentally</em> obey the binary-search-tree rule perfectly. Your job is to find the <strong>biggest such pocket</strong>: the largest chunk of the tree that, taken whole (a node together with <em>all</em> its descendants), is a valid BST. We report its size — the number of nodes in it.</p>
+        <p>The key word is <strong>subtree</strong>: you can't cherry-pick a few nodes here and there. A subtree means "pick a node, and you must take everything hanging beneath it." The whole pocket has to satisfy the BST rule from top to bottom.</p>
+
+        <div class="note">
+            <strong>The BST rule, one more time:</strong> in a valid binary search tree every node's key is greater than <em>every</em> key in its left subtree and less than <em>every</em> key in its right subtree. Not just its immediate children — its entire left and right families. That "entire family" part is exactly what makes this problem trickier than it first looks.
+        </div>
+
+        <h2>1. The Problem</h2>
+        <p>You're handed the root of an <strong>arbitrary</strong> binary tree. It is <em>not</em> promised to be a BST — values can be in any arrangement at all. Return the number of nodes in the largest subtree that happens to be a valid BST.</p>
+        <p>Here's a tree to anchor the idea. Notice the whole thing is <em>not</em> a BST (the right side is broken), but there's a clean BST hiding on the left.</p>
+
+        <div class="visual">
+<pre>
+              10
+             /  \
+            5    15
+           / \     \
+          1   8     7      &lt;-- 7 is the RIGHT child of 15, but 7 &lt; 15!
+
+Walk the candidates:
+  subtree at 8  : single node          -&gt; BST, size 1
+  subtree at 1  : single node          -&gt; BST, size 1
+  subtree at 7  : single node          -&gt; BST, size 1
+  subtree at 5  : 1 &lt; 5 &lt; 8             -&gt; BST, size 3   &lt;== largest
+  subtree at 15 : right child 7 &lt; 15    -&gt; NOT a BST
+  subtree at 10 : right subtree broken  -&gt; NOT a BST
+
+Answer: largest BST subtree has size 3 (the subtree rooted at 5).
+</pre>
+        </div>
+
+        <p>Even though node <code>10</code> looks orderly next to its own two children (<code>5 &lt; 10 &lt; 15</code>), it fails: its right subtree contains a <code>7</code> that violates the rule, so the subtree rooted at <code>10</code> is <strong>not</strong> a BST. The biggest valid pocket is the subtree rooted at <code>5</code>, with <code>3</code> nodes.</p>
+
+        <div class="note">
+            <strong>Edge cases up front (they fall out naturally below):</strong>
+            <ul>
+                <li>An <strong>empty subtree</strong> (a null pointer) counts as a valid BST of <strong>size 0</strong>. This is the clean base case the whole algorithm leans on.</li>
+                <li>A <strong>single node</strong> with no children is always a valid BST of size 1.</li>
+                <li><strong>Duplicates:</strong> a strict BST forbids equal keys. We use strict comparisons (<code>node.val &gt; left.max</code> and <code>node.val &lt; right.min</code>), so a duplicate value across the boundary makes that subtree invalid. (If your problem variant allows duplicates on one side, relax the matching comparison to <code>&ge;</code> or <code>&le;</code>.)</li>
+            </ul>
+        </div>
+
+        <h2>2. The Naive O(n²) Approach</h2>
+        <p>The most direct idea: for every node, ask "is the subtree rooted here a valid BST?" If yes, count its nodes and update a running best. Two helpers, both standard: one checks BST-ness with the (low, high) bounds trick, another counts nodes.</p>
+        <p>The mental picture: you stand at each node and re-scan its <em>entire</em> family from scratch to answer the question. Then you move to the next node and re-scan its family from scratch again — even though those families overlap massively.</p>
+
+        <div class="visual">
+<pre>
+For EACH node:
+     isBST(node)?  -- walks the whole subtree    O(size of subtree)
+     if valid: size(node) -- walks it AGAIN        O(size of subtree)
+     best = max(best, size)
+
+Re-checking overlapping subtrees over and over:
+                10            check 10's subtree (all 6 nodes)
+               /  \
+              5    15         then re-check 5's subtree (3 nodes)
+             / \     \        then re-check 15's subtree...
+            1   8     7       then 1, 8, 7 individually...
+
+Same nodes get visited again and again from different ancestors.
+</pre>
+        </div>
+
+        <div class="warn">
+            <strong>Why it's wasteful:</strong> the BST-check at a node visits every node beneath it, and we run that check at <em>every</em> node. On a skewed (chain-like) tree that's <code>n + (n-1) + (n-2) + ... = O(n²)</code> total work. We keep re-deriving the same facts about lower subtrees that we could have computed once and reused. That redundancy is the signal to switch to a bottom-up approach.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node { <span class="keyword">int</span> val; Node *left, *right; };
+
+<span class="comment">// Standard bounds check: is the whole subtree a BST?</span>
+<span class="keyword">bool</span> isBST(Node* n, <span class="keyword">long long</span> low, <span class="keyword">long long</span> high) {
+    <span class="keyword">if</span> (!n) <span class="keyword">return</span> <span class="keyword">true</span>;                 <span class="comment">// empty subtree is a BST</span>
+    <span class="keyword">if</span> (n-&gt;val &lt;= low || n-&gt;val &gt;= high) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">return</span> isBST(n-&gt;left, low, n-&gt;val) &amp;&amp;
+           isBST(n-&gt;right, n-&gt;val, high);
+}
+
+<span class="keyword">int</span> countNodes(Node* n) {
+    <span class="keyword">return</span> n ? <span class="number">1</span> + countNodes(n-&gt;left) + countNodes(n-&gt;right) : <span class="number">0</span>;
+}
+
+<span class="comment">// For every node, re-check + re-count its subtree: O(n^2).</span>
+<span class="keyword">int</span> largestBSTSubtree(Node* root) {
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> best = <span class="number">0</span>;
+    <span class="keyword">if</span> (isBST(root, LLONG_MIN, LLONG_MAX))
+        best = countNodes(root);
+    <span class="keyword">return</span> max({ best,
+                 largestBSTSubtree(root-&gt;left),
+                 largestBSTSubtree(root-&gt;right) });
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> { <span class="keyword">int</span> val; Node left, right; }
+
+<span class="comment">// Standard bounds check: is the whole subtree a BST?</span>
+<span class="keyword">boolean</span> isBST(<span class="type">Node</span> n, <span class="keyword">long</span> low, <span class="keyword">long</span> high) {
+    <span class="keyword">if</span> (n == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">true</span>;        <span class="comment">// empty subtree is a BST</span>
+    <span class="keyword">if</span> (n.val &lt;= low || n.val &gt;= high) <span class="keyword">return</span> <span class="keyword">false</span>;
+    <span class="keyword">return</span> isBST(n.left, low, n.val) &amp;&amp;
+           isBST(n.right, n.val, high);
+}
+
+<span class="keyword">int</span> countNodes(<span class="type">Node</span> n) {
+    <span class="keyword">return</span> n == <span class="keyword">null</span> ? <span class="number">0</span> : <span class="number">1</span> + countNodes(n.left) + countNodes(n.right);
+}
+
+<span class="comment">// For every node, re-check + re-count its subtree: O(n^2).</span>
+<span class="keyword">int</span> largestBSTSubtree(<span class="type">Node</span> root) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> best = <span class="number">0</span>;
+    <span class="keyword">if</span> (isBST(root, <span class="type">Long</span>.MIN_VALUE, <span class="type">Long</span>.MAX_VALUE))
+        best = countNodes(root);
+    <span class="keyword">return</span> <span class="type">Math</span>.max(best,
+           <span class="type">Math</span>.max(largestBSTSubtree(root.left),
+                    largestBSTSubtree(root.right)));
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, val):
+        self.val = val
+        self.left = self.right = <span class="keyword">None</span>
+
+<span class="comment"># Standard bounds check: is the whole subtree a BST?</span>
+<span class="keyword">def</span> is_bst(n, low, high):
+    <span class="keyword">if</span> n <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="keyword">True</span>                  <span class="comment"># empty subtree is a BST</span>
+    <span class="keyword">if</span> <span class="keyword">not</span> (low &lt; n.val &lt; high):
+        <span class="keyword">return</span> <span class="keyword">False</span>
+    <span class="keyword">return</span> is_bst(n.left, low, n.val) <span class="keyword">and</span> is_bst(n.right, n.val, high)
+
+<span class="keyword">def</span> count_nodes(n):
+    <span class="keyword">return</span> <span class="number">0</span> <span class="keyword">if</span> n <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">else</span> <span class="number">1</span> + count_nodes(n.left) + count_nodes(n.right)
+
+<span class="comment"># For every node, re-check + re-count its subtree: O(n^2).</span>
+<span class="keyword">def</span> largest_bst_subtree(root):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="number">0</span>
+    best = <span class="number">0</span>
+    <span class="keyword">if</span> is_bst(root, float(<span class="string">'-inf'</span>), float(<span class="string">'inf'</span>)):
+        best = count_nodes(root)
+    <span class="keyword">return</span> max(best,
+               largest_bst_subtree(root.left),
+               largest_bst_subtree(root.right))
+</pre>
+            </div>
+        </div>
+
+        <h2>3. The Optimal O(n) Postorder Approach</h2>
+        <p>Here's the insight that kills the redundancy: a subtree's BST-ness depends <em>entirely</em> on small summaries of its two children. So compute those summaries <strong>once</strong>, from the bottom up, and let each node hand a tidy report card up to its parent. This is the textbook "<strong>return a struct from each node</strong>" pattern — process children first (postorder), combine, pass the result upward.</p>
+
+        <p>Each node returns a four-field summary about <em>its own subtree</em>:</p>
+        <ul>
+            <li><code>isBST</code> — is this whole subtree a valid BST?</li>
+            <li><code>size</code> — how many nodes are in this subtree?</li>
+            <li><code>min</code> — the smallest key anywhere in this subtree.</li>
+            <li><code>max</code> — the largest key anywhere in this subtree.</li>
+        </ul>
+
+        <p>A node combines its children's reports into its own. The subtree at a node is a BST <strong>if and only if</strong> all three of these hold:</p>
+        <ol>
+            <li>the <strong>left</strong> child's subtree is a BST, and</li>
+            <li>the <strong>right</strong> child's subtree is a BST, and</li>
+            <li><code>node.val &gt; left.max</code> <strong>and</strong> <code>node.val &lt; right.min</code> — the node sits strictly above everything on its left and strictly below everything on its right.</li>
+        </ol>
+        <p>If it qualifies, its size is <code>left.size + right.size + 1</code>, its min is the left subtree's min (or the node itself), and its max is the right subtree's max. We keep a single global <code>best</code> and update it with every BST we confirm. The empty-subtree base case returns <code>{isBST: true, size: 0, min: +∞, max: -∞}</code> — those flipped infinities are deliberate so the comparison <code>node.val &gt; left.max</code> automatically passes when there is no left child.</p>
+
+        <div class="visual">
+<pre>
+Postorder: children report first, then the node combines.
+Summary = {isBST, size, min, max}
+
+              10
+             /  \
+            5    15
+           / \     \
+          1   8     7
+
+  leaf 1 : {T, 1, 1, 1}     leaf 8 : {T, 1, 8, 8}
+  node 5 : left.max=1 &lt; 5 &lt; right.min=8  -> BST
+           {T, size 3, min 1, max 8}            <== best so far = 3
+  leaf 7 : {T, 1, 7, 7}
+  node 15: needs val &lt; right.min(7)?  15 &lt; 7 is FALSE
+           -> NOT a BST  {F, -, -, -}
+  node 10: right child not a BST -> NOT a BST  {F, -, -, -}
+
+  Largest BST subtree size = 3
+</pre>
+        </div>
+
+        <div class="note">
+            <strong>Why null returns <code>min=+∞, max=-∞</code>:</strong> for a node with no left child, the test <code>node.val &gt; left.max</code> becomes <code>node.val &gt; -∞</code>, which is always true — exactly what we want (nothing on the left to violate). Symmetrically <code>node.val &lt; right.min</code> becomes <code>node.val &lt; +∞</code> for a missing right child. The sentinels make the leaf and single-child cases need no special handling.
+        </div>
+
+        <div class="warn">
+            <strong>Short-circuit, don't crash:</strong> once either child reports <code>isBST = false</code>, the current node is immediately not a BST — you must <em>not</em> read a non-existent ordering from a broken child. Return a "not a BST" summary right away and let the global best stay as it is. The size field of a non-BST report is never trusted by an ancestor.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Info {
+    <span class="keyword">bool</span> isBST;
+    <span class="keyword">int</span> size;
+    <span class="keyword">long long</span> mn, mx;   <span class="comment">// min and max key in this subtree</span>
+};
+
+<span class="keyword">int</span> best = <span class="number">0</span>;
+
+Info solve(Node* node) {
+    <span class="keyword">if</span> (!node)                            <span class="comment">// empty subtree: BST of size 0</span>
+        <span class="keyword">return</span> { <span class="keyword">true</span>, <span class="number">0</span>, LLONG_MAX, LLONG_MIN };  <span class="comment">// flipped sentinels</span>
+
+    Info L = solve(node-&gt;left);
+    Info R = solve(node-&gt;right);
+
+    <span class="comment">// BST iff both children are BSTs and node fits strictly between them</span>
+    <span class="keyword">if</span> (L.isBST &amp;&amp; R.isBST &amp;&amp;
+        node-&gt;val &gt; L.mx &amp;&amp; node-&gt;val &lt; R.mn) {
+        <span class="keyword">int</span> size = L.size + R.size + <span class="number">1</span>;
+        best = max(best, size);
+        <span class="keyword">return</span> { <span class="keyword">true</span>, size,
+                 min((<span class="keyword">long long</span>)node-&gt;val, L.mn),
+                 max((<span class="keyword">long long</span>)node-&gt;val, R.mx) };
+    }
+    <span class="comment">// Not a BST: size/min/max won't be trusted by an ancestor.</span>
+    <span class="keyword">return</span> { <span class="keyword">false</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span> };
+}
+
+<span class="keyword">int</span> largestBSTSubtree(Node* root) {
+    best = <span class="number">0</span>;
+    solve(root);
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Info</span> {
+    <span class="keyword">boolean</span> isBST;
+    <span class="keyword">int</span> size;
+    <span class="keyword">long</span> mn, mx;        <span class="comment">// min and max key in this subtree</span>
+    <span class="type">Info</span>(<span class="keyword">boolean</span> b, <span class="keyword">int</span> s, <span class="keyword">long</span> mn, <span class="keyword">long</span> mx) {
+        isBST = b; size = s; this.mn = mn; this.mx = mx;
+    }
+}
+
+<span class="keyword">int</span> best = <span class="number">0</span>;
+
+<span class="type">Info</span> solve(<span class="type">Node</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>)                    <span class="comment">// empty subtree: BST of size 0</span>
+        <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">Info</span>(<span class="keyword">true</span>, <span class="number">0</span>, <span class="type">Long</span>.MAX_VALUE, <span class="type">Long</span>.MIN_VALUE);
+
+    <span class="type">Info</span> L = solve(node.left);
+    <span class="type">Info</span> R = solve(node.right);
+
+    <span class="comment">// BST iff both children are BSTs and node fits strictly between them</span>
+    <span class="keyword">if</span> (L.isBST &amp;&amp; R.isBST &amp;&amp;
+        node.val &gt; L.mx &amp;&amp; node.val &lt; R.mn) {
+        <span class="keyword">int</span> size = L.size + R.size + <span class="number">1</span>;
+        best = <span class="type">Math</span>.max(best, size);
+        <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">Info</span>(<span class="keyword">true</span>, size,
+            <span class="type">Math</span>.min(node.val, L.mn),
+            <span class="type">Math</span>.max(node.val, R.mx));
+    }
+    <span class="comment">// Not a BST: size/min/max won't be trusted by an ancestor.</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">Info</span>(<span class="keyword">false</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+}
+
+<span class="keyword">int</span> largestBSTSubtree(<span class="type">Node</span> root) {
+    best = <span class="number">0</span>;
+    solve(root);
+    <span class="keyword">return</span> best;
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="keyword">import</span> math
+
+<span class="keyword">def</span> largest_bst_subtree(root):
+    best = [<span class="number">0</span>]        <span class="comment"># list cell so the closure can mutate it</span>
+
+    <span class="comment"># returns (isBST, size, mn, mx) for the subtree at `node`</span>
+    <span class="keyword">def</span> solve(node):
+        <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:                       <span class="comment"># empty: BST of size 0</span>
+            <span class="keyword">return</span> (<span class="keyword">True</span>, <span class="number">0</span>, math.inf, -math.inf)  <span class="comment"># flipped sentinels</span>
+
+        l_bst, l_sz, l_mn, l_mx = solve(node.left)
+        r_bst, r_sz, r_mn, r_mx = solve(node.right)
+
+        <span class="comment"># BST iff both children are BSTs and node fits strictly between</span>
+        <span class="keyword">if</span> l_bst <span class="keyword">and</span> r_bst <span class="keyword">and</span> l_mx &lt; node.val &lt; r_mn:
+            size = l_sz + r_sz + <span class="number">1</span>
+            best[<span class="number">0</span>] = max(best[<span class="number">0</span>], size)
+            <span class="keyword">return</span> (<span class="keyword">True</span>, size, min(node.val, l_mn), max(node.val, r_mx))
+
+        <span class="comment"># Not a BST: these fields won't be trusted by an ancestor.</span>
+        <span class="keyword">return</span> (<span class="keyword">False</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+
+    solve(root)
+    <span class="keyword">return</span> best[<span class="number">0</span>]
+</pre>
+            </div>
+        </div>
+
+        <h2>4. See It Run</h2>
+        <p>Step through the postorder traversal below. Children are computed before their parent, so watch the summaries bubble up from the leaves. Each visited node shows its <code>{isBST, size, min, max}</code> report card; valid-BST subtrees turn green, broken ones turn red. At the end, the largest valid BST subtree is highlighted and its size reported.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Largest BST Subtree — Postorder Walk</div>
+            <div class="pg-sub">Postorder: left child, right child, then the node. Each step computes one node's summary from its children and decides if its subtree is a BST. Green = valid BST subtree, red = not a BST. The label above each node is its size once it's been processed.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">Press “Find largest BST ▶” to compute each node's summary bottom-up.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()">Find largest BST ▶</button>
+                <button class="btn btn-ghost" id="resetBtn" onclick="resetViz()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>5. Complexity Analysis</h2>
+        <p>Each node hands one small constant-size report up to its parent, and is visited exactly once.</p>
+        <table>
+            <tr><th>Approach</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Naive (re-check each subtree)</td><td>O(n²) worst case (skewed tree)</td><td>O(h) recursion stack</td></tr>
+            <tr><td>Optimal postorder (return a struct)</td><td>O(n)</td><td>O(h) recursion stack</td></tr>
+        </table>
+        <p>Here <code>n</code> is the number of nodes and <code>h</code> is the tree height — O(log n) for a balanced tree, O(n) for a skewed one. The postorder method touches every node once and does O(1) work per node, so it is linear in time; the only space cost is the recursion stack proportional to the height.</p>
+
+        <div class="note">
+            <strong>The takeaway pattern:</strong> whenever a tree question asks about every subtree at once — largest BST subtree, diameter, balanced-tree check, max path sum — reach for the <strong>postorder "return a struct from each node"</strong> technique. Compute children first, fold their summaries into the parent's summary, update a global answer along the way. One pass, O(n), no re-scanning. Internalize this and a whole family of "hard" tree problems collapses into the same shape.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Largest BST subtree postorder walk ----
+        const svg = document.getElementById('treeSvg');
+        const setStatus = t => document.getElementById('status').innerHTML = t;
+
+        // Sample tree: NOT a BST overall; largest BST is the subtree rooted at 5 (size 3).
+        //            10
+        //           /  \
+        //          5    15
+        //         / \     \
+        //        1   8     7   (7 is a right child of 15 but 7 < 15 -> breaks BST)
+        const TREE = {
+            n0: { val: 10, left: 'n1', right: 'n2' },
+            n1: { val: 5,  left: 'n3', right: 'n4' },
+            n2: { val: 15, left: null, right: 'n5' },
+            n3: { val: 1,  left: null, right: null },
+            n4: { val: 8,  left: null, right: null },
+            n5: { val: 7,  left: null, right: null }
+        };
+        const ROOT = 'n0';
+
+        const INF = Infinity, NINF = -Infinity;
+        function fmt(x) { return x === INF ? '+∞' : x === NINF ? '-∞' : x; }
+
+        let stepQueue, stepIdx, finished, labels, passSet, failSet, info, bestSize, bestRoot;
+
+        // Build a postorder list of node ids to process.
+        function buildPostorder() {
+            const order = [];
+            (function walk(id) {
+                if (id == null) return;
+                walk(TREE[id].left);
+                walk(TREE[id].right);
+                order.push(id);
+            })(ROOT);
+            return order;
+        }
+
+        // Compute the summary for a node given child summaries already in `info`.
+        function computeInfo(id) {
+            const node = TREE[id];
+            const L = node.left == null ? { isBST: true, size: 0, mn: INF, mx: NINF } : info[node.left];
+            const R = node.right == null ? { isBST: true, size: 0, mn: INF, mx: NINF } : info[node.right];
+            if (L.isBST && R.isBST && node.val > L.mx && node.val < R.mn) {
+                const size = L.size + R.size + 1;
+                return { isBST: true, size, mn: Math.min(node.val, L.mn), mx: Math.max(node.val, R.mx) };
+            }
+            return { isBST: false, size: 0, mn: 0, mx: 0 };
+        }
+
+        // Collect all node ids in the subtree rooted at `id`.
+        function subtreeIds(id) {
+            const out = [];
+            (function walk(x) { if (x == null) return; out.push(x); walk(TREE[x].left); walk(TREE[x].right); })(id);
+            return out;
+        }
+
+        // ----- drawTree: SVG renderer with labels above nodes + pass/fail coloring -----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const active = opts.active;
+            const pass = opts.pass || new Set();
+            const fail = opts.fail || new Set();
+            const highlight = opts.highlight || new Set();
+            const labels = opts.labels || {};
+            const R = 20, vGap = 78, hGap = 56;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 50 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 60;
+            let edges = '', circles = '', texts = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (pass.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (fail.has(id)) { fill = '#fef2f2'; stroke = '#dc2626'; }
+                if (highlight.has(id)) { fill = '#dcfce7'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+                if (labels[id]) {
+                    texts += `<text x="${p.x}" y="${p.y - R - 8}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#7c3aed">${labels[id]}</text>`;
+                }
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles + texts;
+            return pos;
+        }
+
+        function render(opts) { drawTree(svg, TREE, ROOT, Object.assign({ labels }, opts || {})); }
+
+        function resetViz() {
+            stepQueue = buildPostorder();
+            stepIdx = 0;
+            finished = false;
+            labels = {};
+            passSet = new Set();
+            failSet = new Set();
+            info = {};
+            bestSize = 0;
+            bestRoot = null;
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('stepBtn').textContent = 'Find largest BST ▶';
+            render();
+            setStatus('Press “Find largest BST ▶” to compute each node\'s summary bottom-up.');
+        }
+
+        function step() {
+            if (finished) return;
+            const id = stepQueue[stepIdx];
+            const node = TREE[id];
+            const summary = computeInfo(id);
+            info[id] = summary;
+
+            if (summary.isBST) {
+                labels[id] = `sz ${summary.size}`;
+                passSet.add(id);
+                if (summary.size > bestSize) { bestSize = summary.size; bestRoot = id; }
+                render({ active: id, pass: passSet, fail: failSet });
+                setStatus(`Node <b>${node.val}</b> → <b>{isBST: true, size: ${summary.size}, min: ${fmt(summary.mn)}, max: ${fmt(summary.mx)}}</b>. Its subtree is a valid BST ✓ (best so far: <b>${bestSize}</b>).`);
+            } else {
+                failSet.add(id);
+                render({ active: id, pass: passSet, fail: failSet });
+                // explain the failure
+                const L = node.left == null ? { isBST: true, mx: NINF } : info[node.left];
+                const R = node.right == null ? { isBST: true, mn: INF } : info[node.right];
+                let reason;
+                if (!L.isBST || !R.isBST) {
+                    reason = `a child's subtree is not a BST`;
+                } else if (!(node.val > L.mx)) {
+                    reason = `${node.val} is not &gt; left max ${fmt(L.mx)}`;
+                } else {
+                    reason = `${node.val} is not &lt; right min ${fmt(R.mn)}`;
+                }
+                setStatus(`Node <b>${node.val}</b> → <b style="color:#dc2626">{isBST: false}</b> — ${reason}. This subtree is <b>not</b> a BST.`);
+            }
+
+            stepIdx++;
+            if (stepIdx >= stepQueue.length) {
+                finished = true;
+                document.getElementById('stepBtn').disabled = true;
+                document.getElementById('stepBtn').textContent = 'Done';
+                const hl = new Set(bestRoot ? subtreeIds(bestRoot) : []);
+                render({ highlight: hl });
+                const rootVal = bestRoot ? TREE[bestRoot].val : null;
+                setStatus(`Done. Largest BST subtree is rooted at node <b>${rootVal}</b> with <b style="color:#16a34a">size ${bestSize}</b> (highlighted in green).`);
+            }
+        }
+
+        resetViz();
+    </script>
+
+    <footer style="text-align:center; color:#94a3b8; font-size:0.85em; padding:24px;">
+        Binary Search Trees Visualized | C++, Java &amp; Python | Interactive Learning
+    </footer>
+</body>
+</html>

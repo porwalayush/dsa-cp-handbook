@@ -41,6 +41,21 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,7 +63,8 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Red-Black Trees</h1>
-        <p>A <strong>red-black tree</strong> is a self-balancing binary search tree where every node carries one extra bit of information &mdash; its <strong>color</strong>, either red or black. By enforcing a handful of coloring rules, the tree guarantees that no root-to-leaf path is more than twice as long as any other, keeping search, insert, and delete at <strong>O(log n)</strong>.</p>
+        <p><strong>Think of traffic rules.</strong> A city doesn't keep every street perfectly equal in length — that would be exhausting to enforce. Instead it posts a few simple rules (stop here, no two of these in a row, every route must pass the same number of checkpoints) and trusts that following them keeps traffic flowing "good enough" everywhere. A <strong>red-black tree</strong> works the same way: instead of obsessively keeping both sides of every node equal (the strict <a href="avl-trees.html">AVL</a> approach), it paints each node <strong>red</strong> or <strong>black</strong> and enforces a handful of coloring rules.</p>
+        <p>That extra bit of color is all it takes. Follow the rules and the tree can never get more than twice as tall on one side as another — which is enough to keep search, insert, and delete at a fast <strong>O(log n)</strong>, while doing far less rebalancing work than AVL on every update.</p>
 
         <h2>Motivation: Why Another Balanced BST?</h2>
         <p>We already have <a href="avl-trees.html">AVL trees</a>, which are also self-balancing. So why do red-black trees exist and why are they so widely deployed? The answer is a different point on the balance/maintenance tradeoff.</p>
@@ -59,16 +75,33 @@
         </ul>
         <p>Rule of thumb: <strong>lookup-heavy</strong> workloads slightly favor AVL (shorter trees), while <strong>general-purpose / update-mixed</strong> workloads favor red-black (cheaper writes). Both are O(log n).</p>
 
-        <h2>The Five Properties</h2>
-        <p>A red-black tree is a BST that additionally satisfies all five of these invariants at all times:</p>
+        <h2>The Five Properties (the traffic rules)</h2>
+        <p>A red-black tree is just a normal BST that always obeys these five rules. Here's each one in plain English, with why it exists:</p>
         <ol>
-            <li><strong>Color:</strong> Every node is either <strong>red</strong> or <strong>black</strong>.</li>
-            <li><strong>Root:</strong> The root is <strong>black</strong>.</li>
-            <li><strong>Leaves:</strong> Every leaf (the <code>NIL</code> sentinel that represents a null child) is <strong>black</strong>.</li>
-            <li><strong>Red rule:</strong> If a node is red, then <strong>both its children are black</strong>. Equivalently, no red node has a red child &mdash; you never see two reds in a row on a path.</li>
-            <li><strong>Black-height rule:</strong> For each node, every simple path from that node down to any descendant <code>NIL</code> leaf contains the <strong>same number of black nodes</strong>. This count is the node's <strong>black-height</strong>.</li>
+            <li><strong>Color:</strong> every node is painted <strong>red</strong> or <strong>black</strong>. (The one extra bit we pay for.)</li>
+            <li><strong>Root is black.</strong> The very top is always black — a clean starting point, and it can never cause trouble.</li>
+            <li><strong>Empty slots are black.</strong> Every "missing child" (a <code>NIL</code> leaf) counts as black. Think of these as the black endpoints every path eventually reaches.</li>
+            <li><strong>No two reds in a row.</strong> A red node may not have a red child. Intuition: red means "free, doesn't add height" — but if reds could stack, one branch could pile up reds and grow much longer than another. Banning red-on-red caps that.</li>
+            <li><strong>Equal black-height.</strong> From any node, every path down to a <code>NIL</code> leaf passes through the <strong>same number of black nodes</strong>. This is the real balancer: it forces all routes to share the same "black skeleton," so no path can be wildly longer than the rest.</li>
         </ol>
-        <p>The <code>NIL</code> leaves are conceptual: real implementations use a single shared black sentinel node (or simply treat null pointers as black). Internal "key" nodes are the ones drawn below; the black NILs hang off every empty child slot.</p>
+        <p>Rules 4 and 5 are the workhorses: <em>equal black-height keeps the black skeleton balanced, and "no two reds in a row" stops the red nodes from stretching any single path too far.</em> Together they guarantee the longest path is at most twice the shortest.</p>
+        <p>One note on <code>NIL</code> leaves: they're conceptual stand-ins for "nothing here." Real code uses a single shared black sentinel (or just treats null as black). The colored nodes in the visualizer below are the real key-carrying nodes; black NILs hang invisibly off every empty slot.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Insert a Node &amp; Watch the Fix-Up</div>
+            <div class="pg-sub">Each new node arrives <strong>red</strong>. Press <strong>Next Step</strong> to insert and repair. The status line names the rule that broke and how it's fixed — first a <em>recolor</em> case, then a <em>rotation</em> case.</div>
+            <svg id="rbSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="rbStatus"></div>
+            <div class="legend">
+                <span><span class="dot" style="background:#dc2626"></span>red node</span>
+                <span><span class="dot" style="background:#1e293b"></span>black node</span>
+                <span><span class="dot" style="background:#ede9fe;border-color:#7c3aed"></span>node being fixed</span>
+            </div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="rbBtn" onclick="rbStep()">Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="rbReset()">↺ Reset</button>
+            </div>
+        </div>
 
         <div class="visual">
 <pre>
@@ -489,6 +522,113 @@ red-red conflict. Done.
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Color-aware SVG tree renderer (red/black nodes) ----
+        // nodes: id -> {val, color:'R'|'B', left, right}. opts.active = id to ring in violet.
+        function drawRBTree(svgEl, nodes, rootId, opts = {}) {
+            const active = opts.active;
+            const R = 22, vGap = 78, hGap = 56;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 44 }; });
+            const w = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const h = (maxDepth + 1) * vGap + 44;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="#cbd5e1" stroke-width="2"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                const isRed = nodes[id].color === 'R';
+                const fill = isRed ? '#dc2626' : '#1e293b';
+                const ring = id === active ? '#7c3aed' : (isRed ? '#b91c1c' : '#0f172a');
+                const rw = id === active ? 4.5 : 2;
+                if (id === active) {
+                    circles += `<circle cx="${p.x}" cy="${p.y}" r="${R + 5}" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="4 3"/>`;
+                }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${ring}" stroke-width="${rw}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#ffffff">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- Scripted RB insert + fix-up walkthrough ----
+        const rbSvg = document.getElementById('rbSvg');
+        const rbStatus = document.getElementById('rbStatus');
+        const rbBtn = document.getElementById('rbBtn');
+
+        // A snapshot is a {tree, root, active, msg}. We replay a fixed, correct scenario:
+        // start tree, insert 1 (uncle RED -> recolor), insert 0 (uncle BLACK, outer -> rotate).
+        const rbSteps = [
+            {
+                tree: { a: { val: 10, color: 'B', left: 'b', right: 'c' }, b: { val: 5, color: 'R', left: null, right: null }, c: { val: 15, color: 'R', left: null, right: null } },
+                root: 'a', active: null,
+                msg: 'Start: a valid red-black tree. Root 10 is black, both children red. Black-height is equal on every path. Press Next Step to insert 1.'
+            },
+            {
+                tree: { a: { val: 10, color: 'B', left: 'b', right: 'c' }, b: { val: 5, color: 'R', left: 'd', right: null }, c: { val: 15, color: 'R', left: null, right: null }, d: { val: 1, color: 'R', left: null, right: null } },
+                root: 'a', active: 'd',
+                msg: 'Inserted 1 as RED under 5. ⚠ Rule 4 broken: 5 is red and its child 1 is red — two reds in a row. The uncle (15) is also RED → this is the recolor case.'
+            },
+            {
+                tree: { a: { val: 10, color: 'R', left: 'b', right: 'c' }, b: { val: 5, color: 'B', left: 'd', right: null }, c: { val: 15, color: 'B', left: null, right: null }, d: { val: 1, color: 'R', left: null, right: null } },
+                root: 'a', active: 'a',
+                msg: 'Fix (recolor): paint parent 5 and uncle 15 BLACK, and grandparent 10 RED. Black-height stays the same on every path, and the red-red conflict is gone. But the root is now red…'
+            },
+            {
+                tree: { a: { val: 10, color: 'B', left: 'b', right: 'c' }, b: { val: 5, color: 'B', left: 'd', right: null }, c: { val: 15, color: 'B', left: null, right: null }, d: { val: 1, color: 'R', left: null, right: null } },
+                root: 'a', active: 'a',
+                msg: 'Rule 2 fix: force the root 10 back to BLACK (always safe — it adds one black to every path equally). ✅ Tree is valid again. Press Next Step to insert 0.'
+            },
+            {
+                tree: { a: { val: 10, color: 'B', left: 'b', right: 'c' }, b: { val: 5, color: 'B', left: 'd', right: null }, c: { val: 15, color: 'B', left: null, right: null }, d: { val: 1, color: 'R', left: 'e', right: null }, e: { val: 0, color: 'R', left: null, right: null } },
+                root: 'a', active: 'e',
+                msg: 'Inserted 0 as RED under 1. ⚠ Rule 4 broken again: 1 and 0 are both red. This time the uncle (5’s right child) is a black NIL → recolor alone won’t work, we need a ROTATION.'
+            },
+            {
+                tree: { a: { val: 10, color: 'B', left: 'd', right: 'c' }, d: { val: 1, color: 'B', left: 'e', right: 'b' }, e: { val: 0, color: 'R', left: null, right: null }, b: { val: 5, color: 'R', left: null, right: null }, c: { val: 15, color: 'B', left: null, right: null } },
+                root: 'a', active: 'd',
+                msg: 'Fix (Case 3 — outer child): paint 1 BLACK and 5 RED, then RIGHT-rotate around 5. Node 1 rises to the top of the subtree (black), with 0 and 5 as red children. ✅ No two reds in a row, black-heights equal — done!'
+            }
+        ];
+
+        let rbIdx = 0;
+        function rbRender() {
+            const s = rbSteps[rbIdx];
+            drawRBTree(rbSvg, s.tree, s.root, { active: s.active });
+            rbStatus.innerHTML = s.msg;
+            if (rbIdx >= rbSteps.length - 1) {
+                rbBtn.textContent = 'Done ✓';
+                rbBtn.disabled = true;
+            } else {
+                rbBtn.textContent = 'Next Step ▶';
+                rbBtn.disabled = false;
+            }
+        }
+        function rbStep() {
+            if (rbIdx < rbSteps.length - 1) { rbIdx++; rbRender(); }
+        }
+        function rbReset() { rbIdx = 0; rbRender(); }
+
+        rbReset();
     </script>
 </body>
 </html>

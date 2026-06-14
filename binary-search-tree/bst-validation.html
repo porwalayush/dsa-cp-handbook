@@ -41,6 +41,24 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .toggle { display: inline-flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
+        .toggle button { padding: 6px 12px; border: none; background: transparent; border-radius: 6px; font-size: 0.8em; font-weight: 600; color: #64748b; cursor: pointer; }
+        .toggle button.active { background: white; color: #6366f1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,10 +66,11 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>BST Validation &amp; Ordered Traversal</h1>
-        <p>A <strong>Binary Search Tree</strong> obeys a single global rule: for every node, <em>all</em> keys in its left subtree are smaller and <em>all</em> keys in its right subtree are larger. This page covers how to correctly validate that property, find inorder successors and predecessors, locate floor and ceil, and answer range queries &mdash; all of which flow from one idea: <strong>an inorder traversal of a BST is sorted.</strong></p>
+        <p>Here's the mental picture for this whole page: every node lives inside an <strong>allowed range</strong> — a low bound and a high bound it's not allowed to break. The root can be anything, so it starts with the widest possible range <code>(-∞, +∞)</code>. As you walk down, that window <strong>shrinks</strong>: go left and the node you came from becomes your new ceiling; go right and it becomes your new floor. A tree is a valid BST if and only if every node stays inside the window it inherited.</p>
+        <p>That single idea drives everything below — validating the tree, finding inorder successors and predecessors, locating floor and ceil, and answering range queries — and it's really just one fact wearing different hats: <strong>an inorder traversal of a BST comes out sorted.</strong></p>
 
         <h2>1. Validating a BST: the WRONG Approach</h2>
-        <p>A tempting but <strong>incorrect</strong> idea is to only check each node against its two immediate children: <code>left.val &lt; node.val &lt; right.val</code>. This is a <em>local</em> check and it misses violations that occur deeper in the tree.</p>
+        <p>The trap almost everyone falls into first: just check each node against its two immediate children — <code>left.val &lt; node.val &lt; right.val</code> — and call it a day. That's a <em>local</em> peek at the parent and its kids, and it happily misses violations buried deeper in the tree. A grandchild can satisfy its own parent yet still break the rule of an ancestor higher up.</p>
 
         <div class="visual">
 <pre>
@@ -84,7 +103,25 @@ Local check at every node:
         </div>
 
         <h2>2. Validation via Min/Max Bounds</h2>
-        <p>Recurse from the root with an open interval <code>(low, high)</code>. Each node's key must satisfy <code>low &lt; key &lt; high</code> (strict &mdash; duplicates are not allowed in a standard BST). When you descend left, the node becomes the new upper bound; when you descend right, it becomes the new lower bound.</p>
+        <p>The fix is to carry the <strong>allowed range</strong> down with you. Start at the root with the open interval <code>(low, high) = (-∞, +∞)</code>. Each node's key must sit strictly inside its window: <code>low &lt; key &lt; high</code> (strict, because a standard BST has no duplicates). The window then shrinks for the children: descend <strong>left</strong> and this node becomes the new <em>high</em> (everything below-left must be smaller than it); descend <strong>right</strong> and it becomes the new <em>low</em>. The moment a node falls outside its window, the tree isn't a BST.</p>
+        <p>Try it below: step through a valid tree and watch every window check pass, then flip to the invalid tree and watch a deep node get caught violating a bound it inherited from a far-up ancestor.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Range-Bounds Validator</div>
+            <div class="pg-sub">Each node must satisfy the (low, high) window it inherits. Step down the tree — green means it passed its bound, red means it broke it. The status line shows the exact check.</div>
+            <div style="margin-bottom:14px">
+                <span class="toggle">
+                    <button id="mValid" class="active" onclick="setMode('valid')">Valid tree</button>
+                    <button id="mInvalid" onclick="setMode('invalid')">Invalid tree</button>
+                </span>
+            </div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">Press “Validate ▶” to descend and check each node's (low, high) window.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()">Validate ▶</button>
+                <button class="btn btn-ghost" id="resetBtn" onclick="resetViz()">↺ Reset</button>
+            </div>
+        </div>
 
         <div class="visual">
 <pre>
@@ -656,6 +693,151 @@ rangeSum(lo=12, hi=27):
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Range-bounds validator ----
+        const svg = document.getElementById('treeSvg');
+        const setStatus = t => document.getElementById('status').innerHTML = t;
+
+        // Valid BST:        5 / (3,8) / (2,4) (6,9)
+        const VALID = {
+            n0: { val: 5, left: 'n1', right: 'n2' },
+            n1: { val: 3, left: 'n3', right: 'n4' },
+            n2: { val: 8, left: 'n5', right: 'n6' },
+            n3: { val: 2, left: null, right: null },
+            n4: { val: 4, left: null, right: null },
+            n5: { val: 6, left: null, right: null },
+            n6: { val: 9, left: null, right: null }
+        };
+        // Invalid: node 6 sits in the LEFT subtree of 5 (window high = 5) -> violation.
+        const INVALID = {
+            n0: { val: 5, left: 'n1', right: 'n2' },
+            n1: { val: 3, left: 'n3', right: 'n4' },
+            n2: { val: 7, left: null, right: null },
+            n3: { val: 2, left: null, right: null },
+            n4: { val: 6, left: null, right: null }
+        };
+
+        let mode = 'valid';
+        let nodes, rootId;
+        let stepQueue, stepIdx, finished, labels;
+
+        const INF = Infinity, NINF = -Infinity;
+        function fmt(x) { return x === INF ? '+∞' : x === NINF ? '-∞' : x; }
+
+        // Build the in-order/preorder list of {id, low, high} to step through (preorder descent).
+        function buildPlan() {
+            const plan = [];
+            (function walk(id, low, high) {
+                if (id == null) return;
+                plan.push({ id, low, high });
+                walk(nodes[id].left, low, nodes[id].val);
+                walk(nodes[id].right, nodes[id].val, high);
+            })(rootId, NINF, INF);
+            return plan;
+        }
+
+        // drawTree with optional `labels` (id -> string) drawn above each node, and
+        // `pass` / `fail` sets to color nodes green / red.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const active = opts.active;
+            const pass = opts.pass || new Set();
+            const fail = opts.fail || new Set();
+            const labels = opts.labels || {};
+            const R = 20, vGap = 78, hGap = 56;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 50 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 60;
+            let edges = '', circles = '', texts = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="#cbd5e1" stroke-width="2"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (pass.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (fail.has(id)) { fill = '#fef2f2'; stroke = '#dc2626'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+                if (labels[id]) {
+                    texts += `<text x="${p.x}" y="${p.y - R - 8}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#7c3aed">${labels[id]}</text>`;
+                }
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles + texts;
+            return pos;
+        }
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('mValid').classList.toggle('active', m === 'valid');
+            document.getElementById('mInvalid').classList.toggle('active', m === 'invalid');
+            resetViz();
+        }
+
+        function render(opts) { drawTree(svg, nodes, rootId, Object.assign({ labels }, opts || {})); }
+
+        function resetViz() {
+            nodes = mode === 'valid' ? VALID : INVALID;
+            rootId = 'n0';
+            stepQueue = buildPlan();
+            stepIdx = 0;
+            finished = false;
+            labels = {};
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('stepBtn').textContent = 'Validate ▶';
+            render();
+            setStatus('Press “Validate ▶” to descend and check each node\'s (low, high) window.');
+        }
+
+        function step() {
+            if (finished) return;
+            const { id, low, high } = stepQueue[stepIdx];
+            const v = nodes[id].val;
+            labels[id] = `(${fmt(low)}, ${fmt(high)})`;
+            const ok = low < v && v < high;
+            if (!ok) {
+                render({ active: id, fail: new Set([id]) });
+                const which = !(low < v) ? `${v} ≤ low ${fmt(low)}` : `${v} ≥ high ${fmt(high)}`;
+                setStatus(`Node <b>${v}</b> must satisfy <b>${fmt(low)} &lt; ${v} &lt; ${fmt(high)}</b> — but ${which}. <b style="color:#dc2626">Violation! NOT a valid BST.</b>`);
+                finished = true;
+                document.getElementById('stepBtn').disabled = true;
+                return;
+            }
+            // passed
+            const passSet = new Set(stepQueue.slice(0, stepIdx).map(s => s.id));
+            passSet.add(id);
+            render({ active: id, pass: passSet });
+            setStatus(`Node <b>${v}</b>: window <b>(${fmt(low)}, ${fmt(high)})</b> → ${fmt(low)} &lt; ${v} &lt; ${fmt(high)} ✓. Going left sets high=${v}; going right sets low=${v}.`);
+            stepIdx++;
+            if (stepIdx >= stepQueue.length) {
+                finished = true;
+                document.getElementById('stepBtn').disabled = true;
+                const allPass = new Set(stepQueue.map(s => s.id));
+                render({ pass: allPass });
+                setStatus(`Every node stayed inside its window. <b style="color:#16a34a">Valid BST ✓</b>`);
+            }
+        }
+
+        resetViz();
     </script>
 </body>
 </html>

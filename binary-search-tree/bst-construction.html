@@ -41,6 +41,25 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+        .chip { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85em; padding: 8px 12px; border-radius: 8px; border: 2px solid #cbd5e1; background: white; color: #334155; transition: all 0.25s ease; }
+        .chip.range { border-color: #6366f1; background: #eef2ff; }
+        .chip.mid { border-color: #7c3aed; background: #ede9fe; color: #5b21b6; transform: translateY(-4px) scale(1.08); box-shadow: 0 4px 12px rgba(124,58,237,0.2); }
+        .chip.placed { opacity: 0.35; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,29 +67,25 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>BST Construction &amp; Conversion</h1>
-        <p>A family of closely related problems: turning sorted data into a <strong>height-balanced BST</strong>, converting a BST into a sorted linked list and back, rebuilding a tree from a single traversal, and repairing a corrupted BST. The unifying idea is that the <strong>inorder traversal of a BST is exactly the sorted order of its keys</strong>.</p>
+        <p>Think of this page as a toolbox of closely related tricks, all built on one simple fact: <strong>if you walk a BST in "inorder" (left, then node, then right), the keys come out perfectly sorted.</strong> That single idea lets you turn sorted data into a balanced tree, flatten a tree into a sorted list and back, rebuild a tree from one traversal, and even repair a tree where two values got swapped.</p>
 
         <h2>1. Sorted Array &rarr; Height-Balanced BST</h2>
-        <p>Given a sorted array, build a BST of minimum possible height. The recipe: pick the <strong>middle element as the root</strong>, recursively build the left subtree from the left half and the right subtree from the right half. Each half has roughly half the elements, so the recursion depth is <code>O(log n)</code>.</p>
+        <p>Here's the intuition first. <strong>Binary search</strong> on a sorted array always looks at the middle element to cut the search space in half. Building a balanced tree is the same move, frozen in place: pick the <strong>middle element as the root</strong>, then the left half becomes the left subtree and the right half becomes the right subtree &mdash; each built the exact same way. The tree you get <em>is</em> the binary search, drawn out as a structure.</p>
+        <p>Why bother? Because if instead you insert the sorted values one at a time (1, then 2, then 3...), every new value is bigger than the last and gets glued onto the right &mdash; you end up with a <strong>skewed tree</strong> that's really just a linked list, and searches go back to <code>O(n)</code>. Always-pick-the-middle keeps both halves the same size, so the tree stays short: depth <code>O(log n)</code>.</p>
 
-        <div class="visual">
-<pre>
-Sorted array:  [-10, -3, 0, 5, 9, 12, 18]   (indices 0..6)
-
-mid = (0 + 6) / 2 = 3  -> root = 5
-  left half  [-10, -3, 0]   mid = 1 -> -3
-  right half [9, 12, 18]    mid = 5 -> 12
-
-                  5
-                /   \
-              -3     12
-             /  \    /  \
-          -10    0  9    18
-
-Height = 2  (minimum possible for 7 nodes: ceil(log2(7+1)) - 1)
-Inorder walk gives back: -10 -3 0 5 9 12 18  (the sorted array)
-</pre>
+        <div class="playground">
+            <div class="pg-title">🌳 Build a Balanced BST from a Sorted Array</div>
+            <div class="pg-sub">Each step picks the middle of the current range as a subtree root, then recurses into the left and right halves. Watch a short, balanced tree grow.</div>
+            <div class="chips" id="chips"></div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">Press "Next Step" to pick the middle of the whole array as the root.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()">Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="resetBuild()">↺ Reset</button>
+                <button class="btn btn-danger" id="skewBtn" onclick="showSkew()">Show naive 1-by-1 insert ⚠</button>
+            </div>
         </div>
+        <p>The status line narrates each pick, e.g. <em>"pick middle of [-10, -3, 0] = -3 as the subtree root."</em> The last button shows the lopsided tree you'd get by inserting the same values sequentially &mdash; same data, but a much taller tree.</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -625,6 +640,151 @@ Node* balanceBST(Node* root) {
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // Renders tree into svgEl. layout via inorder x-index. Returns positions map.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 50;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- Balanced-build step-through widget ----
+        const ARR = [-10, -3, 0, 5, 9, 12, 18];
+        const svgEl = document.getElementById('treeSvg');
+        const chipsEl = document.getElementById('chips');
+        const statusEl = document.getElementById('status');
+        const stepBtn = document.getElementById('stepBtn');
+        const skewBtn = document.getElementById('skewBtn');
+
+        let nodes, rootId, queue, placed, active, curRange, finished, nextNid;
+
+        function setStatus(t) { statusEl.innerHTML = t; }
+
+        function renderChips() {
+            chipsEl.innerHTML = '';
+            ARR.forEach((v, idx) => {
+                const d = document.createElement('div');
+                let cls = 'chip';
+                if (placed.has(idx)) cls += ' placed';
+                else if (curRange && idx === curRange.mid) cls += ' mid';
+                else if (curRange && idx >= curRange.lo && idx <= curRange.hi) cls += ' range';
+                d.className = cls;
+                d.textContent = v;
+                chipsEl.appendChild(d);
+            });
+        }
+
+        function resetBuild() {
+            nodes = {};
+            rootId = null;
+            placed = new Set();
+            active = null;
+            curRange = null;
+            finished = false;
+            nextNid = 0;
+            // queue of { lo, hi, parent, side } ranges to process
+            queue = [{ lo: 0, hi: ARR.length - 1, parent: null, side: null }];
+            stepBtn.disabled = false;
+            setStatus('Press "Next Step" to pick the middle of the whole array as the root.');
+            renderChips();
+            svgEl.innerHTML = '';
+            svgEl.removeAttribute('viewBox');
+        }
+
+        function step() {
+            if (finished) return;
+            // skip empty ranges (lo > hi) — they are null children
+            while (queue.length && queue[0].lo > queue[0].hi) queue.shift();
+            if (!queue.length) {
+                finished = true;
+                stepBtn.disabled = true;
+                active = null;
+                curRange = null;
+                renderChips();
+                drawTree(svgEl, nodes, rootId, { highlight: new Set(Object.keys(nodes)) });
+                setStatus('<b style="color:#16a34a">Done!</b> Every middle has been picked. The result is a height-balanced BST — short and bushy, with the same inorder order as the sorted array.');
+                return;
+            }
+            const job = queue.shift();
+            const mid = job.lo + Math.floor((job.hi - job.lo) / 2);
+            const id = 'n' + (nextNid++);
+            nodes[id] = { val: ARR[mid], left: null, right: null };
+            if (job.parent === null) rootId = id;
+            else nodes[job.parent][job.side] = id;
+            placed.add(mid);
+            active = id;
+            curRange = { lo: job.lo, hi: job.hi, mid };
+            // enqueue children
+            queue.push({ lo: job.lo, hi: mid - 1, parent: id, side: 'left' });
+            queue.push({ lo: mid + 1, hi: job.hi, parent: id, side: 'right' });
+            const sub = ARR.slice(job.lo, job.hi + 1).join(', ');
+            setStatus(`Pick middle of <b style="color:#6366f1">[${sub}]</b> = <b style="color:#7c3aed">${ARR[mid]}</b> as the subtree root, then recurse into its left and right halves.`);
+            renderChips();
+            drawTree(svgEl, nodes, rootId, { active: id, visited: new Set(Object.keys(nodes)) });
+        }
+
+        function showSkew() {
+            finished = true;
+            stepBtn.disabled = true;
+            active = null;
+            curRange = null;
+            // sequential insert => fully right-skewed chain
+            const sk = {};
+            let r = null, prev = null;
+            ARR.forEach((v, idx) => {
+                const id = 's' + idx;
+                sk[id] = { val: v, left: null, right: null };
+                if (prev === null) r = id; else sk[prev].right = id;
+                prev = id;
+            });
+            placed = new Set(ARR.map((_, i) => i));
+            renderChips();
+            drawTree(svgEl, sk, r, {});
+            setStatus('<b style="color:#dc2626">Naive insert (1 → 2 → … one at a time):</b> every value is larger than the previous, so it hangs off the right. The "tree" is really a linked list of height ' + (ARR.length - 1) + ' — searches are O(n). Press ↺ Reset to compare with the balanced build.');
+        }
+
+        resetBuild();
     </script>
 </body>
 </html>

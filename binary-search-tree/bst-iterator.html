@@ -41,26 +41,59 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
-        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        .pg-stage { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+        .pg-tree { flex: 1 1 360px; min-width: 300px; }
+        .pg-side { flex: 0 0 130px; display: flex; flex-direction: column; gap: 14px; }
+        .stack-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; background: #f8fafc; }
+        .stack-label { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #7c3aed; margin-bottom: 8px; text-align: center; }
+        .stack-list { display: flex; flex-direction: column-reverse; gap: 6px; min-height: 40px; }
+        .stack-cell { background: white; border: 2px solid #c7d2fe; border-radius: 8px; padding: 7px 0; text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #4338ca; font-size: 0.9em; transition: all 0.2s ease; }
+        .stack-cell.top { border-color: #7c3aed; background: #ede9fe; box-shadow: 0 2px 8px rgba(124,58,237,0.2); }
+        .stack-cap { font-size: 0.62em; color: #94a3b8; text-align: center; margin-top: 6px; }
+        .stack-empty { color: #94a3b8; font-size: 0.78em; text-align: center; padding: 8px 0; }
+        .emit-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; background: #f8fafc; }
+        .emit-label { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #16a34a; margin-bottom: 8px; }
+        .emit-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; }
+        .emit-cell { background: #ecfdf5; border: 1.5px solid #16a34a; border-radius: 6px; padding: 4px 9px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #15803d; font-size: 0.82em; }
+        .emit-cell.fresh { animation: pop 0.4s ease; }
+        @keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .pg-side { flex: 1 1 100%; flex-direction: row; } .stack-box, .emit-box { flex: 1; } }
     </style>
 </head>
 <body>
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>BST Iterator (Inorder On-Demand)</h1>
-        <p>A <strong>BST Iterator</strong> walks a binary search tree in <strong>sorted order</strong>, producing one key at a time through <code>next()</code> and <code>hasNext()</code>. The trick is to do this <strong>lazily</strong> &mdash; without materializing the entire inorder traversal up front &mdash; achieving <strong>O(1) amortized</strong> time per <code>next()</code> and only <strong>O(h)</strong> extra memory, where <code>h</code> is the tree height.</p>
+        <p>Think of a <strong>BST Iterator</strong> as a <strong>&ldquo;next&rdquo; button</strong> bolted onto a binary search tree. Each press hands you the next value in <strong>sorted order</strong> &mdash; smallest first &mdash; and nothing more. You never ask for the whole sorted list; you just keep pressing the button and the next number appears.</p>
+        <p>The clever part is <em>how it remembers where to resume</em>. Behind the button sits a small <strong>stack</strong> that bookmarks exactly which nodes are still waiting their turn. Press the button, it pops the next answer, updates its bookmarks, and pauses again. This makes each press cost <strong>O(1) on average</strong> and the bookmarks take only <strong>O(h)</strong> memory, where <code>h</code> is the tree height &mdash; far cheaper than dumping every value into a list up front.</p>
 
         <h2>1. The Problem</h2>
         <p>Design a class that, given the root of a BST, supports two operations:</p>
         <ul>
-            <li><code>next()</code> &mdash; return the next smallest key in the BST (the next value in inorder order).</li>
-            <li><code>hasNext()</code> &mdash; return <code>true</code> if a next key exists, <code>false</code> otherwise.</li>
+            <li><code>next()</code> &mdash; return the next smallest key (the next value in sorted/inorder order).</li>
+            <li><code>hasNext()</code> &mdash; return <code>true</code> if there is still a value left to hand out.</li>
         </ul>
-        <p>The goal is <strong>O(1) amortized time</strong> for <code>next()</code> / <code>hasNext()</code> and <strong>O(h) memory</strong>. Crucially, we want to avoid precomputing and storing the whole inorder sequence: that wastes memory on large trees and does work the caller may never need if they stop iterating early.</p>
+        <p>We want <code>next()</code> / <code>hasNext()</code> to be fast (<strong>O(1) amortized</strong>) and to use only <strong>O(h) memory</strong>. The whole point is to <em>avoid</em> precomputing and storing the entire sorted sequence: that wastes memory on big trees and does work the caller may never use if they stop early (say, after grabbing the 3rd-smallest value).</p>
 
         <div class="visual">
 <pre>
-Inorder of a BST = keys in ascending sorted order.
+Inorder of a BST = its keys in ascending sorted order.
 
            20
           /  \
@@ -70,13 +103,39 @@ Inorder of a BST = keys in ascending sorted order.
           /  \
          11   14
 
-Inorder sequence: 5, 9, 11, 12, 14, 20, 25
-                  ^ next() must yield these in this order.
+Sorted (inorder) sequence: 5, 9, 11, 12, 14, 20, 25
+                           ^ next() hands these out, one press at a time.
 </pre>
         </div>
 
+        <div class="playground">
+            <div class="pg-title">&#127916; The &ldquo;Next&rdquo; Button &mdash; watch the stack remember</div>
+            <div class="pg-sub">Press <strong>next() &#9654;</strong> to pop the smallest pending node (it pulses indigo and its value lands in the output row), then watch the iterator push the right child&rsquo;s <em>left spine</em> so it knows where to resume. The top of the stack is always the next answer.</div>
+            <div class="pg-stage">
+                <div class="pg-tree">
+                    <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+                </div>
+                <div class="pg-side">
+                    <div class="stack-box">
+                        <div class="stack-label">Stack</div>
+                        <div class="stack-list" id="stackList"></div>
+                        <div class="stack-cap">top &uarr; / bottom &darr;</div>
+                    </div>
+                    <div class="emit-box">
+                        <div class="emit-label">next() output</div>
+                        <div class="emit-row" id="emitRow"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="pg-status" id="status">Seeded the stack with the left spine: 20, 9, 5. The smallest (5) sits on top, ready to be returned.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="nextBtn" onclick="doNext()">next() &#9654;</button>
+                <button class="btn btn-ghost" onclick="resetIter()">&#8634; Reset</button>
+            </div>
+        </div>
+
         <h2>2. Naive Approach: Flatten First</h2>
-        <p>The simplest idea: run a full inorder traversal in the constructor, store every key in a list (or queue), and have <code>next()</code> pop from the front and <code>hasNext()</code> check whether the list is exhausted.</p>
+        <p>The simplest idea: in the constructor, do a full inorder traversal, dump every key into a list, and have <code>next()</code> read from the front while <code>hasNext()</code> checks whether the list is empty.</p>
         <div class="code-container">
             <div class="code-tabs">
                 <button class="code-tab active" onclick="showCode(this, 'naive_py')">Python</button>
@@ -103,39 +162,28 @@ Inorder sequence: 5, 9, 11, 12, 14, 20, 25
 </pre>
             </div>
         </div>
-        <p>This is correct and each <code>next()</code> is genuinely O(1), but it pays <strong>O(n) memory</strong> regardless of how far you iterate. If you only need the first few keys (e.g. the 3rd smallest), or the tree is huge, you waste the rest. The controlled approach below defers work so memory stays O(h) and unused subtrees are never visited until needed.</p>
+        <p>This works, and each <code>next()</code> really is O(1) &mdash; but it pays <strong>O(n) memory</strong> no matter how far you iterate. If you only need the first few keys, or the tree is enormous, the rest of that list is wasted. The controlled approach below defers the work so memory stays O(h) and subtrees you never reach are never even visited.</p>
 
         <h2>3. Controlled (Stack-Based) Inorder Iterator</h2>
-        <p>We simulate the recursion stack of an inorder traversal explicitly. The invariant: the stack holds the chain of nodes whose key has <strong>not yet been returned but is next in line</strong>, with the smallest pending key on top.</p>
+        <p>Here is the intuition before the rules: a normal recursive inorder traversal uses the program&rsquo;s call stack to remember &ldquo;which node do I come back to after finishing this left subtree?&rdquo; We are going to keep that exact same stack <em>by hand</em>, so we can pause and resume the traversal between button presses.</p>
+        <p>The <strong>invariant</strong>: the stack always holds the chain of nodes whose key has <em>not yet been returned but is next in line</em>, with the <strong>smallest pending key on top</strong>.</p>
         <ul>
-            <li><strong>Constructor:</strong> push the entire <em>left spine</em> from the root (root, root.left, root.left.left, ...). The deepest left node sits on top &mdash; it is the global minimum.</li>
-            <li><strong>next():</strong> pop the top node <code>cur</code> (its key is the answer). Before returning, push the left spine of <code>cur.right</code>, because everything in the right subtree comes after <code>cur</code> but before <code>cur</code>'s ancestors.</li>
-            <li><strong>hasNext():</strong> return whether the stack is non-empty.</li>
+            <li><strong>Constructor:</strong> push the entire <em>left spine</em> from the root (root, root.left, root.left.left, &hellip;). The deepest left node lands on top &mdash; it is the global minimum, the very first answer.</li>
+            <li><strong>next():</strong> pop the top node <code>cur</code> (its key is the answer). Before returning, push the left spine of <code>cur.right</code> &mdash; because everything in the right subtree comes <em>after</em> <code>cur</code> but <em>before</em> <code>cur</code>&rsquo;s ancestors.</li>
+            <li><strong>hasNext():</strong> just check whether the stack is non-empty.</li>
         </ul>
+
+        <div class="note">
+            <strong>Why the left spine?</strong> In sorted order you always want the smallest thing you can still reach. From any node, the smallest reachable key is found by walking left as far as possible. Pushing the left spine puts that smallest node on top, with each ancestor stacked beneath it &mdash; waiting for their turn once everything to their left is done.
+        </div>
+
+        <p>Walk through the <code>next()</code> calls below (the interactive widget above does exactly this). Top of stack is shown on the left:</p>
 
         <div class="visual">
 <pre>
 Helper: pushLeft(node) -> while node: stack.push(node); node = node.left
 
-Tree:
-           20
-          /  \
-         9    25
-        / \
-       5   12
-          /  \
-         11   14
-
-Constructor: pushLeft(20)  -> push 20, 9, 5
-Stack (top -> bottom): [5, 9, 20]
-</pre>
-        </div>
-
-        <p>Walk through the <code>next()</code> calls. Top of stack is on the left:</p>
-
-        <div class="visual">
-<pre>
-Stack state (top is leftmost element):
+Stack state (top is the leftmost element):
 
 start            : [5, 9, 20]
 next() -> 5      : pop 5; 5.right = null -> nothing pushed
@@ -154,7 +202,7 @@ next() -> 25     : pop 25; 25.right = null
                    []
 hasNext() -> false
 
-Yielded: 5, 9, 11, 12, 14, 20, 25  -- correct inorder order.
+Yielded: 5, 9, 11, 12, 14, 20, 25  -- correct sorted order.
 </pre>
         </div>
 
@@ -270,8 +318,8 @@ Yielded: 5, 9, 11, 12, 14, 20, 25  -- correct inorder order.
         </div>
 
         <h2>4. Amortized Analysis</h2>
-        <p>A single <code>next()</code> can cost <strong>O(h)</strong> in the worst case &mdash; for example, when the popped node has a long left spine in its right subtree, <code>pushLeft</code> pushes many nodes at once. So per-call worst case is <em>not</em> O(1).</p>
-        <p>But look at the total work across a full traversal. Every node is <strong>pushed onto the stack exactly once</strong> and <strong>popped exactly once</strong> over the entire sequence of <code>next()</code> calls. There are <code>n</code> nodes, so the total push + pop work is <code>O(n)</code> spread across <code>n</code> calls to <code>next()</code>.</p>
+        <p>A single <code>next()</code> can cost <strong>O(h)</strong> in the worst case &mdash; if the popped node has a long left spine in its right subtree, one <code>pushLeft</code> shoves many nodes on at once. So per-call worst case is <em>not</em> O(1).</p>
+        <p>But zoom out to the whole traversal. Every node is <strong>pushed exactly once</strong> and <strong>popped exactly once</strong> across the entire run of <code>next()</code> calls. With <code>n</code> nodes that is <code>O(n)</code> total work spread over <code>n</code> calls.</p>
 
         <div class="visual">
 <pre>
@@ -286,7 +334,7 @@ Single-call worst case    = O(h)   (one big pushLeft)
 </pre>
         </div>
 
-        <p>This is the classic <strong>aggregate / amortized</strong> argument: even though individual calls vary, the average over the whole run is constant. <code>hasNext()</code> is always true O(1) since it just checks emptiness.</p>
+        <p>This is the classic <strong>aggregate / amortized</strong> argument: individual calls vary, but the average over the whole run is constant. <code>hasNext()</code> is always O(1) since it just checks emptiness.</p>
 
         <h2>5. Variant: Bidirectional Iterator (next + prev)</h2>
         <p>Some problems want both <code>next()</code> (successor) and <code>prev()</code> (predecessor) from a movable cursor. A clean design keeps <strong>two stacks</strong>: a <em>forward</em> stack holding the left spine ahead of the cursor (as above), and a <em>backward</em> stack holding the right spine behind it (built symmetrically with a <code>pushRight</code> helper that walks down right children). Calling <code>next()</code> advances the cursor and records the visited node so <code>prev()</code> can rewind; <code>prev()</code> mirrors the logic using the right spine.</p>
@@ -353,7 +401,7 @@ Single-call worst case    = O(h)   (one big pushLeft)
             <ul>
                 <li>At any moment the stack holds <strong>exactly the ancestors whose keys are still pending</strong> &mdash; nodes we have descended into (via left edges) but not yet returned.</li>
                 <li>The top is always the smallest unreturned key; the rest are its ancestors waiting their turn.</li>
-                <li>Popping a node and pushing its right child's left spine advances this frontier by one step &mdash; precisely the "in-progress" state of a paused inorder traversal.</li>
+                <li>Popping a node and pushing its right child&rsquo;s left spine advances this frontier by one step &mdash; precisely the &ldquo;in-progress&rdquo; state of a paused inorder traversal.</li>
             </ul>
         </div>
     </div>
@@ -366,6 +414,165 @@ Single-call worst case    = O(h)   (one big pushLeft)
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // Renders tree into svgEl. layout via inorder x-index. Returns positions map.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- BST Iterator widget ----
+        // Tree: 20 -> (9 -> (5, 12 -> (11,14)), 25)
+        const nodes = {
+            n20: { val: 20, left: 'n9',  right: 'n25' },
+            n9:  { val: 9,  left: 'n5',  right: 'n12' },
+            n5:  { val: 5,  left: null,  right: null },
+            n12: { val: 12, left: 'n11', right: 'n14' },
+            n11: { val: 11, left: null,  right: null },
+            n14: { val: 14, left: null,  right: null },
+            n25: { val: 25, left: null,  right: null }
+        };
+        const ROOT = 'n20';
+        const svg = document.getElementById('treeSvg');
+        const stackList = document.getElementById('stackList');
+        const emitRow = document.getElementById('emitRow');
+        const status = document.getElementById('status');
+        const nextBtn = document.getElementById('nextBtn');
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        let stack = [];      // node ids, top = last element
+        let emitted = [];    // values returned so far
+        let visited = new Set();
+        let busy = false;
+
+        function pushLeft(id) {
+            const pushed = [];
+            while (id != null) { stack.push(id); pushed.push(nodes[id].val); id = nodes[id].left; }
+            return pushed;
+        }
+
+        function renderStack(activeId) {
+            stackList.innerHTML = '';
+            if (stack.length === 0) {
+                const e = document.createElement('div'); e.className = 'stack-empty'; e.textContent = 'empty';
+                stackList.appendChild(e); return;
+            }
+            stack.forEach((id, i) => {
+                const c = document.createElement('div');
+                c.className = 'stack-cell' + (i === stack.length - 1 ? ' top' : '');
+                c.textContent = nodes[id].val;
+                stackList.appendChild(c);
+            });
+        }
+
+        function renderEmit(freshIdx) {
+            emitRow.innerHTML = '';
+            emitted.forEach((v, i) => {
+                const c = document.createElement('div');
+                c.className = 'emit-cell' + (i === freshIdx ? ' fresh' : '');
+                c.textContent = v;
+                emitRow.appendChild(c);
+            });
+        }
+
+        function redraw(activeId) {
+            drawTree(svg, nodes, ROOT, { active: activeId, visited });
+            renderStack(activeId);
+        }
+
+        function seed() {
+            stack = []; emitted = []; visited = new Set();
+            pushLeft(ROOT);
+            redraw(null);
+            renderEmit(-1);
+        }
+
+        async function doNext() {
+            if (busy) return;
+            if (stack.length === 0) {
+                status.textContent = 'Stack is empty — hasNext() is false. Every value has been handed out. Press Reset to start over.';
+                return;
+            }
+            busy = true; nextBtn.disabled = true;
+            const id = stack[stack.length - 1];
+            const val = nodes[id].val;
+
+            // pulse the popped node
+            redraw(id);
+            status.textContent = `Pop the top node (${val}) — that is the next smallest value. Returning ${val}.`;
+            await sleep(700);
+
+            stack.pop();
+            visited.add(id);
+            emitted.push(val);
+            renderEmit(emitted.length - 1);
+            redraw(null);
+
+            const rightId = nodes[id].right;
+            await sleep(450);
+            if (rightId != null) {
+                const pushed = pushLeft(rightId);
+                redraw(null);
+                status.textContent = `${val} has a right child (${nodes[rightId].val}). Push its left spine: ${pushed.join(', ')}. Now the smallest pending value (${nodes[stack[stack.length-1]].val}) is back on top.`;
+            } else {
+                if (stack.length > 0) {
+                    status.textContent = `${val} has no right child, so nothing new is pushed. The next pending value (${nodes[stack[stack.length-1]].val}) rises to the top.`;
+                } else {
+                    status.textContent = `${val} has no right child and the stack is now empty — that was the last value. hasNext() is false.`;
+                }
+            }
+            busy = false; nextBtn.disabled = false;
+        }
+
+        function resetIter() {
+            if (busy) return;
+            seed();
+            status.textContent = 'Seeded the stack with the left spine: 20, 9, 5. The smallest (5) sits on top, ready to be returned.';
+        }
+
+        seed();
     </script>
 </body>
 </html>

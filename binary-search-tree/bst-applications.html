@@ -41,6 +41,30 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        .pg-readout { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .pg-chip { flex: 1 1 120px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; background: #f8fafc; }
+        .pg-chip .lbl { font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+        .pg-chip .v { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.15em; color: #0f172a; margin-top: 2px; }
+        .pg-chip.floor .v { color: #2563eb; }
+        .pg-chip.ceil .v { color: #7c3aed; }
+        .pg-chip.closest { border-color: #bbf7d0; background: #f0fdf4; }
+        .pg-chip.closest .v { color: #16a34a; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,13 +72,24 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>BST Applications &amp; Library Structures</h1>
-        <p>A balanced <strong>Binary Search Tree</strong> keeps elements in sorted order while supporting O(log n) insert, delete, and search. This page covers classic BST interview problems and the real-world ordered structures (<code>std::set</code>, <code>TreeMap</code>, <code>SortedList</code>) that are built on top of balanced BSTs.</p>
+        <p>Picture a <strong>filing cabinet that re-sorts itself every time you drop in a folder</strong>. That is what a balanced <strong>Binary Search Tree (BST)</strong> gives you: things stay in sorted order automatically, and you can find, add, or remove any item in about <code>log n</code> steps instead of scanning the whole drawer. Because the data is always ordered, a BST can answer questions a plain hash map cannot &mdash; &ldquo;what&rsquo;s the next bigger key?&rdquo;, &ldquo;what&rsquo;s the closest value to 11.4?&rdquo;, &ldquo;list everything between 20 and 40&rdquo;.</p>
+        <p>This page walks through where BSTs actually earn their keep &mdash; classic interview problems plus the real ordered structures (<code>std::set</code>, <code>TreeMap</code>, <code>SortedList</code>) that every language ships built on balanced trees.</p>
+
+        <div class="note">
+            <strong>The four superpowers of an ordered tree</strong> &mdash; the reasons you reach for a BST over a hash map:
+            <ul>
+                <li><strong>Ordered maps/sets</strong>: iterate keys smallest-to-largest for free.</li>
+                <li><strong>Range queries</strong>: grab every key in <code>[lo, hi]</code> without touching the rest.</li>
+                <li><strong>Floor &amp; ceiling</strong>: the largest key <code>&le;</code> x (floor) and smallest key <code>&ge;</code> x (ceiling) &mdash; even when x isn&rsquo;t in the tree.</li>
+                <li><strong>Closest value</strong>: the stored key nearest a target, by walking toward it.</li>
+            </ul>
+        </div>
 
         <h2>1. Two Sum in a BST</h2>
-        <p>Given a BST and a target <code>k</code>, decide whether two distinct nodes sum to <code>k</code>. There are two natural approaches that both exploit the sorted nature of the tree.</p>
+        <p>Given a BST and a target <code>k</code>, decide whether two distinct nodes sum to <code>k</code>. The handy fact: reading a BST <em>inorder</em> (left, node, right) visits its values in <strong>ascending order</strong> &mdash; so it&rsquo;s really a sorted-array problem in disguise.</p>
 
         <h3>Approach A: Inorder &rarr; sorted array + two pointers</h3>
-        <p>An inorder traversal of a BST yields values in <strong>ascending sorted order</strong>. Flatten the tree into an array, then sweep two pointers from both ends: if the pair sum is too small advance the left pointer, if too large retreat the right pointer. This is O(n) time and O(n) space.</p>
+        <p>Flatten the tree into a sorted array, then sweep two pointers in from both ends. If the pair sum is too small, nudge the left pointer right (bigger numbers); if it&rsquo;s too big, pull the right pointer left (smaller numbers). This is O(n) time and O(n) space.</p>
 
         <div class="visual">
 <pre>
@@ -67,7 +102,7 @@ BST:            5
 Inorder array:  [2, 3, 4, 5, 6, 7, 8]   target k = 11
                  L                 R
   2 + 8 = 10  &lt; 11  -> L++
-  3 + 8 = 11  == 11 -> FOUND (3, 8) ✓
+  3 + 8 = 11  == 11 -> FOUND (3, 8) &#10003;
 </pre>
         </div>
 
@@ -147,28 +182,26 @@ Inorder array:  [2, 3, 4, 5, 6, 7, 8]   target k = 11
         </div>
 
         <h3>Approach B: Two BST iterators (forward + backward)</h3>
-        <p>To avoid the O(n) array we can run two stack-based iterators over the same tree. A <strong>forward iterator</strong> yields the next-smallest value (a normal inorder traversal); a <strong>backward iterator</strong> yields the next-largest value (a reverse-inorder traversal that descends right children first). We advance them like two pointers: if the current sum is too small, pull the next value from the forward iterator; if too large, pull from the backward iterator; stop when they meet. This keeps space at O(h) where <code>h</code> is the tree height, instead of O(n). It is the streaming equivalent of the two-pointer sweep, reading the smallest and largest remaining values on demand.</p>
+        <p>To avoid building the O(n) array, run two stack-based iterators over the same tree. A <strong>forward iterator</strong> hands you the next-smallest value (a normal inorder walk); a <strong>backward iterator</strong> hands you the next-largest (a mirror-image walk that descends right children first). Advance them like the two pointers above: sum too small &rarr; pull the next value from the forward iterator; too large &rarr; pull from the backward one; stop when they meet. This keeps memory at O(h) (the tree height) instead of O(n) &mdash; the streaming version of the two-pointer sweep, reading the smallest and largest remaining values on demand.</p>
 
-        <h2>2. Closest Value to a Target</h2>
-        <p>Given a BST and a (possibly non-integer) target, find the stored value closest to it. Because the tree is ordered we never need to look at both subtrees: at each node we move toward the target, recording the best candidate as we descend. This is O(h) time and O(1) space.</p>
+        <h2>2. Closest Value to a Target (+ floor &amp; ceiling)</h2>
+        <p>Given a BST and a target (which may not be a whole number, or may not even be in the tree), find the stored value <strong>closest</strong> to it. Because the tree is ordered, you never need to explore both sides &mdash; at each node you simply step toward the target, like a guessing game where every wrong guess tells you which direction to go next. That same downward walk also reveals the <strong>floor</strong> (largest value <code>&le;</code> target) and <strong>ceiling</strong> (smallest value <code>&ge;</code> target). It runs in O(h) time and O(1) space.</p>
 
-        <div class="visual">
-<pre>
-BST:            8
-              /   \
-             4     12
-            / \   /  \
-           2   6 10   14
-
-target = 11.4    (walk down, track closest)
-
-  node 8   -> |8-11.4|=3.4   best=8    11.4&gt;8  -> go right
-  node 12  -> |12-11.4|=0.6  best=12   11.4&lt;12 -> go left
-  node 10  -> |10-11.4|=1.4  (worse)   11.4&gt;10 -> go right
-  node = null -> stop
-
-Closest value = 12 ✓
-</pre>
+        <div class="playground">
+            <div class="pg-title">&#127916; Floor / Ceiling &amp; Closest-Value Finder</div>
+            <div class="pg-sub">Type a target and press <strong>Find &#9654;</strong>. Watch the search descend one node at a time. As it goes it tightens the best <span style="color:#2563eb;font-weight:700;">floor</span> (largest value &le; target) and best <span style="color:#7c3aed;font-weight:700;">ceiling</span> (smallest value &ge; target). When it can&rsquo;t go further, the <span style="color:#16a34a;font-weight:700;">closest</span> node lights up green.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-readout">
+                <div class="pg-chip floor"><div class="lbl">floor (&le; target)</div><div class="v" id="floorVal">&ndash;</div></div>
+                <div class="pg-chip ceil"><div class="lbl">ceiling (&ge; target)</div><div class="v" id="ceilVal">&ndash;</div></div>
+                <div class="pg-chip closest"><div class="lbl">closest value</div><div class="v" id="closeVal">&ndash;</div></div>
+            </div>
+            <div class="pg-status" id="status">Enter a target (e.g. 11.4) and press Find. The tree holds 2, 4, 6, 8, 10, 12, 14.</div>
+            <div class="pg-controls">
+                <input type="number" id="target" step="0.1" value="11.4">
+                <button class="btn btn-primary" id="findBtn" onclick="findClosest()">Find &#9654;</button>
+                <button class="btn btn-ghost" onclick="resetFinder()">&#8634; Reset</button>
+            </div>
         </div>
 
         <div class="code-container">
@@ -300,7 +333,7 @@ Node* mergeBSTs(Node* r1, Node* r2) {
         </div>
 
         <h2>4. Standard-Library Ordered Structures</h2>
-        <p>You rarely hand-roll a balanced BST in production. Every major language ships a self-balancing tree:</p>
+        <p>You rarely hand-roll a balanced BST in production &mdash; every major language ships a self-balancing tree so you get all four superpowers for free:</p>
         <ul>
             <li><strong>C++</strong>: <code>std::set</code> / <code>std::map</code> (and the <code>multiset</code>/<code>multimap</code> variants) are typically <strong>Red-Black trees</strong>, giving sorted iteration and O(log n) operations.</li>
             <li><strong>Java</strong>: <code>TreeSet</code> / <code>TreeMap</code> are backed by a <strong>Red-Black tree</strong> with a rich navigable API.</li>
@@ -406,7 +439,7 @@ arr = [<span class="number">10</span>, <span class="number">20</span>, <span cla
         </div>
 
         <h2>5. When to Reach for a Balanced BST</h2>
-        <p>A balanced BST is not always the right tool. Choose based on which operations dominate:</p>
+        <p>A balanced BST is not always the right tool. The question to ask: <em>which operations dominate my workload?</em> If you only ever do point lookups, a hash table is faster; if you only need the min or max, a heap is simpler. The BST wins when you need <strong>both</strong> fast updates <strong>and</strong> order-aware queries.</p>
 
         <table>
             <tr><th>Structure</th><th>Point ops (find/insert/delete)</th><th>Ordered queries</th><th>Best for</th></tr>
@@ -481,6 +514,132 @@ arr = [<span class="number">10</span>, <span class="number">20</span>, <span cla
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // Renders tree into svgEl. layout via inorder x-index. Returns positions map.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- Floor/Ceiling/Closest widget ----
+        // Tree:        8
+        //           /     \
+        //          4       12
+        //         / \     /  \
+        //        2   6   10   14
+        const nodes = {
+            n8:  { val: 8,  left: 'n4',  right: 'n12' },
+            n4:  { val: 4,  left: 'n2',  right: 'n6' },
+            n2:  { val: 2,  left: null,  right: null },
+            n6:  { val: 6,  left: null,  right: null },
+            n12: { val: 12, left: 'n10', right: 'n14' },
+            n10: { val: 10, left: null,  right: null },
+            n14: { val: 14, left: null,  right: null }
+        };
+        const ROOT = 'n8';
+        const svg = document.getElementById('treeSvg');
+        const status = document.getElementById('status');
+        const findBtn = document.getElementById('findBtn');
+        const floorEl = document.getElementById('floorVal');
+        const ceilEl = document.getElementById('ceilVal');
+        const closeEl = document.getElementById('closeVal');
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        function reset() {
+            drawTree(svg, nodes, ROOT, {});
+            floorEl.textContent = '–'; ceilEl.textContent = '–'; closeEl.textContent = '–';
+        }
+
+        async function findClosest() {
+            if (busy) return;
+            const target = parseFloat(document.getElementById('target').value);
+            if (isNaN(target)) { status.textContent = 'Please enter a numeric target first.'; return; }
+            busy = true; findBtn.disabled = true;
+            floorEl.textContent = '–'; ceilEl.textContent = '–'; closeEl.textContent = '–';
+
+            let id = ROOT;
+            let bestId = ROOT;
+            let floorVal = null, ceilVal = null;
+            const visited = new Set();
+
+            while (id != null) {
+                const v = nodes[id].val;
+                visited.add(id);
+                drawTree(svg, nodes, ROOT, { active: id, visited });
+
+                // update floor / ceiling
+                if (v <= target && (floorVal === null || v > floorVal)) { floorVal = v; floorEl.textContent = v; }
+                if (v >= target && (ceilVal === null || v < ceilVal)) { ceilVal = v; ceilEl.textContent = v; }
+                // update closest
+                if (Math.abs(v - target) < Math.abs(nodes[bestId].val - target)) bestId = id;
+
+                let msg = `At node ${v}: |${v} - ${target}| = ${Math.abs(v - target).toFixed(2)}. ` +
+                          `floor so far = ${floorVal === null ? '–' : floorVal}, ceiling so far = ${ceilVal === null ? '–' : ceilVal}. `;
+
+                if (target < v) { msg += `${target} < ${v} → go left.`; status.textContent = msg; await sleep(900); id = nodes[id].left; }
+                else if (target > v) { msg += `${target} > ${v} → go right.`; status.textContent = msg; await sleep(900); id = nodes[id].right; }
+                else { msg += `Exact match — stop.`; status.textContent = msg; await sleep(700); break; }
+            }
+
+            // final highlight
+            drawTree(svg, nodes, ROOT, { highlight: new Set([bestId]), visited });
+            closeEl.textContent = nodes[bestId].val;
+            status.textContent = `Done. Closest stored value to ${target} is ${nodes[bestId].val} ` +
+                `(floor = ${floorVal === null ? 'none' : floorVal}, ceiling = ${ceilVal === null ? 'none' : ceilVal}). ` +
+                `The green node is the answer.`;
+            busy = false; findBtn.disabled = false;
+        }
+
+        function resetFinder() {
+            if (busy) return;
+            reset();
+            status.textContent = 'Enter a target (e.g. 11.4) and press Find. The tree holds 2, 4, 6, 8, 10, 12, 14.';
+        }
+
+        reset();
     </script>
 </body>
 </html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treap (Randomized BST) - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .pg-toggle { display: inline-flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 10px; }
+        .pg-toggle button { padding: 6px 14px; border: none; background: transparent; border-radius: 7px; font-size: 0.8em; font-weight: 600; cursor: pointer; color: #64748b; font-family: 'Inter', sans-serif; }
+        .pg-toggle button.active { background: white; color: #6366f1; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+        .footer { text-align: center; padding: 32px 20px; color: #94a3b8; font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+        .footer span { color: #6366f1; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Binary Search Trees</a>
+        <h1>Treap (Randomized BST)</h1>
+        <p><strong>Imagine you run a small bakery and want your customers lined up two ways at once</strong> — sorted left-to-right by <em>last name</em> so you can find anyone quickly, but also arranged so the person holding the highest <em>lottery ticket number</em> stands at the very front. That sounds impossible to satisfy both at the same time… yet there's exactly one arrangement that does, and a <strong>treap</strong> is the tree shape that pulls it off.</p>
+        <p>The name is a portmanteau: <strong>tree + heap = treap</strong>. Every node carries two values — a <strong>key</strong> and a randomly chosen <strong>priority</strong>. The tree is a <em>binary search tree on the keys</em> (left &lt; node &lt; right) and <em>simultaneously a heap on the priorities</em> (a parent's priority always beats its children's). The trick is that the random priorities, not any hand-coded balancing rule, are what keep the tree short.</p>
+
+        <h2>Core Idea: Balance by Luck, Not by Rules</h2>
+        <p>An <a href="avl-trees.html">AVL tree</a> stays balanced by following strict <em>rules</em>: it measures every node's balance factor and fires off rotations the instant something tips past <code>±1</code>. A <a href="red-black-trees.html">red-black tree</a> does the same with color invariants. Both work hard to <em>guarantee</em> a short tree on every single operation.</p>
+        <p>A treap takes the opposite, almost cheeky, approach: <strong>balance by luck</strong>. When you insert a key, you roll a die — assign it a random priority — and then just enforce the heap property. Because the priorities are random, the node that ends up at the root is essentially a random one of your keys, the node at the next level is a random split of each half, and so on. That is precisely how a <em>randomly built</em> BST behaves, and a randomly built BST has expected height <code>O(log n)</code>. So with high probability the treap is balanced, even though it never measured a single balance factor.</p>
+
+        <div class="note">
+            <strong>The key insight:</strong> a treap's <em>shape is completely determined</em> by the (key, priority) pairs. Two treaps built from the same set of pairs are <em>identical</em>, no matter what order you insert them. Since the priorities are random, that fixed shape is a random BST — balanced in expectation, with the chance of being badly skewed shrinking exponentially.
+        </div>
+
+        <p>We will use a <strong>max-heap on priority</strong> throughout this page (the largest priority sits at the root). A min-heap version works identically with the comparisons flipped — pick one convention and stay consistent.</p>
+
+        <div class="visual">
+<pre>
+A treap.  Notation:  key | priority      (BST by key, MAX-heap by priority)
+
+                 (40 | 95)
+                /          \
+        (20 | 70)          (60 | 55)
+        /      \                  \
+ (10 | 30)  (30 | 25)          (70 | 40)
+
+BST check (keys, in-order):  10 20 30 40 60 70   -> sorted ✓
+Heap check (priorities):     every parent > its children
+        95 > 70, 95 > 55, 70 > 30, 70 > 25, 55 > 40   ✓
+
+The random priorities happened to land in a shape that is
+also nicely balanced — that is the treap's whole bargain.
+</pre>
+        </div>
+
+        <h2>Insert via Rotations</h2>
+        <p>Insertion is a two-step dance, and step one is something you already know. <strong>First, insert the key as an ordinary BST leaf</strong> — walk down comparing keys, hang the new node where it belongs. At this point the BST property is satisfied but the heap property might be broken: your shiny new node was handed a random priority, and that priority could easily be bigger than its parent's.</p>
+        <p><strong>Second, bubble the node up with rotations</strong> while its priority beats its parent's. This is the exact same <code>leftRotate</code> / <code>rightRotate</code> primitive from AVL trees — a rotation that re-hangs three nodes without disturbing the in-order key ordering. Each rotation lifts the node one level toward the root and pushes the weaker-priority parent down. You stop the moment the node's parent has a higher priority (or the node becomes the root).</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Insert a Key → Roll a Priority → Bubble It Up</div>
+            <div class="pg-sub">Type a key and press <strong>Insert</strong>. We assign it a random priority, drop it in as a BST leaf, then rotate it up step-by-step while its priority beats its parent's (max-heap). Each node shows <strong>key</strong> on top and its <span style="color:#7c3aed">priority</span> below. Watch the in-order key order never change.</div>
+            <svg id="treapSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="treapStatus"></div>
+            <div class="pg-controls">
+                <input type="number" id="keyInput" placeholder="key" min="1" max="99">
+                <button class="btn btn-primary" id="insBtn" onclick="treapInsert()">Insert ▶</button>
+                <button class="btn btn-ghost" onclick="treapReset()">↺ Reset (seed treap)</button>
+            </div>
+        </div>
+
+        <p>Because the new node only travels upward and stops as soon as the heap property holds, the number of rotations equals the number of levels it climbs — on a balanced treap that is <code>O(log n)</code> in expectation.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppIns')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaIns')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyIns')">Python</button>
+            </div>
+            <div id="cppIns" class="code-content active">
+<pre>
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> key, priority;
+    Node *left = <span class="keyword">nullptr</span>, *right = <span class="keyword">nullptr</span>;
+    Node(<span class="keyword">int</span> k) : key(k), priority(rand()) {}
+};
+
+<span class="comment">// Right rotation: left child rises, node sinks right.</span>
+Node* rightRotate(Node* y) {
+    Node* x = y-&gt;left;
+    y-&gt;left = x-&gt;right;
+    x-&gt;right = y;
+    <span class="keyword">return</span> x;                 <span class="comment">// x is the new subtree root</span>
+}
+<span class="comment">// Left rotation: right child rises, node sinks left.</span>
+Node* leftRotate(Node* x) {
+    Node* y = x-&gt;right;
+    x-&gt;right = y-&gt;left;
+    y-&gt;left = x;
+    <span class="keyword">return</span> y;
+}
+
+<span class="comment">// Insert as BST leaf, then rotate up while child wins (max-heap).</span>
+Node* insert(Node* node, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">new</span> Node(key);
+    <span class="keyword">if</span> (key &lt; node-&gt;key) {
+        node-&gt;left = insert(node-&gt;left, key);
+        <span class="comment">// left child climbed; fix heap if it now out-ranks us</span>
+        <span class="keyword">if</span> (node-&gt;left-&gt;priority &gt; node-&gt;priority)
+            node = rightRotate(node);
+    } <span class="keyword">else if</span> (key &gt; node-&gt;key) {
+        node-&gt;right = insert(node-&gt;right, key);
+        <span class="keyword">if</span> (node-&gt;right-&gt;priority &gt; node-&gt;priority)
+            node = leftRotate(node);
+    }
+    <span class="keyword">return</span> node;                <span class="comment">// duplicate keys ignored</span>
+}
+</pre>
+            </div>
+            <div id="javaIns" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span> {
+    <span class="keyword">int</span> key, priority;
+    Node left, right;
+    Node(<span class="keyword">int</span> k, Random rng) { key = k; priority = rng.nextInt(); }
+}
+
+<span class="comment">// Right rotation: left child rises, node sinks right.</span>
+Node rightRotate(Node y) {
+    Node x = y.left;
+    y.left = x.right;
+    x.right = y;
+    <span class="keyword">return</span> x;
+}
+<span class="comment">// Left rotation: right child rises, node sinks left.</span>
+Node leftRotate(Node x) {
+    Node y = x.right;
+    x.right = y.left;
+    y.left = x;
+    <span class="keyword">return</span> y;
+}
+
+<span class="comment">// Insert as BST leaf, then rotate up while child wins (max-heap).</span>
+Node insert(Node node, <span class="keyword">int</span> key, Random rng) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return new</span> Node(key, rng);
+    <span class="keyword">if</span> (key &lt; node.key) {
+        node.left = insert(node.left, key, rng);
+        <span class="keyword">if</span> (node.left.priority &gt; node.priority)
+            node = rightRotate(node);
+    } <span class="keyword">else if</span> (key &gt; node.key) {
+        node.right = insert(node.right, key, rng);
+        <span class="keyword">if</span> (node.right.priority &gt; node.priority)
+            node = leftRotate(node);
+    }
+    <span class="keyword">return</span> node;
+}
+</pre>
+            </div>
+            <div id="pyIns" class="code-content">
+<pre>
+<span class="keyword">import</span> random
+
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, key):
+        self.key = key
+        self.priority = random.random()   <span class="comment"># random priority in [0, 1)</span>
+        self.left = <span class="keyword">None</span>
+        self.right = <span class="keyword">None</span>
+
+<span class="comment"># Right rotation: left child rises, node sinks right.</span>
+<span class="keyword">def</span> right_rotate(y):
+    x = y.left
+    y.left = x.right
+    x.right = y
+    <span class="keyword">return</span> x
+<span class="comment"># Left rotation: right child rises, node sinks left.</span>
+<span class="keyword">def</span> left_rotate(x):
+    y = x.right
+    x.right = y.left
+    y.left = x
+    <span class="keyword">return</span> y
+
+<span class="comment"># Insert as BST leaf, then rotate up while child wins (max-heap).</span>
+<span class="keyword">def</span> insert(node, key):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> Node(key)
+    <span class="keyword">if</span> key &lt; node.key:
+        node.left = insert(node.left, key)
+        <span class="keyword">if</span> node.left.priority &gt; node.priority:
+            node = right_rotate(node)
+    <span class="keyword">elif</span> key &gt; node.key:
+        node.right = insert(node.right, key)
+        <span class="keyword">if</span> node.right.priority &gt; node.priority:
+            node = left_rotate(node)
+    <span class="keyword">return</span> node
+</pre>
+            </div>
+        </div>
+
+        <h2>Delete via Rotations</h2>
+        <p>Deletion is the mirror image of insertion, and it's wonderfully simple: instead of bubbling a node <em>up</em>, you sink the target node <strong>down until it's a leaf, then snip it off</strong>. The catch is that you must sink it in a way that <em>preserves the heap property the whole time</em>.</p>
+        <p>The rule: at each step, look at the node's two children and <strong>rotate toward the child with the higher priority</strong> — that child rises to take the node's place (keeping the strongest priority on top), and the target sinks one level on the other side. Repeat until the node has no children, then delete it. If the node has only one child, rotate that child up. If it's already a leaf, just remove it.</p>
+
+        <div class="visual">
+<pre>
+delete(40) — sink it down toward the higher-priority child
+
+        (40 | 95)                 (20 | 70)                  (20 | 70)
+        /       \                 /       \                  /       \
+ (20 | 70)  (60 | 55)   =&gt;  (10|30)  (40 | 95)    =&gt;   (10|30)  (60 | 55)
+   /                                      \                          \
+(10 | 30)                            (60 | 55)                    (40 | 95)  &lt;- now a leaf
+
+left child priority 70 > right child 55,        ... 40 keeps sinking toward
+so rotate RIGHT: 20 rises, 40 sinks right.       its higher-priority child until
+                                                 it is a leaf, then snip it.
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDel')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDel')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDel')">Python</button>
+            </div>
+            <div id="cppDel" class="code-content active">
+<pre>
+<span class="comment">// Sink the matched node down toward the stronger child, then remove it.</span>
+Node* erase(Node* node, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    <span class="keyword">if</span> (key &lt; node-&gt;key)       node-&gt;left  = erase(node-&gt;left, key);
+    <span class="keyword">else if</span> (key &gt; node-&gt;key)  node-&gt;right = erase(node-&gt;right, key);
+    <span class="keyword">else</span> {
+        <span class="comment">// Found it. Base cases: zero or one child.</span>
+        <span class="keyword">if</span> (!node-&gt;left)  { Node* r = node-&gt;right; <span class="keyword">delete</span> node; <span class="keyword">return</span> r; }
+        <span class="keyword">if</span> (!node-&gt;right) { Node* l = node-&gt;left;  <span class="keyword">delete</span> node; <span class="keyword">return</span> l; }
+        <span class="comment">// Two children: rotate the stronger-priority child up, recurse.</span>
+        <span class="keyword">if</span> (node-&gt;left-&gt;priority &gt; node-&gt;right-&gt;priority) {
+            node = rightRotate(node);
+            node-&gt;right = erase(node-&gt;right, key);
+        } <span class="keyword">else</span> {
+            node = leftRotate(node);
+            node-&gt;left = erase(node-&gt;left, key);
+        }
+    }
+    <span class="keyword">return</span> node;
+}
+</pre>
+            </div>
+            <div id="javaDel" class="code-content">
+<pre>
+<span class="comment">// Sink the matched node down toward the stronger child, then remove it.</span>
+Node erase(Node node, <span class="keyword">int</span> key) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return null</span>;
+    <span class="keyword">if</span> (key &lt; node.key)       node.left  = erase(node.left, key);
+    <span class="keyword">else if</span> (key &gt; node.key)  node.right = erase(node.right, key);
+    <span class="keyword">else</span> {
+        <span class="comment">// Found it. Base cases: zero or one child.</span>
+        <span class="keyword">if</span> (node.left == <span class="keyword">null</span>)  <span class="keyword">return</span> node.right;
+        <span class="keyword">if</span> (node.right == <span class="keyword">null</span>) <span class="keyword">return</span> node.left;
+        <span class="comment">// Two children: rotate the stronger-priority child up, recurse.</span>
+        <span class="keyword">if</span> (node.left.priority &gt; node.right.priority) {
+            node = rightRotate(node);
+            node.right = erase(node.right, key);
+        } <span class="keyword">else</span> {
+            node = leftRotate(node);
+            node.left = erase(node.left, key);
+        }
+    }
+    <span class="keyword">return</span> node;
+}
+</pre>
+            </div>
+            <div id="pyDel" class="code-content">
+<pre>
+<span class="comment"># Sink the matched node down toward the stronger child, then remove it.</span>
+<span class="keyword">def</span> erase(node, key):
+    <span class="keyword">if</span> node <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="keyword">None</span>
+    <span class="keyword">if</span> key &lt; node.key:
+        node.left = erase(node.left, key)
+    <span class="keyword">elif</span> key &gt; node.key:
+        node.right = erase(node.right, key)
+    <span class="keyword">else</span>:
+        <span class="comment"># Found it. Base cases: zero or one child.</span>
+        <span class="keyword">if</span> node.left <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> node.right
+        <span class="keyword">if</span> node.right <span class="keyword">is</span> <span class="keyword">None</span>:
+            <span class="keyword">return</span> node.left
+        <span class="comment"># Two children: rotate the stronger-priority child up, recurse.</span>
+        <span class="keyword">if</span> node.left.priority &gt; node.right.priority:
+            node = right_rotate(node)
+            node.right = erase(node.right, key)
+        <span class="keyword">else</span>:
+            node = left_rotate(node)
+            node.left = erase(node.left, key)
+    <span class="keyword">return</span> node
+</pre>
+            </div>
+        </div>
+
+        <h2>Split and Merge: The Treap's Superpower</h2>
+        <p>Here is where treaps leave AVL and red-black trees in the dust. A treap supports two extra operations that are awkward or impossible on other balanced trees, yet they're short to code and run in <code>O(log n)</code>:</p>
+        <ul>
+            <li><strong>split(T, k)</strong> &rarr; <code>(L, R)</code>: cut treap <code>T</code> into two treaps where every key in <code>L</code> is <code>&le; k</code> and every key in <code>R</code> is <code>&gt; k</code>. Think of it as slicing a sorted deck of cards at a chosen value.</li>
+            <li><strong>merge(L, R)</strong> &rarr; <code>T</code>: glue two treaps back together, <em>assuming every key in <code>L</code> is smaller than every key in <code>R</code></em> (the two ranges don't overlap). This is the inverse of split.</li>
+        </ul>
+        <p>The beautiful part: once you have <code>split</code> and <code>merge</code>, you can express everything else with them. Insert(x) = split at x, merge the new node between the halves. Delete(x) = split out the single node and merge what's left. Both operations work by walking one root-to-leaf path and respecting the heap priority at each step, so they stay logarithmic.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppSM')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaSM')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pySM')">Python</button>
+            </div>
+            <div id="cppSM" class="code-content active">
+<pre>
+<span class="comment">// Split T into L (keys &lt;= k) and R (keys &gt; k).</span>
+<span class="keyword">void</span> split(Node* t, <span class="keyword">int</span> k, Node*&amp; L, Node*&amp; R) {
+    <span class="keyword">if</span> (!t) { L = R = <span class="keyword">nullptr</span>; <span class="keyword">return</span>; }
+    <span class="keyword">if</span> (t-&gt;key &lt;= k) {           <span class="comment">// t and its left go to L</span>
+        split(t-&gt;right, k, t-&gt;right, R);
+        L = t;
+    } <span class="keyword">else</span> {                     <span class="comment">// t and its right go to R</span>
+        split(t-&gt;left, k, L, t-&gt;left);
+        R = t;
+    }
+}
+
+<span class="comment">// Merge L and R (all keys in L &lt; all keys in R). Keep higher priority on top.</span>
+Node* merge(Node* L, Node* R) {
+    <span class="keyword">if</span> (!L || !R) <span class="keyword">return</span> L ? L : R;
+    <span class="keyword">if</span> (L-&gt;priority &gt; R-&gt;priority) {
+        L-&gt;right = merge(L-&gt;right, R);
+        <span class="keyword">return</span> L;
+    } <span class="keyword">else</span> {
+        R-&gt;left = merge(L, R-&gt;left);
+        <span class="keyword">return</span> R;
+    }
+}
+</pre>
+            </div>
+            <div id="javaSM" class="code-content">
+<pre>
+<span class="comment">// split returns a 2-element array {L, R}: L has keys &lt;= k, R has keys &gt; k.</span>
+Node[] split(Node t, <span class="keyword">int</span> k) {
+    <span class="keyword">if</span> (t == <span class="keyword">null</span>) <span class="keyword">return new</span> Node[]{<span class="keyword">null</span>, <span class="keyword">null</span>};
+    <span class="keyword">if</span> (t.key &lt;= k) {
+        Node[] rs = split(t.right, k);
+        t.right = rs[<span class="number">0</span>];
+        <span class="keyword">return new</span> Node[]{t, rs[<span class="number">1</span>]};
+    } <span class="keyword">else</span> {
+        Node[] ls = split(t.left, k);
+        t.left = ls[<span class="number">1</span>];
+        <span class="keyword">return new</span> Node[]{ls[<span class="number">0</span>], t};
+    }
+}
+
+<span class="comment">// Merge L and R (all keys in L &lt; all keys in R).</span>
+Node merge(Node L, Node R) {
+    <span class="keyword">if</span> (L == <span class="keyword">null</span> || R == <span class="keyword">null</span>) <span class="keyword">return</span> L != <span class="keyword">null</span> ? L : R;
+    <span class="keyword">if</span> (L.priority &gt; R.priority) {
+        L.right = merge(L.right, R);
+        <span class="keyword">return</span> L;
+    } <span class="keyword">else</span> {
+        R.left = merge(L, R.left);
+        <span class="keyword">return</span> R;
+    }
+}
+</pre>
+            </div>
+            <div id="pySM" class="code-content">
+<pre>
+<span class="comment"># Split t into (L, R): L has keys &lt;= k, R has keys &gt; k.</span>
+<span class="keyword">def</span> split(t, k):
+    <span class="keyword">if</span> t <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> <span class="keyword">None</span>, <span class="keyword">None</span>
+    <span class="keyword">if</span> t.key &lt;= k:
+        t.right, R = split(t.right, k)
+        <span class="keyword">return</span> t, R
+    <span class="keyword">else</span>:
+        L, t.left = split(t.left, k)
+        <span class="keyword">return</span> L, t
+
+<span class="comment"># Merge L and R (all keys in L &lt; all keys in R).</span>
+<span class="keyword">def</span> merge(L, R):
+    <span class="keyword">if</span> L <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> R <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> L <span class="keyword">if</span> L <span class="keyword">else</span> R
+    <span class="keyword">if</span> L.priority &gt; R.priority:
+        L.right = merge(L.right, R)
+        <span class="keyword">return</span> L
+    <span class="keyword">else</span>:
+        R.left = merge(L, R.left)
+        <span class="keyword">return</span> R
+</pre>
+            </div>
+        </div>
+
+        <h3>Implicit Treaps: Treating the Tree Like an Array</h3>
+        <p>Now the mind-bending variant. In an <strong>implicit treap</strong>, you throw away the key entirely and instead let a node's <em>position in the in-order traversal</em> be its "key." In other words, the tree behaves like a dynamic array indexed <code>0, 1, 2, …</code> — the leftmost node is index 0, the next in-order is index 1, and so on. You never store these indices; you recover them on the fly by keeping a <strong>subtree size</strong> count in every node.</p>
+        <p>Why bother? Because <code>split</code> and <code>merge</code> now let you do things to <em>ranges of an array</em> that are normally impossible in better than linear time:</p>
+        <ul>
+            <li><strong>Insert or erase an element at any position</strong> in <code>O(log n)</code> — split at the index, merge the piece in or leave it out.</li>
+            <li><strong>Reverse a whole subarray</strong> <code>[l, r]</code> in <code>O(log n)</code> by splitting out that range and flipping a lazy "reverse" flag on its root (children get swapped when you next descend, like a lazy-propagation segment tree).</li>
+            <li><strong>Apply a range update</strong> (add a value to every element in a range, find a range min/sum) by combining the size counts with lazy tags.</li>
+        </ul>
+        <p>It's the same split/merge machinery you just saw — the only addition is a <code>size</code> field (and optional lazy flags) that you recompute whenever a node's children change. Don't worry if this feels like a lot at once: the takeaway is simply that a treap can impersonate a resizable array with logarithmic-time range surgery.</p>
+
+        <div class="note">
+            <strong>Quick mental model:</strong> a normal treap is a sorted set keyed by value. An <em>implicit</em> treap is a list keyed by position. Both are the same code; one stores keys, the other stores subtree sizes and lets position play the role of the key.
+        </div>
+
+        <h2>Why Competitive Programmers Love Treaps</h2>
+        <p>If you read enough competitive-programming editorials you'll see treaps everywhere. Here's why they're a go-to tool:</p>
+        <ul>
+            <li><strong>Short to code.</strong> A full treap with split/merge is roughly 30 lines — far less than a red-black tree, and you can reconstruct it from memory under contest pressure. Insert and delete are even one-liners on top of split/merge.</li>
+            <li><strong>Order statistics for free.</strong> Add a subtree-size field and you can answer "what is the k-th smallest key?" and "how many keys are &lt; x?" (rank) in <code>O(log n)</code>.</li>
+            <li><strong>Split and merge.</strong> Slicing and gluing ordered sets in logarithmic time enables persistent structures, merging two sets, and divide-and-conquer tricks that ordinary balanced trees can't do cleanly.</li>
+            <li><strong>Implicit-key range ops.</strong> The array-like variant handles insert/erase-at-index, range reverse, and range updates — the kind of problems that otherwise need a much fussier data structure.</li>
+            <li><strong>Randomized, so no nasty case analysis.</strong> There are no four imbalance cases to memorize and no color invariants to maintain. The randomness does the balancing for you.</li>
+        </ul>
+
+        <div class="warn">
+            <strong>Two gotchas:</strong> (1) Use a good random source and enough bits of priority — if two nodes collide on the same priority you can break the strict heap order and degrade balance, so prefer a wide range (e.g. a 32/64-bit RNG). (2) The <code>O(log n)</code> bounds are <em>expected</em>, not worst-case. With high probability the tree is balanced, but an adversary who can see your random seed could theoretically force a bad shape — seed from a non-predictable source in adversarial settings.
+        </div>
+
+        <h2>Complexity</h2>
+        <table>
+            <tr><th>Operation</th><th>Time (expected)</th><th>Notes</th></tr>
+            <tr><td>Search</td><td>O(log n)</td><td>Plain BST descent by key</td></tr>
+            <tr><td>Insert</td><td>O(log n)</td><td>BST leaf insert + rotate up while priority wins</td></tr>
+            <tr><td>Delete</td><td>O(log n)</td><td>Rotate node down to a leaf, then snip</td></tr>
+            <tr><td>Split / Merge</td><td>O(log n)</td><td>One root-to-leaf path</td></tr>
+            <tr><td>k-th / rank (order stat)</td><td>O(log n)</td><td>Requires a subtree-size field per node</td></tr>
+            <tr><td>Single rotation</td><td>O(1)</td><td>Fixed pointer rewiring</td></tr>
+            <tr><td>Space</td><td>O(n)</td><td>One priority (and optional size) per node</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>Worst case caveat:</strong> like a hash table, a treap's guarantees are <em>probabilistic</em>. A single operation could in principle be O(n) if the priorities land pathologically, but the probability of the tree being more than a constant factor taller than <code>log&#8322;n</code> is exponentially small. In practice treaps are reliably balanced.
+        </div>
+
+        <h2>Treap vs AVL vs Red-Black</h2>
+        <div class="compare">
+            <div>
+                <h3>Treap</h3>
+                <ul>
+                    <li>Balance by <em>random priority</em> (expected O(log n))</li>
+                    <li>Very short to implement; easy split/merge</li>
+                    <li>Native order statistics &amp; implicit-key range ops</li>
+                    <li>Bounds are expected, not worst-case</li>
+                </ul>
+            </div>
+            <div>
+                <h3>AVL / Red-Black</h3>
+                <ul>
+                    <li>Balance by <em>strict rules</em> (guaranteed O(log n))</li>
+                    <li>More code; split/merge is awkward</li>
+                    <li>Worst-case guarantees, no randomness</li>
+                    <li>Backbone of standard library ordered maps</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Rule of thumb:</strong> reach for an <a href="avl-trees.html">AVL</a> or <a href="red-black-trees.html">red-black tree</a> when you need worst-case guarantees and a battle-tested library map. Reach for a <strong>treap</strong> when you want a balanced BST you can write from scratch quickly, especially if you need split/merge, order statistics, or array-like range operations — which is exactly the toolkit competitive programmers prize.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Binary Search Trees Visualized | <span>C++, Java & Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- SVG tree renderer (adapted: each node shows key + small priority) ----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const R = 24, vGap = 84, hGap = 62;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 48 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 48;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a', pcol = '#7c3aed';
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                // key (top, big) + priority (bottom, small)
+                circles += `<text x="${p.x}" y="${p.y - 2}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+                circles += `<text x="${p.x}" y="${p.y + 13}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" font-weight="500" fill="${pcol}">p${nodes[id].pri}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- Treap insert demo (max-heap on priority) ----
+        const treapSvg = document.getElementById('treapSvg');
+        const treapStatus = document.getElementById('treapStatus');
+        const insBtn = document.getElementById('insBtn');
+        const keyInput = document.getElementById('keyInput');
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        let nodes = {};       // id -> {val:key, pri:priority, left, right}
+        let rootId = null;
+        let uid = 0;
+        let treapBusy = false;
+
+        function newNode(key, pri) {
+            const id = 'n' + (uid++);
+            nodes[id] = { val: key, pri: pri, left: null, right: null };
+            return id;
+        }
+
+        function treapReset() {
+            if (treapBusy) return;
+            nodes = {}; uid = 0; rootId = null;
+            // Seed a small valid treap (BST by key, max-heap by priority).
+            //          40|95
+            //         /     \
+            //     20|70     60|55
+            //     /              \
+            //  10|30           70|40
+            const n40 = newNode(40, 95);
+            const n20 = newNode(20, 70);
+            const n60 = newNode(60, 55);
+            const n10 = newNode(10, 30);
+            const n70 = newNode(70, 40);
+            nodes[n40].left = n20; nodes[n40].right = n60;
+            nodes[n20].left = n10;
+            nodes[n60].right = n70;
+            rootId = n40;
+            drawTree(treapSvg, nodes, rootId, {});
+            treapStatus.innerHTML = 'Seeded a small treap (max-heap by priority). Type a key 1&ndash;99 and press <b>Insert</b> to watch it roll a random priority and bubble up.';
+            insBtn.disabled = false;
+        }
+
+        // Find parent id of a node (or null if it is the root).
+        function parentOf(target) {
+            for (const id in nodes) {
+                if (nodes[id].left === target || nodes[id].right === target) return id;
+            }
+            return null;
+        }
+
+        // Rotate `child` above its `parent`. child is a direct child of parent.
+        // Returns nothing; mutates nodes + rootId.
+        function rotateUp(childId) {
+            const parId = parentOf(childId);
+            const grandId = parId === null ? null : parentOf(parId);
+            const par = nodes[parId];
+            const child = nodes[childId];
+            if (par.left === childId) {
+                // right rotation: child rises, parent sinks right
+                par.left = child.right;
+                child.right = parId;
+            } else {
+                // left rotation: child rises, parent sinks left
+                par.right = child.left;
+                child.left = parId;
+            }
+            if (grandId === null) {
+                rootId = childId;
+            } else {
+                if (nodes[grandId].left === parId) nodes[grandId].left = childId;
+                else nodes[grandId].right = childId;
+            }
+        }
+
+        async function treapInsert() {
+            if (treapBusy) return;
+            let key = parseInt(keyInput.value, 10);
+            if (isNaN(key)) { treapStatus.innerHTML = 'Please type an integer key (1&ndash;99).'; return; }
+            // reject duplicate keys
+            for (const id in nodes) {
+                if (nodes[id].val === key) { treapStatus.innerHTML = `Key <b>${key}</b> is already in the treap — duplicates are ignored.`; return; }
+            }
+            treapBusy = true;
+            insBtn.disabled = true;
+            keyInput.value = '';
+
+            const pri = Math.floor(Math.random() * 100); // random priority 0..99
+            const id = newNode(key, pri);
+
+            // 1. BST leaf insert
+            if (rootId === null) {
+                rootId = id;
+                drawTree(treapSvg, nodes, rootId, { active: id });
+                treapStatus.innerHTML = `Inserted <b>${key}</b> with random priority <b style="color:#7c3aed">${pri}</b> as the root.`;
+                insBtn.disabled = false; treapBusy = false; return;
+            }
+            let cur = rootId, parent = null, dir = null;
+            while (cur !== null) {
+                parent = cur;
+                if (key < nodes[cur].val) { dir = 'left'; cur = nodes[cur].left; }
+                else { dir = 'right'; cur = nodes[cur].right; }
+            }
+            nodes[parent][dir] = id;
+            drawTree(treapSvg, nodes, rootId, { active: id });
+            treapStatus.innerHTML = `Inserted <b>${key}</b> as a BST leaf with random priority <b style="color:#7c3aed">${pri}</b>. Now check the heap property going up…`;
+            await sleep(1100);
+
+            // 2. Rotate up while node's priority > parent's priority (max-heap)
+            while (true) {
+                const parId = parentOf(id);
+                if (parId === null) {
+                    treapStatus.innerHTML = `<b>${key}</b> (priority <b style="color:#7c3aed">${pri}</b>) is now the root. Heap property restored — done. Both orders still hold.`;
+                    break;
+                }
+                const parPri = nodes[parId].pri;
+                if (pri > parPri) {
+                    treapStatus.innerHTML = `priority <b style="color:#7c3aed">${pri}</b> &gt; parent ${nodes[parId].val}'s priority <b>${parPri}</b> &rarr; <b>rotate up</b>.`;
+                    drawTree(treapSvg, nodes, rootId, { active: id, highlight: new Set([parId]) });
+                    await sleep(1100);
+                    rotateUp(id);
+                    drawTree(treapSvg, nodes, rootId, { active: id });
+                    await sleep(800);
+                } else {
+                    treapStatus.innerHTML = `priority <b style="color:#7c3aed">${pri}</b> &le; parent ${nodes[parId].val}'s priority <b>${parPri}</b> &rarr; heap property holds. Stop. <b>${key}</b> settles here.`;
+                    drawTree(treapSvg, nodes, rootId, { highlight: new Set([id]) });
+                    break;
+                }
+            }
+            insBtn.disabled = false;
+            treapBusy = false;
+        }
+
+        keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') treapInsert(); });
+
+        treapReset();
+    </script>
+</body>
+</html>

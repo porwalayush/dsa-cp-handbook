@@ -41,6 +41,21 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,15 +63,29 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Binary Search Tree: Basics &amp; Operations</h1>
-        <p>A <strong>Binary Search Tree</strong> (BST) is a binary tree that keeps its keys in sorted order, so search, insert, and delete all run in time proportional to the tree's <strong>height</strong>. When the tree stays balanced this is O(log n); when it degenerates into a chain it becomes O(n).</p>
+        <p>Think of the <strong>guess-the-number game</strong>. A friend picks a number; you guess, and they tell you "higher" or "lower." Each answer lets you throw away half the remaining numbers. A <strong>Binary Search Tree</strong> (BST) bakes that exact game into its shape: <strong>smaller values live to the left, bigger values to the right</strong>, so finding anything is just a series of "higher or lower?" hops.</p>
+        <p>It's also like a tidy <strong>filing system</strong>: at every drawer, papers that sort before it go in the left cabinet, papers that sort after it go in the right. Because everything is pre-sorted by position, search, insert, and delete all cost time proportional to the tree's <strong>height</strong> (how many hops from top to bottom). A tidy, balanced tree gives O(log n); a lopsided one that's become a long chain degrades to O(n).</p>
 
         <h2>1. The BST Ordering Invariant</h2>
-        <p>The defining property of a BST is its <strong>ordering invariant</strong>. For <em>every</em> node <code>x</code>:</p>
+        <p>An <strong>invariant</strong> is just a promise the tree always keeps. The BST's one promise (its <strong>ordering invariant</strong>) is this: for <em>every</em> node <code>x</code>,</p>
         <ul>
-            <li>Every key in <code>x</code>'s <strong>left subtree</strong> is <strong>less than</strong> <code>x.key</code>.</li>
-            <li>Every key in <code>x</code>'s <strong>right subtree</strong> is <strong>greater than</strong> <code>x.key</code>.</li>
+            <li>Everything in <code>x</code>'s <strong>left subtree</strong> is <strong>smaller</strong> than <code>x</code> — "go left for smaller."</li>
+            <li>Everything in <code>x</code>'s <strong>right subtree</strong> is <strong>bigger</strong> than <code>x</code> — "go right for bigger."</li>
         </ul>
-        <p>We assume <strong>distinct keys</strong> throughout this page. A useful consequence: an <strong>inorder traversal</strong> (left, node, right) visits the keys in strictly increasing order.</p>
+        <p>That's the whole rule. We assume <strong>distinct keys</strong> here (no repeats). One handy payoff: if you read the tree <strong>inorder</strong> (visit left, then the node, then right), the keys come out perfectly sorted, smallest to largest.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Live BST Playground</div>
+            <div class="pg-sub">Type a value and Insert it — watch the tree play the "higher or lower?" game, pulsing each node it compares against on the way down. Or Search for a value to animate the lookup.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">Ready. Try inserting a value, then search for it.</div>
+            <div class="pg-controls">
+                <input type="number" id="val" placeholder="value" value="7">
+                <button class="btn btn-primary" id="insertBtn" onclick="doInsert()">Insert</button>
+                <button class="btn btn-ghost" id="searchBtn" onclick="doSearch()">Search</button>
+                <button class="btn btn-danger" id="resetBtn" onclick="doReset()">↺ Reset</button>
+            </div>
+        </div>
 
         <div class="visual">
 <pre>
@@ -132,7 +161,7 @@ Inorder traversal: 1 3 4 6 7 8 10 13 14   (sorted)
         </div>
 
         <h2>3. Search</h2>
-        <p>Searching compares the target against the current node and walks left if smaller, right if larger, until found or it falls off the tree. Each step descends one level, so the cost is O(h) where <code>h</code> is the height.</p>
+        <p>Searching <em>is</em> the guess-the-number game. Compare your target to the current node: if it's smaller, go left; if it's bigger, go right; if it matches, you found it. If you walk off the bottom of the tree (hit a null spot), the value isn't there. Each step drops one level, so the cost is O(h), where <code>h</code> is the height. The live playground above runs exactly this loop — try it.</p>
 
         <div class="visual">
 <pre>
@@ -604,6 +633,172 @@ Compare to a balanced arrangement of the same keys:
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Live BST playground ----
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const svg = document.getElementById('treeSvg');
+        const setStatus = t => document.getElementById('status').innerHTML = t;
+        let nodes = {};      // id -> {val, left, right}
+        let rootId = null;
+        let nextId = 0;
+        let busy = false;
+        const SEED = [8, 3, 10, 1, 6, 14, 4, 7, 13];
+
+        function newNode(val) { const id = 'n' + (nextId++); nodes[id] = { val, left: null, right: null }; return id; }
+
+        function insertSilently(val) {
+            const id = newNode(val);
+            if (rootId === null) { rootId = id; return; }
+            let cur = rootId;
+            while (true) {
+                if (val === nodes[cur].val) { delete nodes[id]; return; } // no duplicates
+                if (val < nodes[cur].val) {
+                    if (nodes[cur].left === null) { nodes[cur].left = id; return; }
+                    cur = nodes[cur].left;
+                } else {
+                    if (nodes[cur].right === null) { nodes[cur].right = id; return; }
+                    cur = nodes[cur].right;
+                }
+            }
+        }
+
+        // Renders tree into svgEl. layout via inorder x-index. Returns positions map.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        function render(opts) { drawTree(svg, nodes, rootId, opts || {}); }
+
+        function setBusy(b) {
+            busy = b;
+            ['insertBtn', 'searchBtn', 'resetBtn'].forEach(id => document.getElementById(id).disabled = b);
+        }
+
+        async function doInsert() {
+            if (busy) return;
+            const v = parseInt(document.getElementById('val').value);
+            if (isNaN(v)) { setStatus('Enter a number first.'); return; }
+            setBusy(true);
+            if (rootId === null) {
+                rootId = newNode(v);
+                render(); setStatus(`Tree was empty — <b>${v}</b> becomes the root.`);
+                setBusy(false); return;
+            }
+            const visited = new Set();
+            let cur = rootId;
+            while (true) {
+                visited.add(cur);
+                render({ active: cur, visited });
+                await sleep(700);
+                const cv = nodes[cur].val;
+                if (v === cv) {
+                    setStatus(`<b>${v} == ${cv}</b> — already in the tree. No duplicates, so nothing changes.`);
+                    render({ visited }); setBusy(false); return;
+                }
+                if (v < cv) {
+                    setStatus(`<b>${v} &lt; ${cv}</b> → go left.`);
+                    await sleep(550);
+                    if (nodes[cur].left === null) {
+                        const id = newNode(v); nodes[cur].left = id;
+                        render({ highlight: new Set([id]), visited });
+                        setStatus(`Empty left spot under ${cv} → attach <b>${v}</b> as a new leaf.`);
+                        setBusy(false); return;
+                    }
+                    cur = nodes[cur].left;
+                } else {
+                    setStatus(`<b>${v} &gt; ${cv}</b> → go right.`);
+                    await sleep(550);
+                    if (nodes[cur].right === null) {
+                        const id = newNode(v); nodes[cur].right = id;
+                        render({ highlight: new Set([id]), visited });
+                        setStatus(`Empty right spot under ${cv} → attach <b>${v}</b> as a new leaf.`);
+                        setBusy(false); return;
+                    }
+                    cur = nodes[cur].right;
+                }
+            }
+        }
+
+        async function doSearch() {
+            if (busy) return;
+            const v = parseInt(document.getElementById('val').value);
+            if (isNaN(v)) { setStatus('Enter a number to search for.'); return; }
+            if (rootId === null) { setStatus('Tree is empty — nothing to search.'); return; }
+            setBusy(true);
+            const visited = new Set();
+            let cur = rootId, steps = 0;
+            while (cur !== null) {
+                steps++;
+                visited.add(cur);
+                render({ active: cur, visited });
+                await sleep(700);
+                const cv = nodes[cur].val;
+                if (v === cv) {
+                    render({ highlight: new Set([cur]), visited });
+                    setStatus(`<b style="color:#16a34a">Found ${v}</b> after ${steps} comparison(s).`);
+                    setBusy(false); return;
+                }
+                if (v < cv) { setStatus(`<b>${v} &lt; ${cv}</b> → go left.`); cur = nodes[cur].left; }
+                else { setStatus(`<b>${v} &gt; ${cv}</b> → go right.`); cur = nodes[cur].right; }
+                await sleep(550);
+            }
+            render({ visited });
+            setStatus(`Walked off the bottom — <b style="color:#dc2626">${v} is not in the tree</b> (${steps} comparison(s)).`);
+            setBusy(false);
+        }
+
+        function doReset() {
+            if (busy) return;
+            nodes = {}; rootId = null; nextId = 0;
+            SEED.forEach(insertSilently);
+            render();
+            setStatus('Reset to a sample tree. Insert or Search a value to watch the path.');
+        }
+
+        doReset();
     </script>
 </body>
 </html>
