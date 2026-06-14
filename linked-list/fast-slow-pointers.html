@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast & Slow Pointers - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .ll-canvas { display: flex; align-items: flex-start; flex-wrap: wrap; min-height: 110px; padding: 30px 0 10px; }
+        .ll-node { display: flex; align-items: stretch; border-radius: 10px; overflow: hidden; border: 2px solid #cbd5e1; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.35s ease; position: relative; }
+        .ll-node .val { padding: 12px 14px; font-weight: 700; color: #0f172a; font-family: 'JetBrains Mono', monospace; }
+        .ll-node .ptr { width: 20px; background: #f1f5f9; border-left: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.7em; }
+        .ll-node.slow-here { border-color: #16a34a; box-shadow: 0 4px 14px rgba(22,163,74,0.25); }
+        .ll-node.fast-here { border-color: #f43f5e; box-shadow: 0 4px 14px rgba(244,63,94,0.25); }
+        .ll-node.both-here { border-color: #8b5cf6; box-shadow: 0 6px 18px rgba(139,92,246,0.35); transform: translateY(-4px); }
+        .ptr-label { position: absolute; left: 50%; transform: translateX(-50%); font-size: 0.7em; font-weight: 800; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+        .lbl-slow { top: -28px; background: #dcfce7; color: #16a34a; }
+        .lbl-fast { top: -28px; background: #ffe4e6; color: #f43f5e; }
+        .lbl-both { top: -28px; background: #ede9fe; color: #7c3aed; }
+        .ll-arrow { color: #94a3b8; font-size: 1.4em; margin: 8px 6px 0; font-weight: 700; }
+        .ll-null { color: #94a3b8; font-weight: 700; font-size: 0.85em; padding: 12px 8px; border: 2px dashed #cbd5e1; border-radius: 10px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .toggle { display: inline-flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
+        .toggle button { padding: 6px 12px; border: none; background: transparent; border-radius: 6px; font-size: 0.8em; font-weight: 600; color: #64748b; cursor: pointer; }
+        .toggle button.active { background: white; color: #6366f1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 10px; height: 10px; border-radius: 3px; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Linked Lists</a>
+        <h1>Fast &amp; Slow Pointers</h1>
+        <p>Picture a <strong>tortoise and a hare</strong> on a track. The hare runs twice as fast. On a straight track, when the hare reaches the end the tortoise is exactly <strong>halfway</strong>. On a circular track, the hare eventually <strong>laps</strong> the tortoise and they meet. Those two facts solve a whole family of linked list problems in a single pass with O(1) memory.</p>
+
+        <div class="playground">
+            <div class="pg-title">🐢🐇 Tortoise &amp; Hare Visualizer</div>
+            <div class="pg-sub">Slow moves 1 step, fast moves 2. Try both a straight list and one with a cycle.</div>
+            <div style="margin-bottom:14px">
+                <span class="toggle">
+                    <button id="mStraight" class="active" onclick="setMode('straight')">Find Middle (no cycle)</button>
+                    <button id="mCycle" onclick="setMode('cycle')">Detect Cycle</button>
+                </span>
+            </div>
+            <div class="ll-canvas" id="canvas"></div>
+            <div class="pg-status" id="status">Both pointers start at the head. Press "Next Step".</div>
+            <div class="legend">
+                <span><span class="dot" style="background:#86efac"></span>slow (tortoise, +1)</span>
+                <span><span class="dot" style="background:#fda4af"></span>fast (hare, +2)</span>
+                <span><span class="dot" style="background:#c4b5fd"></span>both together</span>
+            </div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()">Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="reset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>Use case 1 — Find the middle</h2>
+        <p>Move slow by 1 and fast by 2. When fast falls off the end, slow sits on the middle node. One pass, no length counting needed.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppM')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaM')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyM')">Python</button>
+            </div>
+            <div id="cppM" class="code-content active">
+<pre>
+Node* middle(Node* head) {
+    Node* slow = head;
+    Node* fast = head;
+    <span class="keyword">while</span> (fast &amp;&amp; fast-&gt;next) {
+        slow = slow-&gt;next;        <span class="comment">// +1</span>
+        fast = fast-&gt;next-&gt;next;   <span class="comment">// +2</span>
+    }
+    <span class="keyword">return</span> slow;                  <span class="comment">// middle (2nd of two for even n)</span>
+}
+</pre>
+            </div>
+            <div id="javaM" class="code-content">
+<pre>
+<span class="type">Node</span> middle(<span class="type">Node</span> head) {
+    <span class="type">Node</span> slow = head, fast = head;
+    <span class="keyword">while</span> (fast != <span class="keyword">null</span> &amp;&amp; fast.next != <span class="keyword">null</span>) {
+        slow = slow.next;         <span class="comment">// +1</span>
+        fast = fast.next.next;    <span class="comment">// +2</span>
+    }
+    <span class="keyword">return</span> slow;
+}
+</pre>
+            </div>
+            <div id="pyM" class="code-content">
+<pre>
+<span class="keyword">def</span> middle(head):
+    slow = fast = head
+    <span class="keyword">while</span> fast <span class="keyword">and</span> fast.next:
+        slow = slow.next          <span class="comment"># +1</span>
+        fast = fast.next.next     <span class="comment"># +2</span>
+    <span class="keyword">return</span> slow
+</pre>
+            </div>
+        </div>
+
+        <h2>Use case 2 — Detect a cycle (Floyd's algorithm)</h2>
+        <p>If the list loops back on itself, fast will eventually lap slow and they'll land on the same node. If fast reaches <code>null</code>, there's no cycle. This is <strong>Floyd's cycle detection</strong>.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppC')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaC')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyC')">Python</button>
+            </div>
+            <div id="cppC" class="code-content active">
+<pre>
+<span class="keyword">bool</span> hasCycle(Node* head) {
+    Node* slow = head;
+    Node* fast = head;
+    <span class="keyword">while</span> (fast &amp;&amp; fast-&gt;next) {
+        slow = slow-&gt;next;
+        fast = fast-&gt;next-&gt;next;
+        <span class="keyword">if</span> (slow == fast) <span class="keyword">return</span> <span class="keyword">true</span>;  <span class="comment">// they met</span>
+    }
+    <span class="keyword">return</span> <span class="keyword">false</span>;                 <span class="comment">// fast hit null</span>
+}
+</pre>
+            </div>
+            <div id="javaC" class="code-content">
+<pre>
+<span class="keyword">boolean</span> hasCycle(<span class="type">Node</span> head) {
+    <span class="type">Node</span> slow = head, fast = head;
+    <span class="keyword">while</span> (fast != <span class="keyword">null</span> &amp;&amp; fast.next != <span class="keyword">null</span>) {
+        slow = slow.next;
+        fast = fast.next.next;
+        <span class="keyword">if</span> (slow == fast) <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+    <span class="keyword">return</span> <span class="keyword">false</span>;
+}
+</pre>
+            </div>
+            <div id="pyC" class="code-content">
+<pre>
+<span class="keyword">def</span> has_cycle(head):
+    slow = fast = head
+    <span class="keyword">while</span> fast <span class="keyword">and</span> fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        <span class="keyword">if</span> slow <span class="keyword">is</span> fast:
+            <span class="keyword">return</span> <span class="keyword">True</span>
+    <span class="keyword">return</span> <span class="keyword">False</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Finding where the cycle starts:</strong> after slow and fast meet, reset one pointer to the head and move <em>both</em> one step at a time. They meet again exactly at the cycle's entry node. (It's a neat number-theory result — the distance from head to the loop start equals the distance from the meeting point to the loop start.)
+        </div>
+
+        <h2>Use case 3 — Nth node from the end</h2>
+        <p>A close cousin: advance a <strong>lead</strong> pointer N steps first, then move both together. When the lead hits <code>null</code>, the trailing pointer is on the Nth-from-last node — one pass, no length count.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppN')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaN')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyN')">Python</button>
+            </div>
+            <div id="cppN" class="code-content active">
+<pre>
+Node* nthFromEnd(Node* head, <span class="keyword">int</span> n) {
+    Node* lead = head;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) lead = lead-&gt;next;  <span class="comment">// gap of n</span>
+    Node* trail = head;
+    <span class="keyword">while</span> (lead) { lead = lead-&gt;next; trail = trail-&gt;next; }
+    <span class="keyword">return</span> trail;
+}
+</pre>
+            </div>
+            <div id="javaN" class="code-content">
+<pre>
+<span class="type">Node</span> nthFromEnd(<span class="type">Node</span> head, <span class="keyword">int</span> n) {
+    <span class="type">Node</span> lead = head;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) lead = lead.next;  <span class="comment">// gap of n</span>
+    <span class="type">Node</span> trail = head;
+    <span class="keyword">while</span> (lead != <span class="keyword">null</span>) { lead = lead.next; trail = trail.next; }
+    <span class="keyword">return</span> trail;
+}
+</pre>
+            </div>
+            <div id="pyN" class="code-content">
+<pre>
+<span class="keyword">def</span> nth_from_end(head, n):
+    lead = head
+    <span class="keyword">for</span> _ <span class="keyword">in</span> range(n):
+        lead = lead.next          <span class="comment"># gap of n</span>
+    trail = head
+    <span class="keyword">while</span> lead:
+        lead, trail = lead.next, trail.next
+    <span class="keyword">return</span> trail
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Always guard <code>fast.next</code> before <code>fast.next.next</code>.</strong> The loop condition <code>fast != null &amp;&amp; fast.next != null</code> is what stops you from dereferencing null at the end of an even-length list.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        let mode = 'straight';
+        const STRAIGHT = [3, 7, 1, 9, 4, 6, 2];     // length 7, middle = index 3 (value 9)
+        const CYCLE = [3, 7, 1, 9, 4];               // last node loops back to index 2
+        const CYCLE_TARGET = 2;                       // node 4 (index 4) -> index 2
+        let values, slow, fast, done;
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('mStraight').classList.toggle('active', m === 'straight');
+            document.getElementById('mCycle').classList.toggle('active', m === 'cycle');
+            reset();
+        }
+        function setStatus(t) { document.getElementById('status').innerHTML = t; }
+
+        function nextIndex(i) {
+            if (mode === 'cycle' && i === values.length - 1) return CYCLE_TARGET;
+            return i + 1 < values.length ? i + 1 : -1;
+        }
+
+        function render() {
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+            values.forEach((v, i) => {
+                const node = document.createElement('div');
+                let cls = 'll-node';
+                if (slow === i && fast === i) cls += ' both-here';
+                else if (slow === i) cls += ' slow-here';
+                else if (fast === i) cls += ' fast-here';
+                node.className = cls;
+                node.innerHTML = `<div class="val">${v}</div><div class="ptr">●</div>`;
+                if (slow === i && fast === i) node.appendChild(mkLabel('slow+fast', 'lbl-both'));
+                else { if (slow === i) node.appendChild(mkLabel('🐢 slow', 'lbl-slow')); if (fast === i) node.appendChild(mkLabel('🐇 fast', 'lbl-fast')); }
+                canvas.appendChild(node);
+                if (i < values.length - 1) { const a = document.createElement('span'); a.className = 'll-arrow'; a.textContent = '→'; canvas.appendChild(a); }
+            });
+            if (mode === 'cycle') {
+                const a = document.createElement('span'); a.className = 'll-arrow'; a.textContent = `↩ to ${values[CYCLE_TARGET]}`;
+                a.style.fontSize = '0.8em'; a.style.color = '#8b5cf6'; canvas.appendChild(a);
+            } else {
+                const n = document.createElement('div'); n.className = 'll-null'; n.textContent = 'null'; canvas.appendChild(n);
+            }
+        }
+        function mkLabel(text, cls) { const l = document.createElement('div'); l.className = 'ptr-label ' + cls; l.textContent = text; return l; }
+
+        function step() {
+            if (done) return;
+            // fast needs fast and fast.next to exist (straight). In cycle it never ends.
+            if (mode === 'straight') {
+                const f1 = nextIndex(fast);
+                if (f1 === -1 || nextIndex(f1) === -1) {
+                    // can't move fast twice -> stop
+                    setStatus(`Fast can't advance two more steps → it reached the end. <b style="color:#16a34a">Slow is on the middle: node ${values[slow]} (index ${slow}).</b>`);
+                    done = true; document.getElementById('stepBtn').disabled = true; render(); return;
+                }
+                slow = nextIndex(slow);
+                fast = nextIndex(f1);
+                if (fast === -1 || nextIndex(fast) === -1) {
+                    setStatus(`slow → node ${values[slow]}, fast → node ${values[fast]}. Fast is at/near the end → <b style="color:#16a34a">middle is node ${values[slow]}.</b>`);
+                    done = true; document.getElementById('stepBtn').disabled = true;
+                } else {
+                    setStatus(`slow moves +1 → node ${values[slow]}. fast moves +2 → node ${values[fast]}.`);
+                }
+                render();
+            } else {
+                slow = nextIndex(slow);
+                fast = nextIndex(nextIndex(fast));
+                if (slow === fast) {
+                    setStatus(`🐇 fast lapped 🐢 slow — they met at node ${values[slow]}. <b style="color:#7c3aed">Cycle detected!</b>`);
+                    done = true; document.getElementById('stepBtn').disabled = true;
+                } else {
+                    setStatus(`slow → node ${values[slow]}, fast → node ${values[fast]}. Not equal yet — keep going.`);
+                }
+                render();
+            }
+        }
+
+        function reset() {
+            values = mode === 'cycle' ? CYCLE.slice() : STRAIGHT.slice();
+            slow = 0; fast = 0; done = false;
+            document.getElementById('stepBtn').disabled = false;
+            setStatus('Both pointers start at the head. Press "Next Step".');
+            render();
+        }
+        reset();
+    </script>
+</body>
+</html>

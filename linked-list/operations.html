@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert, Delete & Traverse - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .ll-canvas { display: flex; align-items: center; flex-wrap: wrap; min-height: 90px; padding: 10px 0; }
+        .ll-node { display: flex; align-items: stretch; border-radius: 10px; overflow: hidden; border: 2px solid #6366f1; background: white; box-shadow: 0 4px 12px rgba(99,102,241,0.15); transition: all 0.4s ease; }
+        .ll-node.head-node { border-color: #f43f5e; }
+        .ll-node.highlight { border-color: #16a34a; box-shadow: 0 6px 18px rgba(22,163,74,0.3); transform: translateY(-6px); }
+        .ll-node.fading { opacity: 0.25; transform: scale(0.85); }
+        .ll-node .val { padding: 12px 14px; font-weight: 700; color: #0f172a; font-family: 'JetBrains Mono', monospace; }
+        .ll-node .ptr { width: 22px; background: #eef2ff; border-left: 1px dashed #c7d2fe; display: flex; align-items: center; justify-content: center; color: #6366f1; font-size: 0.7em; }
+        .ll-arrow { color: #94a3b8; font-size: 1.5em; margin: 0 8px; font-weight: 700; }
+        .ll-null { color: #94a3b8; font-weight: 700; font-size: 0.9em; padding: 12px 8px; border: 2px dashed #cbd5e1; border-radius: 10px; }
+        .ll-tag { font-size: 0.62em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #f43f5e; text-align: center; margin-top: 4px; }
+        .node-wrap { display: flex; flex-direction: column; align-items: center; }
+        .pg-status { margin-top: 14px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 38px; display: flex; align-items: center; border: 1px solid #e2e8f0; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Linked Lists</a>
+        <h1>Insert, Delete &amp; Traverse</h1>
+        <p>Every linked list operation boils down to one skill: <strong>rewiring <code>next</code> pointers in the right order</strong>. If you do it in the wrong order you cut the chain and lose nodes. Let's make that order visible.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎮 Operation Visualizer</div>
+            <div class="pg-sub">Pick a value and position, then watch the new node splice in — or watch a node fade out as the pointer skips over it.</div>
+            <div class="ll-canvas" id="canvas"></div>
+            <div class="pg-status" id="status">Ready. The red node is the head.</div>
+            <div class="pg-controls">
+                <input type="number" id="val" placeholder="value" value="6">
+                <input type="number" id="pos" placeholder="index" value="1" style="width:60px">
+                <button class="btn btn-primary" onclick="insertAt()">Insert at index</button>
+                <button class="btn btn-danger" onclick="deleteAt()">Delete at index</button>
+                <button class="btn btn-ghost" onclick="searchVal()">Search value</button>
+                <button class="btn btn-ghost" onclick="reset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>Traversal — walking the chain</h2>
+        <p>You can't jump to the i-th node like an array. You start at <code>head</code> and follow <code>next</code> until you hit <code>null</code>. This O(n) walk is the foundation of almost every other operation.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppT')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaT')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyT')">Python</button>
+            </div>
+            <div id="cppT" class="code-content active">
+<pre>
+<span class="keyword">void</span> traverse(Node* head) {
+    Node* curr = head;
+    <span class="keyword">while</span> (curr != <span class="keyword">nullptr</span>) {
+        cout &lt;&lt; curr-&gt;data &lt;&lt; <span class="string">" -&gt; "</span>;
+        curr = curr-&gt;next;        <span class="comment">// step forward</span>
+    }
+    cout &lt;&lt; <span class="string">"null"</span>;
+}
+</pre>
+            </div>
+            <div id="javaT" class="code-content">
+<pre>
+<span class="keyword">void</span> traverse(<span class="type">Node</span> head) {
+    <span class="type">Node</span> curr = head;
+    <span class="keyword">while</span> (curr != <span class="keyword">null</span>) {
+        System.out.print(curr.data + <span class="string">" -&gt; "</span>);
+        curr = curr.next;         <span class="comment">// step forward</span>
+    }
+    System.out.println(<span class="string">"null"</span>);
+}
+</pre>
+            </div>
+            <div id="pyT" class="code-content">
+<pre>
+<span class="keyword">def</span> traverse(head):
+    curr = head
+    <span class="keyword">while</span> curr:
+        print(curr.data, end=<span class="string">" -&gt; "</span>)
+        curr = curr.next          <span class="comment"># step forward</span>
+    print(<span class="string">"None"</span>)
+</pre>
+            </div>
+        </div>
+
+        <h2>Insertion</h2>
+        <p>To insert a node, you create it, point <strong>its</strong> <code>next</code> at what should follow it, and only <em>then</em> point the previous node at the new one. Order matters — link the newcomer forward before you redirect the predecessor.</p>
+
+        <div class="note">
+            <strong>Inserting at the head</strong> is the easy case and O(1):
+            <ul>
+                <li><code>newNode.next = head</code></li>
+                <li><code>head = newNode</code></li>
+            </ul>
+            For the middle, walk to the node <em>before</em> the target position first.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppI')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaI')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyI')">Python</button>
+            </div>
+            <div id="cppI" class="code-content active">
+<pre>
+<span class="comment">// Insert value at index (0 = head). Returns new head.</span>
+Node* insertAt(Node* head, <span class="keyword">int</span> index, <span class="keyword">int</span> value) {
+    Node* node = <span class="keyword">new</span> Node(value);
+    <span class="keyword">if</span> (index == <span class="number">0</span>) {        <span class="comment">// insert at head</span>
+        node-&gt;next = head;
+        <span class="keyword">return</span> node;
+    }
+    Node* prev = head;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; index - <span class="number">1</span> &amp;&amp; prev; i++)
+        prev = prev-&gt;next;        <span class="comment">// stop at node before target</span>
+    node-&gt;next = prev-&gt;next;       <span class="comment">// 1) link newcomer forward</span>
+    prev-&gt;next = node;            <span class="comment">// 2) redirect predecessor</span>
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="javaI" class="code-content">
+<pre>
+<span class="comment">// Insert value at index (0 = head). Returns new head.</span>
+<span class="type">Node</span> insertAt(<span class="type">Node</span> head, <span class="keyword">int</span> index, <span class="keyword">int</span> value) {
+    <span class="type">Node</span> node = <span class="keyword">new</span> <span class="type">Node</span>(value);
+    <span class="keyword">if</span> (index == <span class="number">0</span>) {
+        node.next = head;
+        <span class="keyword">return</span> node;
+    }
+    <span class="type">Node</span> prev = head;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; index - <span class="number">1</span> &amp;&amp; prev != <span class="keyword">null</span>; i++)
+        prev = prev.next;
+    node.next = prev.next;        <span class="comment">// 1) link forward</span>
+    prev.next = node;             <span class="comment">// 2) redirect</span>
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="pyI" class="code-content">
+<pre>
+<span class="comment"># Insert value at index (0 = head). Returns new head.</span>
+<span class="keyword">def</span> insert_at(head, index, value):
+    node = Node(value)
+    <span class="keyword">if</span> index == <span class="number">0</span>:
+        node.next = head
+        <span class="keyword">return</span> node
+    prev = head
+    <span class="keyword">for</span> _ <span class="keyword">in</span> range(index - <span class="number">1</span>):
+        <span class="keyword">if</span> prev: prev = prev.next
+    node.next = prev.next          <span class="comment"># 1) link forward</span>
+    prev.next = node               <span class="comment"># 2) redirect</span>
+    <span class="keyword">return</span> head
+</pre>
+            </div>
+        </div>
+
+        <h2>Deletion</h2>
+        <p>To delete, you make the previous node "skip over" the target: point <code>prev.next</code> at <code>target.next</code>. The target is now unreachable (in C++, free it to avoid a leak).</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppD')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaD')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyD')">Python</button>
+            </div>
+            <div id="cppD" class="code-content active">
+<pre>
+<span class="comment">// Delete first node with given value. Returns new head.</span>
+Node* deleteVal(Node* head, <span class="keyword">int</span> value) {
+    <span class="keyword">if</span> (!head) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    <span class="keyword">if</span> (head-&gt;data == value) {     <span class="comment">// deleting the head</span>
+        Node* nxt = head-&gt;next;
+        <span class="keyword">delete</span> head;
+        <span class="keyword">return</span> nxt;
+    }
+    Node* prev = head;
+    <span class="keyword">while</span> (prev-&gt;next &amp;&amp; prev-&gt;next-&gt;data != value)
+        prev = prev-&gt;next;
+    <span class="keyword">if</span> (prev-&gt;next) {
+        Node* target = prev-&gt;next;
+        prev-&gt;next = target-&gt;next;  <span class="comment">// skip over target</span>
+        <span class="keyword">delete</span> target;
+    }
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="javaD" class="code-content">
+<pre>
+<span class="comment">// Delete first node with given value. Returns new head.</span>
+<span class="type">Node</span> deleteVal(<span class="type">Node</span> head, <span class="keyword">int</span> value) {
+    <span class="keyword">if</span> (head == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;
+    <span class="keyword">if</span> (head.data == value) <span class="keyword">return</span> head.next;
+    <span class="type">Node</span> prev = head;
+    <span class="keyword">while</span> (prev.next != <span class="keyword">null</span> &amp;&amp; prev.next.data != value)
+        prev = prev.next;
+    <span class="keyword">if</span> (prev.next != <span class="keyword">null</span>)
+        prev.next = prev.next.next;  <span class="comment">// skip over target</span>
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="pyD" class="code-content">
+<pre>
+<span class="comment"># Delete first node with given value. Returns new head.</span>
+<span class="keyword">def</span> delete_val(head, value):
+    <span class="keyword">if</span> <span class="keyword">not</span> head: <span class="keyword">return</span> <span class="keyword">None</span>
+    <span class="keyword">if</span> head.data == value:
+        <span class="keyword">return</span> head.next
+    prev = head
+    <span class="keyword">while</span> prev.next <span class="keyword">and</span> prev.next.data != value:
+        prev = prev.next
+    <span class="keyword">if</span> prev.next:
+        prev.next = prev.next.next   <span class="comment"># skip over target</span>
+    <span class="keyword">return</span> head
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>The dummy-node trick:</strong> deleting/inserting at the head is always a special case. To kill that special case, create a fake node <code>dummy.next = head</code>, do all your work from <code>dummy</code>, and return <code>dummy.next</code> at the end. You'll see this everywhere in the harder problems.
+        </div>
+
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Why</th></tr>
+            <tr><td>Insert / delete at head</td><td>O(1)</td><td>Just rewire one or two pointers.</td></tr>
+            <tr><td>Insert / delete at index k</td><td>O(k)</td><td>Must walk to position k first.</td></tr>
+            <tr><td>Search a value</td><td>O(n)</td><td>No random access — scan from head.</td></tr>
+            <tr><td>Access i-th node</td><td>O(n)</td><td>Follow next i times.</td></tr>
+        </table>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        let list = [3, 8, 1, 5];
+        let busy = false;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const setStatus = t => document.getElementById('status').textContent = t;
+
+        function render(highlight = -1, fading = -1) {
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+            if (list.length === 0) {
+                const e = document.createElement('div'); e.className = 'll-null';
+                e.textContent = 'head → null (empty)'; canvas.appendChild(e); return;
+            }
+            list.forEach((v, i) => {
+                const wrap = document.createElement('div'); wrap.className = 'node-wrap';
+                const node = document.createElement('div');
+                node.className = 'll-node' + (i === 0 ? ' head-node' : '') + (i === highlight ? ' highlight' : '') + (i === fading ? ' fading' : '');
+                node.innerHTML = `<div class="val">${v}</div><div class="ptr">●</div>`;
+                wrap.appendChild(node);
+                if (i === 0) { const t = document.createElement('div'); t.className = 'll-tag'; t.textContent = 'head'; wrap.appendChild(t); }
+                canvas.appendChild(wrap);
+                const a = document.createElement('span'); a.className = 'll-arrow'; a.textContent = '→'; canvas.appendChild(a);
+            });
+            const n = document.createElement('div'); n.className = 'll-null'; n.textContent = 'null'; canvas.appendChild(n);
+        }
+
+        async function insertAt() {
+            if (busy) return; busy = true;
+            const v = parseInt(document.getElementById('val').value);
+            let idx = parseInt(document.getElementById('pos').value);
+            if (isNaN(v)) { setStatus('Enter a value first.'); busy = false; return; }
+            idx = Math.max(0, Math.min(idx, list.length));
+            for (let i = 0; i < idx; i++) { render(i); setStatus(`Walking to position ${idx}… now at index ${i}`); await sleep(450); }
+            list.splice(idx, 0, v);
+            render(idx); setStatus(`Spliced ${v} in at index ${idx}: linked it forward, then redirected the predecessor.`);
+            await sleep(700); render(); busy = false;
+        }
+
+        async function deleteAt() {
+            if (busy) return; busy = true;
+            let idx = parseInt(document.getElementById('pos').value);
+            if (list.length === 0) { setStatus('List is empty.'); busy = false; return; }
+            idx = Math.max(0, Math.min(idx, list.length - 1));
+            for (let i = 0; i < idx; i++) { render(i); setStatus(`Walking to the node before index ${idx}…`); await sleep(450); }
+            render(-1, idx); setStatus(`Pointer skips over index ${idx} (value ${list[idx]}). It's now unreachable.`);
+            await sleep(800);
+            list.splice(idx, 1); render(); setStatus(`Deleted. List length is now ${list.length}.`);
+            busy = false;
+        }
+
+        async function searchVal() {
+            if (busy) return; busy = true;
+            const v = parseInt(document.getElementById('val').value);
+            for (let i = 0; i < list.length; i++) {
+                render(i); setStatus(`Checking index ${i}: is ${list[i]} == ${v}?`); await sleep(500);
+                if (list[i] === v) { setStatus(`✓ Found ${v} at index ${i} after ${i + 1} step(s).`); busy = false; return; }
+            }
+            render(); setStatus(`✗ ${v} is not in the list (scanned all ${list.length} nodes).`); busy = false;
+        }
+
+        function reset() { if (busy) return; list = [3, 8, 1, 5]; render(); setStatus('Reset. The red node is the head.'); }
+        render();
+    </script>
+</body>
+</html>

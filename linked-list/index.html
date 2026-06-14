@@ -1,1 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linked Lists - Complete Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .navbar.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.1em;
+            color: #6366f1;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links { display: flex; gap: 24px; }
+
+        .nav-links a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.88em;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover { color: #6366f1; }
+
+        .hero {
+            position: relative;
+            text-align: center;
+            padding: 140px 20px 80px;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffe4e6 30%, #eef2ff 60%, #f8fafc 100%);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0);
+            background-size: 40px 40px;
+            opacity: 0.5;
+        }
+
+        .hero-content { position: relative; z-index: 1; }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #f43f5e, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            color: #64748b;
+            font-weight: 400;
+            max-width: 640px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        /* Animated chain of nodes in hero */
+        .hero-chain {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+        .chain-node {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            width: 46px; height: 46px;
+            border-radius: 12px;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(99,102,241,0.3);
+            animation: bob 3s ease-in-out infinite;
+        }
+        .chain-node:nth-child(3) { animation-delay: 0.3s; background: linear-gradient(135deg, #ec4899, #f43f5e); }
+        .chain-node:nth-child(5) { animation-delay: 0.6s; background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+        .chain-node:nth-child(7) { animation-delay: 0.9s; background: linear-gradient(135deg, #f43f5e, #ec4899); }
+        .chain-arrow { color: #94a3b8; font-size: 1.4em; margin: 0 6px; font-weight: 700; }
+        .chain-null { color: #94a3b8; font-weight: 700; margin-left: 6px; font-size: 0.9em; }
+
+        @keyframes bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 32px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .stat { text-align: center; }
+        .stat-number { font-size: 1.8em; font-weight: 800; color: #6366f1; letter-spacing: -0.02em; }
+        .stat-label { font-size: 0.82em; color: #64748b; font-weight: 500; margin-top: 4px; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .roadmap-section { margin: 48px 0; }
+        .roadmap-section h2 {
+            font-size: 1.6em; font-weight: 800; color: #0f172a;
+            margin-bottom: 8px; letter-spacing: -0.02em; text-align: center;
+        }
+        .roadmap-section > p { color: #64748b; text-align: center; margin-bottom: 32px; }
+        .roadmap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        .roadmap-item {
+            padding: 10px 20px; background: white; border: 1px solid #e2e8f0;
+            border-radius: 100px; font-size: 0.88em; font-weight: 500; color: #475569;
+            transition: all 0.2s ease; cursor: default; position: relative;
+        }
+        .roadmap-item:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; transform: scale(1.05); }
+        .roadmap-item::after {
+            content: ''; position: absolute; right: -12px; top: 50%;
+            transform: translateY(-50%); width: 0; height: 0;
+            border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+            border-left: 5px solid #cbd5e1;
+        }
+        .roadmap-item:last-child::after { display: none; }
+
+        .section { margin-bottom: 48px; }
+        .section-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;
+        }
+        .section-number {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; background: #6366f1; color: white;
+            border-radius: 8px; font-size: 0.8em; font-weight: 700; flex-shrink: 0;
+        }
+        .section-title { font-size: 1.4em; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            position: relative; background: white; border: 1px solid #e2e8f0;
+            border-radius: 16px; padding: 24px 24px 20px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer; text-decoration: none; color: inherit; display: block; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; background: #e2e8f0; transition: background 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px); border-color: #c7d2fe;
+            box-shadow: 0 12px 40px -8px rgba(99, 102, 241, 0.12), 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .card:hover::before { background: #6366f1; }
+        .card h3 { font-size: 1.05em; font-weight: 650; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.01em; }
+        .card p { color: #64748b; line-height: 1.6; font-size: 0.88em; }
+        .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+        .difficulty {
+            display: inline-block; padding: 4px 10px; border-radius: 100px;
+            font-size: 0.7em; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;
+        }
+        .easy { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .medium { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .hard { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .complexity-tag {
+            display: inline-block; padding: 3px 8px; border-radius: 6px;
+            font-size: 0.68em; font-weight: 500; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+        }
+
+        .pattern-section {
+            background: linear-gradient(135deg, #ffe4e6, #eef2ff);
+            border-radius: 24px; padding: 48px 40px; margin: 48px 0; border: 1px solid #e2e8f0;
+        }
+        .pattern-section h2 { font-size: 1.6em; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.02em; }
+        .pattern-section > p { color: #64748b; margin-bottom: 32px; font-size: 1em; }
+        .pattern-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+        .pattern-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; transition: all 0.2s ease; }
+        .pattern-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.1); }
+        .pattern-icon {
+            width: 36px; height: 36px; background: #eef2ff; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.1em; font-weight: 700; color: #6366f1;
+        }
+        .pattern-card h4 { font-size: 0.95em; font-weight: 650; color: #0f172a; margin-bottom: 6px; }
+        .pattern-card p { font-size: 0.82em; color: #64748b; line-height: 1.5; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #6366f1; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.4em; }
+            .hero { padding: 120px 20px 60px; }
+            .grid { grid-template-columns: 1fr; }
+            .container { padding: 20px 16px 40px; }
+            .stats { gap: 24px; flex-wrap: wrap; }
+            .nav-links { display: none; }
+            .pattern-section { padding: 32px 20px; }
+            .pattern-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-logo">🔗 Linked Lists</div>
+        <div class="nav-links">
+            <a href="#fundamentals">Fundamentals</a>
+            <a href="#core">Core Problems</a>
+            <a href="#advanced">Advanced</a>
+            <a href="#patterns">Patterns</a>
+            <a href="../index.html">All Topics</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Linked <span>Lists</span></h1>
+            <p>Learn linked lists the visual way — see pointers move as you reverse, detect cycles with the tortoise & hare, find the middle in one pass, and merge sorted chains. Every page has an interactive diagram you can play with.</p>
+            <div class="hero-chain">
+                <div class="chain-node">7</div>
+                <span class="chain-arrow">→</span>
+                <div class="chain-node">3</div>
+                <span class="chain-arrow">→</span>
+                <div class="chain-node">9</div>
+                <span class="chain-arrow">→</span>
+                <div class="chain-node">1</div>
+                <span class="chain-null">→ null</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat"><div class="stat-number">6</div><div class="stat-label">Lessons</div></div>
+        <div class="stat"><div class="stat-number">3</div><div class="stat-label">Languages</div></div>
+        <div class="stat"><div class="stat-number">100%</div><div class="stat-label">Interactive</div></div>
+    </div>
+
+    <div class="container">
+        <!-- Roadmap -->
+        <div class="roadmap-section">
+            <h2>Learning Roadmap</h2>
+            <p>Follow the chain, link by link</p>
+            <div class="roadmap">
+                <div class="roadmap-item">What is a node?</div>
+                <div class="roadmap-item">Singly / Doubly</div>
+                <div class="roadmap-item">Insert & Delete</div>
+                <div class="roadmap-item">Reversal</div>
+                <div class="roadmap-item">Fast & Slow</div>
+                <div class="roadmap-item">Cycle Detection</div>
+                <div class="roadmap-item">Merge & Sort</div>
+                <div class="roadmap-item">LRU Cache</div>
+            </div>
+        </div>
+
+        <!-- Section 1: Fundamentals -->
+        <div class="section" id="fundamentals">
+            <div class="section-header">
+                <span class="section-number">1</span>
+                <h2 class="section-title">Fundamentals</h2>
+            </div>
+            <div class="grid">
+                <a class="card" href="linked-list-basics.html">
+                    <h3>Linked List Basics</h3>
+                    <p>What a node really is, how pointers chain them together, singly vs doubly vs circular lists, and how linked lists compare to arrays. Includes a build-your-own-list playground.</p>
+                    <div class="card-meta">
+                        <span class="difficulty easy">Easy</span>
+                        <span class="complexity-tag">Foundation</span>
+                    </div>
+                </a>
+                <a class="card" href="operations.html">
+                    <h3>Insert, Delete & Traverse</h3>
+                    <p>Add at head/tail/middle, remove a node, search, and walk the list. Watch each pointer rewire step-by-step so you never lose the rest of the chain.</p>
+                    <div class="card-meta">
+                        <span class="difficulty easy">Easy</span>
+                        <span class="complexity-tag">O(1) / O(n)</span>
+                    </div>
+                </a>
+                <a class="card" href="reversal.html">
+                    <h3>Reversing a List</h3>
+                    <p>The classic three-pointer reversal — iterative and recursive. Step through prev / curr / next and watch the arrows flip one at a time.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n)</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Section 2: Core Problems -->
+        <div class="section" id="core">
+            <div class="section-header">
+                <span class="section-number">2</span>
+                <h2 class="section-title">Core Problems</h2>
+            </div>
+            <div class="grid">
+                <a class="card" href="fast-slow-pointers.html">
+                    <h3>Fast & Slow Pointers</h3>
+                    <p>The tortoise & hare technique: find the middle, detect a cycle, find the cycle's start (Floyd's algorithm), and get the nth node from the end — all in one pass.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n), O(1) space</span>
+                    </div>
+                </a>
+                <a class="card" href="merge-sort-lists.html">
+                    <h3>Merge & Sort</h3>
+                    <p>Merge two sorted lists into one, then build merge sort on a linked list using the slow/fast split. The dummy-node trick that makes merging painless.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n log n)</span>
+                    </div>
+                </a>
+                <a class="card" href="merge-k-lists.html">
+                    <h3>Merge K Sorted Lists</h3>
+                    <p>Combine k sorted lists into one. Min-heap approach (push heads, pop smallest) and divide-and-conquer pairwise merging.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="complexity-tag">O(N log k)</span>
+                    </div>
+                </a>
+                <a class="card" href="classic-problems.html">
+                    <h3>Classic Problems</h3>
+                    <p>Palindrome check, remove duplicates (sorted & unsorted), add two numbers as lists, and finding the intersection of two lists.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n)</span>
+                    </div>
+                </a>
+                <a class="card" href="rearrangement.html">
+                    <h3>Rearranging a List</h3>
+                    <p>Reverse in k-groups, swap nodes in pairs, rotate by k, odd-even grouping, and reorder (L0→Ln→L1→…).</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n)</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Section 3: Advanced -->
+        <div class="section" id="advanced">
+            <div class="section-header">
+                <span class="section-number">3</span>
+                <h2 class="section-title">Advanced</h2>
+            </div>
+            <div class="grid">
+                <a class="card" href="advanced.html">
+                    <h3>Advanced Patterns</h3>
+                    <p>LRU cache with a doubly linked list + hash map, copying a list with random pointers, reordering, and removing duplicates. The interview favorites.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="complexity-tag">O(n)</span>
+                    </div>
+                </a>
+                <a class="card" href="doubly-circular.html">
+                    <h3>Doubly & Circular Lists</h3>
+                    <p>Doubly linked nodes with O(1) deletion, circular lists, and the classic Josephus problem (simulation + O(n) recurrence).</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(1) / O(n)</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pattern Section -->
+        <div class="pattern-section" id="patterns">
+            <h2>How to Recognize a Linked List Problem</h2>
+            <p>Spot the signal, reach for the right tool</p>
+            <div class="pattern-grid">
+                <div class="pattern-card">
+                    <div class="pattern-icon">1</div>
+                    <h4>"Find the middle" or "is there a cycle?"</h4>
+                    <p>Use two pointers — slow moves 1 step, fast moves 2. When fast hits the end, slow is at the middle. If they ever meet, there's a cycle.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">2</div>
+                    <h4>"Reverse" or "reorder"</h4>
+                    <p>Keep three pointers (prev, curr, next) and flip links one at a time. Never let go of the next node before you've saved it.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">3</div>
+                    <h4>Head might change?</h4>
+                    <p>Use a <strong>dummy node</strong> in front of the head. It removes the special case of inserting/deleting at the very start.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">4</div>
+                    <h4>"Nth from the end"</h4>
+                    <p>Advance one pointer N steps first, then move both together. When the leader reaches the end, the follower is on the answer.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">5</div>
+                    <h4>O(1) insert/delete anywhere?</h4>
+                    <p>A doubly linked list lets you splice a known node out in constant time — the backbone of an LRU cache.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">6</div>
+                    <h4>"Merge sorted lists"</h4>
+                    <p>Walk both with a pointer each, always attaching the smaller head to your result tail. A dummy node holds the new chain together.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Linked Lists Visualized | <span>C++, Java & Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

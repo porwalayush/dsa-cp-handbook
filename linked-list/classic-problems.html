@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Linked List Problems - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .ll-canvas { display: flex; align-items: center; flex-wrap: wrap; min-height: 90px; padding: 10px 0; }
+        .ll-node { display: flex; align-items: stretch; border-radius: 10px; overflow: hidden; border: 2px solid #6366f1; background: white; box-shadow: 0 4px 12px rgba(99,102,241,0.15); transition: all 0.4s ease; }
+        .ll-node.head-node { border-color: #f43f5e; }
+        .ll-node.highlight { border-color: #16a34a; box-shadow: 0 6px 18px rgba(22,163,74,0.3); transform: translateY(-6px); }
+        .ll-node.match { border-color: #16a34a; background: #ecfdf5; box-shadow: 0 6px 18px rgba(22,163,74,0.3); }
+        .ll-node.mismatch { border-color: #dc2626; background: #fef2f2; box-shadow: 0 6px 18px rgba(220,38,38,0.3); }
+        .ll-node.middle { border-color: #f59e0b; box-shadow: 0 6px 18px rgba(245,158,11,0.3); }
+        .ll-node.reversed { border-color: #7c3aed; background: #f5f3ff; }
+        .ll-node.fading { opacity: 0.25; transform: scale(0.85); }
+        .ll-node .val { padding: 12px 14px; font-weight: 700; color: #0f172a; font-family: 'JetBrains Mono', monospace; }
+        .ll-node .ptr { width: 22px; background: #eef2ff; border-left: 1px dashed #c7d2fe; display: flex; align-items: center; justify-content: center; color: #6366f1; font-size: 0.7em; }
+        .ll-arrow { color: #94a3b8; font-size: 1.5em; margin: 0 8px; font-weight: 700; }
+        .ll-null { color: #94a3b8; font-weight: 700; font-size: 0.9em; padding: 12px 8px; border: 2px dashed #cbd5e1; border-radius: 10px; }
+        .ll-tag { font-size: 0.62em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #f43f5e; text-align: center; margin-top: 4px; }
+        .ll-tag.lt { color: #6366f1; }
+        .node-wrap { display: flex; flex-direction: column; align-items: center; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .pg-toggle { display: inline-flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px; margin-left: auto; }
+        .pg-toggle button { border: none; background: transparent; padding: 6px 12px; border-radius: 6px; font-size: 0.8em; font-weight: 600; cursor: pointer; color: #64748b; font-family: 'Inter', sans-serif; }
+        .pg-toggle button.active { background: white; color: #6366f1; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Linked Lists</a>
+        <h1>Classic Linked List Problems</h1>
+        <p>These are the four interview problems that show up again and again. None of them need fancy data structures — they all come down to <strong>walking the chain cleverly with one or two pointers</strong>. Once you internalize the tricks here (slow/fast, reverse-in-place, length offset), most "hard" list problems start to look familiar.</p>
+
+        <div class="note">
+            Every example uses a simple node: a <code>val</code> (or <code>data</code>) field and a <code>next</code> pointer. We never index into the list — we only follow <code>next</code>. That constraint is exactly what makes these tricks necessary.
+        </div>
+
+        <h2>1. Palindrome Linked List</h2>
+        <p>A palindrome reads the same forwards and backwards, like the word "racecar." For an array that's trivial — compare the ends and walk inward. But a singly linked list only goes <em>forward</em>, so you can't read it backwards directly.</p>
+        <p>The trick is to <strong>fold the list in half</strong>. Imagine folding a strip of paper at the middle so the second half lies on top of the first, reversed. Now the last element sits over the first, the second-to-last over the second, and so on. If every overlapping pair matches, it's a palindrome.</p>
+        <p>Concretely, four steps:</p>
+        <ol>
+            <li><strong>Find the middle</strong> with the slow/fast pointer trick: <code>fast</code> moves two steps for every one of <code>slow</code>, so when <code>fast</code> reaches the end, <code>slow</code> sits at the middle.</li>
+            <li><strong>Reverse the second half</strong> in place (the classic three-pointer reversal).</li>
+            <li><strong>Compare</strong> the first half and the reversed second half value by value.</li>
+            <li><strong>(Optional) Restore</strong> the list by reversing the second half back, so you don't leave the input mutated.</li>
+        </ol>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Palindrome Checker <span id="modeLabel" style="color:#6366f1;font-weight:600;"></span></div>
+            <div class="pg-sub">Step through the algorithm. The must-have demo finds the middle, reverses the second half, then converges two pointers from both ends — green on a match, red on a mismatch. Bonus: switch modes to watch the "switch heads" intersection trick.</div>
+            <div class="ll-canvas" id="pgCanvas"></div>
+            <div class="pg-status" id="pgStatus">Press “Next Step ▶” to begin.</div>
+            <div class="pg-controls">
+                <input type="text" id="pgInput" value="1,2,3,2,1" style="width:130px" placeholder="e.g. 1,2,3,2,1">
+                <button class="btn btn-primary" id="pgNext" onclick="pgStep()">Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="pgReset()">↺ Reset</button>
+                <span class="pg-toggle">
+                    <button id="tabPal" class="active" onclick="pgSetMode('pal')">Palindrome</button>
+                    <button id="tabInt" onclick="pgSetMode('int')">Intersection</button>
+                </span>
+            </div>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppP')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaP')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyP')">Python</button>
+            </div>
+            <div id="cppP" class="code-content active">
+<pre>
+<span class="keyword">bool</span> isPalindrome(Node* head) {
+    <span class="keyword">if</span> (!head || !head-&gt;next) <span class="keyword">return</span> <span class="keyword">true</span>;
+    <span class="comment">// 1) find middle: slow ends at start of 2nd half</span>
+    Node *slow = head, *fast = head;
+    <span class="keyword">while</span> (fast &amp;&amp; fast-&gt;next) {
+        slow = slow-&gt;next;
+        fast = fast-&gt;next-&gt;next;
+    }
+    <span class="comment">// 2) reverse the second half</span>
+    Node *prev = <span class="keyword">nullptr</span>, *curr = slow;
+    <span class="keyword">while</span> (curr) {
+        Node* nxt = curr-&gt;next;
+        curr-&gt;next = prev;
+        prev = curr;
+        curr = nxt;
+    }
+    <span class="comment">// 3) compare halves (prev = head of reversed 2nd half)</span>
+    Node *p1 = head, *p2 = prev;
+    <span class="keyword">bool</span> ok = <span class="keyword">true</span>;
+    <span class="keyword">while</span> (p2) {
+        <span class="keyword">if</span> (p1-&gt;val != p2-&gt;val) { ok = <span class="keyword">false</span>; <span class="keyword">break</span>; }
+        p1 = p1-&gt;next;
+        p2 = p2-&gt;next;
+    }
+    <span class="comment">// 4) optional: reverse 2nd half back to restore list</span>
+    <span class="keyword">return</span> ok;
+}
+</pre>
+            </div>
+            <div id="javaP" class="code-content">
+<pre>
+<span class="keyword">boolean</span> isPalindrome(<span class="type">Node</span> head) {
+    <span class="keyword">if</span> (head == <span class="keyword">null</span> || head.next == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">true</span>;
+    <span class="comment">// 1) find middle</span>
+    <span class="type">Node</span> slow = head, fast = head;
+    <span class="keyword">while</span> (fast != <span class="keyword">null</span> &amp;&amp; fast.next != <span class="keyword">null</span>) {
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+    <span class="comment">// 2) reverse the second half</span>
+    <span class="type">Node</span> prev = <span class="keyword">null</span>, curr = slow;
+    <span class="keyword">while</span> (curr != <span class="keyword">null</span>) {
+        <span class="type">Node</span> nxt = curr.next;
+        curr.next = prev;
+        prev = curr;
+        curr = nxt;
+    }
+    <span class="comment">// 3) compare halves</span>
+    <span class="type">Node</span> p1 = head, p2 = prev;
+    <span class="keyword">while</span> (p2 != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (p1.val != p2.val) <span class="keyword">return</span> <span class="keyword">false</span>;
+        p1 = p1.next;
+        p2 = p2.next;
+    }
+    <span class="comment">// 4) optional: reverse back to restore</span>
+    <span class="keyword">return</span> <span class="keyword">true</span>;
+}
+</pre>
+            </div>
+            <div id="pyP" class="code-content">
+<pre>
+<span class="keyword">def</span> is_palindrome(head):
+    <span class="keyword">if</span> <span class="keyword">not</span> head <span class="keyword">or</span> <span class="keyword">not</span> head.next:
+        <span class="keyword">return</span> <span class="keyword">True</span>
+    <span class="comment"># 1) find middle</span>
+    slow = fast = head
+    <span class="keyword">while</span> fast <span class="keyword">and</span> fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    <span class="comment"># 2) reverse the second half</span>
+    prev, curr = <span class="keyword">None</span>, slow
+    <span class="keyword">while</span> curr:
+        nxt = curr.next
+        curr.next = prev
+        prev = curr
+        curr = nxt
+    <span class="comment"># 3) compare halves</span>
+    p1, p2 = head, prev
+    <span class="keyword">while</span> p2:
+        <span class="keyword">if</span> p1.val != p2.val:
+            <span class="keyword">return</span> <span class="keyword">False</span>
+        p1 = p1.next
+        p2 = p2.next
+    <span class="comment"># 4) optional: reverse back to restore</span>
+    <span class="keyword">return</span> <span class="keyword">True</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why slow/fast lands on the middle:</strong> for every single step <code>slow</code> takes, <code>fast</code> takes two — so <code>slow</code> covers exactly half the distance. With an odd length the middle node belongs to neither half; the comparison loop stops when the (shorter) reversed half runs out, so that lone center is harmlessly ignored.
+        </div>
+
+        <h2>2. Remove Duplicates</h2>
+        <p>"Remove duplicates" has two very different difficulties depending on one word: is the list <strong>sorted</strong> or not?</p>
+
+        <h3>Sorted list — skip equal neighbors</h3>
+        <p>If the list is sorted, every duplicate sits right next to its twin (like a sorted attendance sheet where repeated names are adjacent). So you just walk the list and whenever <code>curr.val == curr.next.val</code>, unlink the neighbor by pointing <code>curr.next</code> one node further. One pass, no extra memory.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDS')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDS')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDS')">Python</button>
+            </div>
+            <div id="cppDS" class="code-content active">
+<pre>
+<span class="comment">// Sorted: remove duplicates, O(n) time, O(1) space</span>
+Node* dedupSorted(Node* head) {
+    Node* curr = head;
+    <span class="keyword">while</span> (curr &amp;&amp; curr-&gt;next) {
+        <span class="keyword">if</span> (curr-&gt;val == curr-&gt;next-&gt;val) {
+            Node* dup = curr-&gt;next;
+            curr-&gt;next = dup-&gt;next;  <span class="comment">// skip the twin</span>
+            <span class="keyword">delete</span> dup;
+        } <span class="keyword">else</span> {
+            curr = curr-&gt;next;
+        }
+    }
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="javaDS" class="code-content">
+<pre>
+<span class="comment">// Sorted: remove duplicates, O(n) time, O(1) space</span>
+<span class="type">Node</span> dedupSorted(<span class="type">Node</span> head) {
+    <span class="type">Node</span> curr = head;
+    <span class="keyword">while</span> (curr != <span class="keyword">null</span> &amp;&amp; curr.next != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (curr.val == curr.next.val) {
+            curr.next = curr.next.next;  <span class="comment">// skip the twin</span>
+        } <span class="keyword">else</span> {
+            curr = curr.next;
+        }
+    }
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="pyDS" class="code-content">
+<pre>
+<span class="comment"># Sorted: remove duplicates, O(n) time, O(1) space</span>
+<span class="keyword">def</span> dedup_sorted(head):
+    curr = head
+    <span class="keyword">while</span> curr <span class="keyword">and</span> curr.next:
+        <span class="keyword">if</span> curr.val == curr.next.val:
+            curr.next = curr.next.next   <span class="comment"># skip the twin</span>
+        <span class="keyword">else</span>:
+            curr = curr.next
+    <span class="keyword">return</span> head
+</pre>
+            </div>
+        </div>
+
+        <h3>Unsorted list — remember what you've seen</h3>
+        <p>If the list isn't sorted, twins can be anywhere, so adjacency no longer helps. Instead you keep a <strong>hash set</strong> of values you've already seen — like ticking names off a guest list as people arrive. When you reach a value already in the set, unlink it; otherwise add it and move on. This costs O(n) extra space but stays O(n) time.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDU')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDU')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDU')">Python</button>
+            </div>
+            <div id="cppDU" class="code-content active">
+<pre>
+<span class="comment">// Unsorted: O(n) time, O(n) space via hash set</span>
+Node* dedupUnsorted(Node* head) {
+    <span class="keyword">if</span> (!head) <span class="keyword">return</span> head;
+    unordered_set&lt;<span class="keyword">int</span>&gt; seen{head-&gt;val};
+    Node* prev = head;
+    <span class="keyword">while</span> (prev-&gt;next) {
+        <span class="keyword">if</span> (seen.count(prev-&gt;next-&gt;val)) {
+            Node* dup = prev-&gt;next;
+            prev-&gt;next = dup-&gt;next;   <span class="comment">// unlink seen value</span>
+            <span class="keyword">delete</span> dup;
+        } <span class="keyword">else</span> {
+            seen.insert(prev-&gt;next-&gt;val);
+            prev = prev-&gt;next;
+        }
+    }
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="javaDU" class="code-content">
+<pre>
+<span class="comment">// Unsorted: O(n) time, O(n) space via hash set</span>
+<span class="type">Node</span> dedupUnsorted(<span class="type">Node</span> head) {
+    <span class="keyword">if</span> (head == <span class="keyword">null</span>) <span class="keyword">return</span> head;
+    <span class="type">Set</span>&lt;<span class="type">Integer</span>&gt; seen = <span class="keyword">new</span> <span class="type">HashSet</span>&lt;&gt;();
+    seen.add(head.val);
+    <span class="type">Node</span> prev = head;
+    <span class="keyword">while</span> (prev.next != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (seen.contains(prev.next.val)) {
+            prev.next = prev.next.next;  <span class="comment">// unlink seen value</span>
+        } <span class="keyword">else</span> {
+            seen.add(prev.next.val);
+            prev = prev.next;
+        }
+    }
+    <span class="keyword">return</span> head;
+}
+</pre>
+            </div>
+            <div id="pyDU" class="code-content">
+<pre>
+<span class="comment"># Unsorted: O(n) time, O(n) space via hash set</span>
+<span class="keyword">def</span> dedup_unsorted(head):
+    <span class="keyword">if</span> <span class="keyword">not</span> head:
+        <span class="keyword">return</span> head
+    seen = {head.val}
+    prev = head
+    <span class="keyword">while</span> prev.next:
+        <span class="keyword">if</span> prev.next.val <span class="keyword">in</span> seen:
+            prev.next = prev.next.next   <span class="comment"># unlink seen value</span>
+        <span class="keyword">else</span>:
+            seen.add(prev.next.val)
+            prev = prev.next
+    <span class="keyword">return</span> head
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>No hash set allowed?</strong> You can dedupe an unsorted list in O(1) space with two nested pointers: for each node, scan the rest of the list and unlink any later copies. That drops memory to O(1) but costs O(n²) time — a classic space-vs-time trade-off.
+        </div>
+
+        <h2>3. Add Two Numbers</h2>
+        <p>Picture two numbers written as linked lists, one digit per node, with the <strong>least significant digit first</strong>. So <code>2 → 4 → 3</code> is the number 342, and <code>5 → 6 → 4</code> is 465. Storing digits in reverse is actually convenient: it lets you add the way you do by hand — start from the ones column and carry left.</p>
+        <p>Walk both lists together. At each step add the two digits plus any incoming <code>carry</code>, write down <code>sum % 10</code> as the new digit, and pass <code>sum / 10</code> as the carry into the next column. Don't forget a final carry (e.g. 9 + 9 needs one more node).</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppA')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaA')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyA')">Python</button>
+            </div>
+            <div id="cppA" class="code-content active">
+<pre>
+<span class="comment">// Digits stored least-significant-first.</span>
+Node* addTwoNumbers(Node* a, Node* b) {
+    Node dummy(<span class="number">0</span>);
+    Node* tail = &amp;dummy;
+    <span class="keyword">int</span> carry = <span class="number">0</span>;
+    <span class="keyword">while</span> (a || b || carry) {
+        <span class="keyword">int</span> sum = carry;
+        <span class="keyword">if</span> (a) { sum += a-&gt;val; a = a-&gt;next; }
+        <span class="keyword">if</span> (b) { sum += b-&gt;val; b = b-&gt;next; }
+        carry = sum / <span class="number">10</span>;
+        tail-&gt;next = <span class="keyword">new</span> Node(sum % <span class="number">10</span>);
+        tail = tail-&gt;next;
+    }
+    <span class="keyword">return</span> dummy.next;
+}
+</pre>
+            </div>
+            <div id="javaA" class="code-content">
+<pre>
+<span class="comment">// Digits stored least-significant-first.</span>
+<span class="type">Node</span> addTwoNumbers(<span class="type">Node</span> a, <span class="type">Node</span> b) {
+    <span class="type">Node</span> dummy = <span class="keyword">new</span> <span class="type">Node</span>(<span class="number">0</span>);
+    <span class="type">Node</span> tail = dummy;
+    <span class="keyword">int</span> carry = <span class="number">0</span>;
+    <span class="keyword">while</span> (a != <span class="keyword">null</span> || b != <span class="keyword">null</span> || carry != <span class="number">0</span>) {
+        <span class="keyword">int</span> sum = carry;
+        <span class="keyword">if</span> (a != <span class="keyword">null</span>) { sum += a.val; a = a.next; }
+        <span class="keyword">if</span> (b != <span class="keyword">null</span>) { sum += b.val; b = b.next; }
+        carry = sum / <span class="number">10</span>;
+        tail.next = <span class="keyword">new</span> <span class="type">Node</span>(sum % <span class="number">10</span>);
+        tail = tail.next;
+    }
+    <span class="keyword">return</span> dummy.next;
+}
+</pre>
+            </div>
+            <div id="pyA" class="code-content">
+<pre>
+<span class="comment"># Digits stored least-significant-first.</span>
+<span class="keyword">def</span> add_two_numbers(a, b):
+    dummy = Node(<span class="number">0</span>)
+    tail = dummy
+    carry = <span class="number">0</span>
+    <span class="keyword">while</span> a <span class="keyword">or</span> b <span class="keyword">or</span> carry:
+        s = carry
+        <span class="keyword">if</span> a:
+            s += a.val; a = a.next
+        <span class="keyword">if</span> b:
+            s += b.val; b = b.next
+        carry, digit = divmod(s, <span class="number">10</span>)
+        tail.next = Node(digit)
+        tail = tail.next
+    <span class="keyword">return</span> dummy.next
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Forward-order variant:</strong> if the most significant digit comes first (e.g. <code>3 → 4 → 2</code> = 342) you can't add left-to-right because carries flow the other way. The cleanest fix is to <strong>push both lists onto two stacks</strong>, then pop them together — popping gives you the digits least-significant-first, so you're back to the easy case. Build the result by prepending each new digit to the front. (Reversing both inputs, adding, then reversing the result works too.)
+        </div>
+
+        <h2>4. Intersection of Two Lists</h2>
+        <p>Two linked lists "intersect" when, at some point, they merge and share the rest of their nodes — like two roads that join and continue as one. We want the node where they first become the same. The catch: they may have different lengths before the join, so the i-th nodes don't line up.</p>
+
+        <h3>The length-difference trick</h3>
+        <p>Measure both lengths, then advance the pointer on the longer list by the difference. Now both pointers are <strong>equidistant from the end</strong>, so walking them in lockstep makes them arrive at the shared node at the same time.</p>
+
+        <h3>The "switch heads" trick</h3>
+        <p>An even slicker version needs no length math. Walk <code>pA</code> down list A and <code>pB</code> down list B one step at a time. Whenever a pointer hits the end, redirect it to the <em>other</em> list's head. Each pointer then travels <code>lenA + lenB</code> nodes total, so after at most that many steps they line up — meeting at the intersection node, or both reaching <code>null</code> together if the lists never intersect.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppX')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaX')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyX')">Python</button>
+            </div>
+            <div id="cppX" class="code-content active">
+<pre>
+<span class="comment">// "Switch heads" — O(m+n) time, O(1) space.</span>
+Node* getIntersection(Node* a, Node* b) {
+    <span class="keyword">if</span> (!a || !b) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    Node *pA = a, *pB = b;
+    <span class="keyword">while</span> (pA != pB) {
+        pA = pA ? pA-&gt;next : b;   <span class="comment">// hop to other head at end</span>
+        pB = pB ? pB-&gt;next : a;
+    }
+    <span class="keyword">return</span> pA;  <span class="comment">// meeting point, or nullptr if none</span>
+}
+</pre>
+            </div>
+            <div id="javaX" class="code-content">
+<pre>
+<span class="comment">// "Switch heads" — O(m+n) time, O(1) space.</span>
+<span class="type">Node</span> getIntersection(<span class="type">Node</span> a, <span class="type">Node</span> b) {
+    <span class="keyword">if</span> (a == <span class="keyword">null</span> || b == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;
+    <span class="type">Node</span> pA = a, pB = b;
+    <span class="keyword">while</span> (pA != pB) {
+        pA = (pA == <span class="keyword">null</span>) ? b : pA.next;
+        pB = (pB == <span class="keyword">null</span>) ? a : pB.next;
+    }
+    <span class="keyword">return</span> pA;  <span class="comment">// meeting point, or null if none</span>
+}
+</pre>
+            </div>
+            <div id="pyX" class="code-content">
+<pre>
+<span class="comment"># "Switch heads" — O(m+n) time, O(1) space.</span>
+<span class="keyword">def</span> get_intersection(a, b):
+    <span class="keyword">if</span> <span class="keyword">not</span> a <span class="keyword">or</span> <span class="keyword">not</span> b:
+        <span class="keyword">return</span> <span class="keyword">None</span>
+    pA, pB = a, b
+    <span class="keyword">while</span> pA <span class="keyword">is</span> <span class="keyword">not</span> pB:
+        pA = b <span class="keyword">if</span> pA <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">else</span> pA.next
+        pB = a <span class="keyword">if</span> pB <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">else</span> pB.next
+    <span class="keyword">return</span> pA  <span class="comment"># meeting point, or None if none</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Compare nodes, not values.</strong> Intersection means the two lists share the <em>same physical node</em> (same address / reference), not just equal values. Use <code>==</code> on references (C++/Java) or <code>is</code> (Python) — comparing <code>.val</code> would give false matches.
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Problem</th><th>Time</th><th>Space</th><th>Key idea</th></tr>
+            <tr><td>Palindrome check</td><td>O(n)</td><td>O(1)</td><td>Slow/fast to middle, reverse 2nd half, compare.</td></tr>
+            <tr><td>Dedup — sorted</td><td>O(n)</td><td>O(1)</td><td>Skip equal neighbors in one pass.</td></tr>
+            <tr><td>Dedup — unsorted (hash set)</td><td>O(n)</td><td>O(n)</td><td>Track seen values; unlink repeats.</td></tr>
+            <tr><td>Dedup — unsorted (no extra space)</td><td>O(n²)</td><td>O(1)</td><td>Nested scan unlinks later copies.</td></tr>
+            <tr><td>Add two numbers (reverse order)</td><td>O(max(m,n))</td><td>O(max(m,n))</td><td>Add column by column with carry.</td></tr>
+            <tr><td>Add two numbers (forward order)</td><td>O(m+n)</td><td>O(m+n)</td><td>Two stacks to pop digits low-to-high.</td></tr>
+            <tr><td>Intersection (switch heads)</td><td>O(m+n)</td><td>O(1)</td><td>Pointers swap heads to equalize distance.</td></tr>
+        </table>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const setStatus = t => { document.getElementById('pgStatus').innerHTML = t; };
+
+        let mode = 'pal';
+        let busy = false;
+
+        // ---- Palindrome state machine ----
+        // We model nodes as an array of {val, cls} for rendering plus a step index.
+        let palVals = [1, 2, 3, 2, 1];
+        let palStep = 0;           // which phase/index we're on
+        let palMid = 0;            // index where 2nd half starts
+        let palOrder = [];         // current visual order of values (2nd half reverses)
+        let palResult = null;      // true / false once decided
+        let palL = 0, palR = 0;    // comparing pointers (indices into palOrder)
+
+        // Intersection demo: fixed scenario A = [4,1] -> shared [8,4,5]; B = [5,6,1] -> shared
+        // We render two rows; pA / pB walk and switch heads.
+        let intA = [4, 1], intB = [5, 0, 1], intShared = [8, 4, 5];
+        let intFlat = [];   // sequence the switch-heads pointers conceptually traverse
+        let intStep = 0;
+        let intPA = 0, intPB = 0; // global step counters mapped to positions
+        let intLenA = 0, intLenB = 0, intTotal = 0, intMeet = 0, intDone = false;
+
+        function parseInput() {
+            const raw = document.getElementById('pgInput').value.trim();
+            const arr = raw.split(',').map(s => s.trim()).filter(s => s !== '').map(Number).filter(n => !isNaN(n));
+            return arr.length ? arr : [1, 2, 3, 2, 1];
+        }
+
+        // ---- generic node renderer (reuses .ll-node / .ll-arrow) ----
+        // items: [{val, cls, tag, tagClass}]
+        function renderChain(canvas, items, opts = {}) {
+            items.forEach((it, i) => {
+                const wrap = document.createElement('div'); wrap.className = 'node-wrap';
+                const node = document.createElement('div');
+                node.className = 'll-node' + (it.cls ? ' ' + it.cls : '');
+                node.innerHTML = `<div class="val">${it.val}</div><div class="ptr">●</div>`;
+                wrap.appendChild(node);
+                if (it.tag) { const t = document.createElement('div'); t.className = 'll-tag' + (it.tagClass ? ' ' + it.tagClass : ''); t.textContent = it.tag; wrap.appendChild(t); }
+                canvas.appendChild(wrap);
+                if (i < items.length - 1) { const a = document.createElement('span'); a.className = 'll-arrow'; a.textContent = '→'; canvas.appendChild(a); }
+            });
+            if (opts.trailingNull) { const a = document.createElement('span'); a.className = 'll-arrow'; a.textContent = '→'; canvas.appendChild(a); const n = document.createElement('div'); n.className = 'll-null'; n.textContent = 'null'; canvas.appendChild(n); }
+        }
+
+        function renderPal() {
+            const canvas = document.getElementById('pgCanvas');
+            canvas.innerHTML = '';
+            const items = palOrder.map((v, i) => {
+                let cls = '', tag = '', tagClass = 'lt';
+                if (i === 0) { cls = 'head-node'; tag = 'head'; tagClass = ''; }
+                // mid marker before reversal
+                if (palStep === 1 && i === palMid) { cls = 'middle'; tag = 'mid'; }
+                if (palStep === 2 && i >= palMid) { cls = (cls ? cls + ' ' : '') + 'reversed'; }
+                return { val: v, cls, tag, tagClass };
+            });
+            // comparison highlights
+            if (palStep >= 3 && palResult === null) {
+                if (items[palL]) { items[palL].cls = (items[palL].cls || '').replace(/highlight|match|mismatch/g, '') + ' highlight'; items[palL].tag = 'L'; items[palL].tagClass = 'lt'; }
+                if (items[palR]) { items[palR].cls = (items[palR].cls || '') + ' highlight'; items[palR].tag = 'R'; items[palR].tagClass = 'lt'; }
+            }
+            if (palResult === true) items.forEach(it => it.cls = (it.cls || '') + ' match');
+            if (palResult === false) {
+                if (items[palL]) items[palL].cls = (items[palL].cls || '') + ' mismatch';
+                if (items[palR]) items[palR].cls = (items[palR].cls || '') + ' mismatch';
+            }
+            renderChain(canvas, items, { trailingNull: true });
+        }
+
+        function pgResetPal() {
+            palVals = parseInput();
+            palOrder = palVals.slice();
+            palStep = 0;
+            palMid = Math.ceil(palVals.length / 2); // start index of 2nd half (slow lands here)
+            palResult = null;
+            palL = 0; palR = palMid;
+            renderPal();
+            setStatus('List loaded. Step 1 will find the middle with the slow/fast pointers.');
+            document.getElementById('pgNext').disabled = false;
+        }
+
+        function palStepFn() {
+            // phases: 0 -> find middle, 1 -> show middle, 2 -> reverse 2nd half,
+            // 3..-> compare pairs, then result
+            if (palResult !== null) return;
+            if (palStep === 0) {
+                palStep = 1;
+                renderPal();
+                setStatus(`Slow/fast walk done. <strong>slow</strong> stopped at index ${palMid} — that's the start of the second half (the “mid” node).`);
+            } else if (palStep === 1) {
+                palStep = 2;
+                // reverse the 2nd half in the visual order
+                const first = palOrder.slice(0, palMid);
+                const second = palOrder.slice(palMid).reverse();
+                palOrder = first.concat(second);
+                renderPal();
+                setStatus('Reversed the second half in place (purple). Now the last value sits where comparison can reach it from the front.');
+            } else if (palStep === 2) {
+                palStep = 3;
+                palL = 0; palR = palMid;
+                renderPal();
+                setStatus(`Now compare in parallel: <strong>L</strong> walks the first half from the front, <strong>R</strong> walks the reversed second half. Compare ${palOrder[palL]} vs ${palOrder[palR]}.`);
+            } else { // comparing
+                if (palR >= palOrder.length) {
+                    palResult = true;
+                    renderPal();
+                    setStatus('✓ All pairs matched — it <strong>is</strong> a palindrome. (Real code would now reverse the second half back to restore the list.)');
+                    document.getElementById('pgNext').disabled = true;
+                    return;
+                }
+                if (palOrder[palL] !== palOrder[palR]) {
+                    palResult = false;
+                    renderPal();
+                    setStatus(`✗ ${palOrder[palL]} ≠ ${palOrder[palR]} — mismatch, so it is <strong>not</strong> a palindrome.`);
+                    document.getElementById('pgNext').disabled = true;
+                    return;
+                }
+                setStatus(`✓ ${palOrder[palL]} == ${palOrder[palR]} match. Advance both pointers.`);
+                palL++; palR++;
+                renderPal();
+                if (palR < palOrder.length) {
+                    setStatus(`Match. Next compare ${palOrder[palL]} vs ${palOrder[palR]}.`);
+                } else {
+                    setStatus('Match. Reached the end of the reversed half — one more step confirms the result.');
+                }
+            }
+        }
+
+        // ---- Intersection "switch heads" demo ----
+        function renderInt() {
+            const canvas = document.getElementById('pgCanvas');
+            canvas.innerHTML = '';
+            // pA walks: A (no-shared part) + shared + B(no-shared) + shared ... we flatten
+            // intFlat holds [{val, owner}]; we show two rows stacked.
+            const rowA = document.createElement('div'); rowA.className = 'll-canvas'; rowA.style.minHeight = '70px';
+            const rowB = document.createElement('div'); rowB.className = 'll-canvas'; rowB.style.minHeight = '70px';
+            // Build list A = intA + intShared, list B = intB + intShared
+            const listA = intA.map(v => ({ val: v, shared: false })).concat(intShared.map(v => ({ val: v, shared: true })));
+            const listB = intB.map(v => ({ val: v, shared: false })).concat(intShared.map(v => ({ val: v, shared: true })));
+            const itemsA = listA.map((d, i) => {
+                let cls = d.shared ? 'reversed' : '';
+                if (i === 0) cls = 'head-node';
+                let tag = i === 0 ? 'A head' : '';
+                if (intDone && d.shared && i === intA.length) { cls = 'match'; tag = '∩'; }
+                else if (i === intPA && !intDone) { cls = 'highlight'; tag = 'pA'; }
+                return { val: d.val, cls, tag, tagClass: 'lt' };
+            });
+            const itemsB = listB.map((d, i) => {
+                let cls = d.shared ? 'reversed' : '';
+                if (i === 0) cls = 'head-node';
+                let tag = i === 0 ? 'B head' : '';
+                if (intDone && d.shared && i === intB.length) { cls = 'match'; tag = '∩'; }
+                else if (i === intPB && !intDone) { cls = 'highlight'; tag = 'pB'; }
+                return { val: d.val, cls, tag, tagClass: 'lt' };
+            });
+            renderChain(rowA, itemsA, { trailingNull: true });
+            renderChain(rowB, itemsB, { trailingNull: true });
+            canvas.style.flexDirection = 'column'; canvas.style.alignItems = 'flex-start';
+            canvas.appendChild(rowA); canvas.appendChild(rowB);
+        }
+
+        function pgResetInt() {
+            intLenA = intA.length + intShared.length;   // full length of A
+            intLenB = intB.length + intShared.length;   // full length of B
+            intTotal = intLenA + intLenB;
+            intStep = 0; intPA = 0; intPB = 0; intDone = false;
+            // intersection node index within each list
+            renderInt();
+            setStatus('Two lists that merge into a shared tail (purple). pA starts at A head, pB at B head. They take one step per click.');
+            document.getElementById('pgNext').disabled = false;
+            // restore canvas layout for palindrome later handled on mode switch
+        }
+
+        function intStepFn() {
+            if (intDone) return;
+            // pointer positions are global step counts; once a pointer passes its list end,
+            // it conceptually jumps to the other head. We track logical index along the
+            // virtual concatenation A->B for pA and B->A for pB, length intTotal+1.
+            // Simpler: simulate references.
+            intStep++;
+            // advance pA along (A then B), pB along (B then A)
+            // Map step s to a node position; meeting when same physical shared node.
+            // pA logical position:
+            intPA = stepToPos(intStep, intLenA, intLenB, 'A');
+            intPB = stepToPos(intStep, intLenB, intLenA, 'B');
+            // Determine physical node identity for meeting check
+            const idA = physicalId(intStep, intLenA, intLenB, 'A');
+            const idB = physicalId(intStep, intLenB, intLenA, 'B');
+            renderInt();
+            if (idA !== null && idA === idB) {
+                intDone = true;
+                renderInt();
+                setStatus(`✓ pA and pB meet at the shared node (value ${intShared[0]}) after ${intStep} steps — that's the intersection. Each pointer walked lenA+lenB nodes.`);
+                document.getElementById('pgNext').disabled = true;
+            } else {
+                setStatus(`Step ${intStep}: pA at ${posLabel(intStep, intLenA, intLenB, 'A')}, pB at ${posLabel(intStep, intLenB, intLenA, 'B')}. Keep stepping; ends hop to the other head.`);
+            }
+        }
+
+        // position (visual index) of a pointer within ITS CURRENT list for highlighting
+        function stepToPos(s, ownLen, otherLen, which) {
+            if (s <= ownLen) return Math.min(s, ownLen);            // still on own list (incl. null at ownLen)
+            const t = s - (ownLen + 1);                              // steps after hopping to other head
+            return Math.min(t, otherLen);
+        }
+        // physical node id: shared nodes share ids across both lists.
+        function physicalId(s, ownLen, otherLen, which) {
+            // returns a string id, or null for the null/off-end position
+            const myList = which === 'A' ? 'A' : 'B';
+            const otherList = which === 'A' ? 'B' : 'A';
+            function idIn(list, idx) {
+                const headLen = list === 'A' ? intA.length : intB.length;
+                if (idx >= (list === 'A' ? intA.length + intShared.length : intB.length + intShared.length)) return null; // past end
+                if (idx >= headLen) return 'S' + (idx - headLen);   // shared node — same id both lists
+                return list + idx;                                   // unique prefix node
+            }
+            if (s < ownLen) return idIn(myList, s);
+            if (s === ownLen) return null;                           // at null, about to hop
+            const t = s - (ownLen + 1);
+            if (t < otherLen) return idIn(otherList, t);
+            if (t === otherLen) return null;
+            return null;
+        }
+        function posLabel(s, ownLen, otherLen, which) {
+            const id = physicalId(s, ownLen, otherLen, which);
+            if (id === null) return 'null (hopping)';
+            if (id[0] === 'S') return 'shared node';
+            return 'own list';
+        }
+
+        // ---- mode + control wiring ----
+        function pgStep() {
+            if (mode === 'pal') palStepFn();
+            else intStepFn();
+        }
+        function pgReset() {
+            if (mode === 'pal') pgResetPal();
+            else pgResetInt();
+        }
+        function pgSetMode(m) {
+            mode = m;
+            document.getElementById('tabPal').classList.toggle('active', m === 'pal');
+            document.getElementById('tabInt').classList.toggle('active', m === 'int');
+            document.getElementById('modeLabel').textContent = m === 'int' ? '· switch-heads trick' : '';
+            const canvas = document.getElementById('pgCanvas');
+            const input = document.getElementById('pgInput');
+            if (m === 'pal') {
+                canvas.style.flexDirection = 'row'; canvas.style.alignItems = 'center';
+                input.style.display = '';
+                pgResetPal();
+            } else {
+                input.style.display = 'none';
+                pgResetInt();
+            }
+        }
+
+        // initial render
+        pgResetPal();
+    </script>
+
+    <footer style="text-align:center; color:#94a3b8; font-size:0.85em; padding:24px 0 40px;">
+        Linked Lists Visualized | C++, Java &amp; Python | Interactive Learning
+    </footer>
+</body>
+</html>

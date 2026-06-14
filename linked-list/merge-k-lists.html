@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge K Sorted Lists - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.05em; font-weight: 700; color: #0f172a; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9em; }
+        th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid #e2e8f0; }
+        th { color: #0f172a; font-weight: 700; background: #f8fafc; }
+        td { color: #475569; }
+        td code { font-size: 0.9em; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .row { display: flex; align-items: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; min-height: 56px; }
+        .row-label { font-size: 0.72em; font-weight: 700; width: 64px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+        .mini { display: flex; align-items: center; font-weight: 700; font-family: 'JetBrains Mono', monospace; padding: 10px 14px; border-radius: 8px; border: 2px solid #cbd5e1; background: white; transition: all 0.35s ease; }
+        .mini.list { border-color: #6366f1; }
+        .mini.front { border-color: #f59e0b; background: #fffbeb; }
+        .mini.smallest { transform: translateY(-6px) scale(1.08); box-shadow: 0 6px 16px rgba(0,0,0,0.15); border-color: #16a34a; background: #ecfdf5; }
+        .mini.taken { opacity: 0.25; transform: scale(0.85); }
+        .mini.res { border-color: #16a34a; background: #ecfdf5; animation: drop 0.3s ease; }
+        .mini.empty { opacity: 0.4; border-style: dashed; color: #94a3b8; }
+        @keyframes drop { from { transform: translateY(-14px) scale(0.7); opacity: 0; } to { transform: none; opacity: 1; } }
+        .arrow { color: #94a3b8; font-weight: 700; }
+        .heap-box { border: 2px dashed #f59e0b; border-radius: 12px; padding: 12px 14px; background: #fffbeb; margin: 14px 0; }
+        .heap-label { font-size: 0.72em; font-weight: 700; color: #b45309; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .heap-chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; min-height: 44px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Linked Lists</a>
+        <h1>Merge K Sorted Lists</h1>
+        <p>Imagine <strong>k</strong> separate checkout lines at a store, and within each line the people are already ordered shortest-to-tallest. You want one single line, sorted by height. You don't re-sort everyone — you just keep glancing at the <em>front person</em> of every line and wave the shortest of them forward, over and over. That's the whole problem.</p>
+        <p>Formally: you're given <code>k</code> linked lists, each already sorted ascending. Merge them into one sorted list. This builds directly on the two-list zipper merge from <a href="merge-sort-lists.html" style="color:#6366f1">Merging &amp; Sorting Lists</a> — here we just have more lists to juggle.</p>
+
+        <h2>1. The problem &amp; why the naive way is slow</h2>
+        <p>The obvious idea: take the zipper merge you already know, and fold the lists in one at a time. Merge list 1 with list 2, then merge that result with list 3, then with list 4, and so on.</p>
+        <p>It works, but think about how much each node gets re-touched. Say every list has the same length and there are <code>N</code> nodes total. When you merge in the last list, you walk over the <em>entire</em> accumulated result again — almost all <code>N</code> nodes. The round before that, nearly <code>N</code> again. You repeat this <code>k</code> times, so the early nodes get copied over and over.</p>
+        <p>That gives <strong>O(N &times; k)</strong> time. With many lists that <code>k</code> factor hurts. The two better approaches below both knock it down to <strong>O(N log k)</strong> by being smart about <em>which</em> comparison to do next.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppNaive')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaNaive')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyNaive')">Python</button>
+            </div>
+            <div id="cppNaive" class="code-content active">
+<pre>
+<span class="comment">// Naive: fold lists in one at a time. O(N * k).</span>
+Node* mergeKNaive(vector&lt;Node*&gt;&amp; lists) {
+    Node* acc = <span class="keyword">nullptr</span>;
+    <span class="keyword">for</span> (Node* l : lists)
+        acc = mergeTwo(acc, l);   <span class="comment">// re-walks acc every time</span>
+    <span class="keyword">return</span> acc;
+}
+</pre>
+            </div>
+            <div id="javaNaive" class="code-content">
+<pre>
+<span class="comment">// Naive: fold lists in one at a time. O(N * k).</span>
+<span class="type">Node</span> mergeKNaive(<span class="type">Node</span>[] lists) {
+    <span class="type">Node</span> acc = <span class="keyword">null</span>;
+    <span class="keyword">for</span> (<span class="type">Node</span> l : lists)
+        acc = mergeTwo(acc, l);   <span class="comment">// re-walks acc every time</span>
+    <span class="keyword">return</span> acc;
+}
+</pre>
+            </div>
+            <div id="pyNaive" class="code-content">
+<pre>
+<span class="comment"># Naive: fold lists in one at a time. O(N * k).</span>
+<span class="keyword">def</span> merge_k_naive(lists):
+    acc = <span class="keyword">None</span>
+    <span class="keyword">for</span> l <span class="keyword">in</span> lists:
+        acc = merge_two(acc, l)   <span class="comment"># re-walks acc every time</span>
+    <span class="keyword">return</span> acc
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Where does the waste come from?</strong> A node that lives in the first list gets copied during merge #1, then walked again in merge #2, again in merge #3... up to <code>k</code> times. The two approaches below make sure each node is touched only about <code>log k</code> times.
+        </div>
+
+        <h2>2. Min-heap (priority queue) approach</h2>
+        <p>Back to the checkout-line analogy: you don't need to look at everybody. You only ever care about the <strong>front person of each line</strong> — the global shortest must be one of them. A <strong>min-heap</strong> is exactly the gadget that holds a handful of items and instantly hands you the smallest.</p>
+        <p>The recipe:</p>
+        <ol>
+            <li>Push the <strong>head node of each list</strong> into the heap (so it holds at most <code>k</code> nodes — one candidate per list).</li>
+            <li><strong>Pop</strong> the smallest. Append it to your result list.</li>
+            <li>If that node had a <code>next</code>, push <code>next</code> — that list's new front candidate.</li>
+            <li>Repeat until the heap is empty.</li>
+        </ol>
+        <p>Each of the <code>N</code> nodes is pushed and popped once. Heap operations cost <code>log(size)</code>, and the heap never holds more than <code>k</code> items, so each op is <code>log k</code>. Total: <strong>O(N log k)</strong> time, <strong>O(k)</strong> extra space for the heap.</p>
+
+        <p>The one subtlety in each language is telling the heap <em>how to compare nodes</em> — we want the smallest <code>data</code> on top (a <em>min</em>-heap):</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppHeap')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaHeap')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyHeap')">Python</button>
+            </div>
+            <div id="cppHeap" class="code-content active">
+<pre>
+<span class="comment">// Comparator: priority_queue is a MAX-heap by default,</span>
+<span class="comment">// so we invert ( &gt; ) to get the smallest on top.</span>
+<span class="keyword">struct</span> Cmp {
+    <span class="keyword">bool</span> operator()(Node* a, Node* b) <span class="keyword">const</span> { <span class="keyword">return</span> a-&gt;data &gt; b-&gt;data; }
+};
+
+Node* mergeKLists(vector&lt;Node*&gt;&amp; lists) {
+    priority_queue&lt;Node*, vector&lt;Node*&gt;, Cmp&gt; pq;
+    <span class="keyword">for</span> (Node* l : lists) <span class="keyword">if</span> (l) pq.push(l);   <span class="comment">// seed heads</span>
+
+    Node dummy(<span class="number">0</span>); Node* tail = &amp;dummy;
+    <span class="keyword">while</span> (!pq.empty()) {
+        Node* smallest = pq.top(); pq.pop();      <span class="comment">// global front</span>
+        tail-&gt;next = smallest; tail = tail-&gt;next;
+        <span class="keyword">if</span> (smallest-&gt;next) pq.push(smallest-&gt;next);  <span class="comment">// pull next</span>
+    }
+    tail-&gt;next = <span class="keyword">nullptr</span>;
+    <span class="keyword">return</span> dummy.next;
+}
+</pre>
+            </div>
+            <div id="javaHeap" class="code-content">
+<pre>
+<span class="comment">// PriorityQueue is a MIN-heap; pass a comparator on data.</span>
+<span class="type">Node</span> mergeKLists(<span class="type">Node</span>[] lists) {
+    PriorityQueue&lt;<span class="type">Node</span>&gt; pq =
+        <span class="keyword">new</span> PriorityQueue&lt;&gt;((a, b) -&gt; a.data - b.data);
+    <span class="keyword">for</span> (<span class="type">Node</span> l : lists) <span class="keyword">if</span> (l != <span class="keyword">null</span>) pq.offer(l);  <span class="comment">// seed heads</span>
+
+    <span class="type">Node</span> dummy = <span class="keyword">new</span> <span class="type">Node</span>(<span class="number">0</span>), tail = dummy;
+    <span class="keyword">while</span> (!pq.isEmpty()) {
+        <span class="type">Node</span> smallest = pq.poll();        <span class="comment">// global front</span>
+        tail.next = smallest; tail = tail.next;
+        <span class="keyword">if</span> (smallest.next != <span class="keyword">null</span>)
+            pq.offer(smallest.next);       <span class="comment">// pull next</span>
+    }
+    <span class="keyword">return</span> dummy.next;
+}
+</pre>
+            </div>
+            <div id="pyHeap" class="code-content">
+<pre>
+<span class="keyword">import</span> heapq
+
+<span class="comment"># heapq is a min-heap but can't compare Node objects directly.</span>
+<span class="comment"># Push tuples (data, tiebreaker, node) so ties never compare nodes.</span>
+<span class="keyword">def</span> merge_k_lists(lists):
+    heap = []
+    <span class="keyword">for</span> idx, node <span class="keyword">in</span> enumerate(lists):
+        <span class="keyword">if</span> node:
+            heapq.heappush(heap, (node.data, idx, node))  <span class="comment"># seed heads</span>
+
+    dummy = Node(<span class="number">0</span>); tail = dummy
+    <span class="keyword">while</span> heap:
+        _, idx, smallest = heapq.heappop(heap)   <span class="comment"># global front</span>
+        tail.next = smallest; tail = tail.next
+        <span class="keyword">if</span> smallest.next:
+            heapq.heappush(heap, (smallest.next.data, idx, smallest.next))
+    <span class="keyword">return</span> dummy.next
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Python gotcha:</strong> <code>heapq</code> compares whole tuples, and if two nodes have equal <code>data</code> it would try to compare the <code>Node</code> objects themselves — which raises <code>TypeError</code>. Add a unique tiebreaker (here the list index) as the middle element so the comparison never reaches the node.
+        </div>
+
+        <h2>3. Divide-and-conquer pairwise merging</h2>
+        <p>Different intuition, same payoff. Instead of one heap, run a <strong>tournament bracket</strong>: pair the lists up and merge each pair, which halves how many lists you have. Then pair up the survivors and merge again. Keep halving until one list remains.</p>
+        <p>This is exactly merge sort's merge phase, applied at the <em>list</em> level rather than the element level. Each "round" passes over all <code>N</code> nodes once with the trusty two-list zipper, and because you halve <code>k</code> each round there are only <code>log k</code> rounds. So <code>N</code> work per round &times; <code>log k</code> rounds = <strong>O(N log k)</strong>.</p>
+
+        <p>It all rests on the two-sorted-list merge (restated from the merge-sort page) — the <code>mergeTwo</code> zipper with a dummy node:</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDC')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDC')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDC')">Python</button>
+            </div>
+            <div id="cppDC" class="code-content active">
+<pre>
+<span class="comment">// The zipper merge (same as the two-list version).</span>
+Node* mergeTwo(Node* a, Node* b) {
+    Node dummy(<span class="number">0</span>); Node* tail = &amp;dummy;
+    <span class="keyword">while</span> (a &amp;&amp; b) {
+        <span class="keyword">if</span> (a-&gt;data &lt;= b-&gt;data) { tail-&gt;next = a; a = a-&gt;next; }
+        <span class="keyword">else</span>                   { tail-&gt;next = b; b = b-&gt;next; }
+        tail = tail-&gt;next;
+    }
+    tail-&gt;next = a ? a : b;
+    <span class="keyword">return</span> dummy.next;
+}
+
+<span class="comment">// Pairwise: halve the list count each pass. O(N log k).</span>
+Node* mergeKLists(vector&lt;Node*&gt;&amp; lists) {
+    <span class="keyword">if</span> (lists.empty()) <span class="keyword">return</span> <span class="keyword">nullptr</span>;
+    <span class="keyword">int</span> n = lists.size();
+    <span class="keyword">while</span> (n &gt; <span class="number">1</span>) {
+        <span class="keyword">int</span> k = (n + <span class="number">1</span>) / <span class="number">2</span>;             <span class="comment">// pairs this round</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n / <span class="number">2</span>; i++)
+            lists[i] = mergeTwo(lists[i], lists[i + k]);
+        n = k;
+    }
+    <span class="keyword">return</span> lists[<span class="number">0</span>];
+}
+</pre>
+            </div>
+            <div id="javaDC" class="code-content">
+<pre>
+<span class="comment">// The zipper merge (same as the two-list version).</span>
+<span class="type">Node</span> mergeTwo(<span class="type">Node</span> a, <span class="type">Node</span> b) {
+    <span class="type">Node</span> dummy = <span class="keyword">new</span> <span class="type">Node</span>(<span class="number">0</span>), tail = dummy;
+    <span class="keyword">while</span> (a != <span class="keyword">null</span> &amp;&amp; b != <span class="keyword">null</span>) {
+        <span class="keyword">if</span> (a.data &lt;= b.data) { tail.next = a; a = a.next; }
+        <span class="keyword">else</span>                 { tail.next = b; b = b.next; }
+        tail = tail.next;
+    }
+    tail.next = (a != <span class="keyword">null</span>) ? a : b;
+    <span class="keyword">return</span> dummy.next;
+}
+
+<span class="comment">// Pairwise: halve the list count each pass. O(N log k).</span>
+<span class="type">Node</span> mergeKLists(<span class="type">Node</span>[] lists) {
+    <span class="keyword">if</span> (lists.length == <span class="number">0</span>) <span class="keyword">return</span> <span class="keyword">null</span>;
+    <span class="keyword">int</span> n = lists.length;
+    <span class="keyword">while</span> (n &gt; <span class="number">1</span>) {
+        <span class="keyword">int</span> k = (n + <span class="number">1</span>) / <span class="number">2</span>;             <span class="comment">// pairs this round</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n / <span class="number">2</span>; i++)
+            lists[i] = mergeTwo(lists[i], lists[i + k]);
+        n = k;
+    }
+    <span class="keyword">return</span> lists[<span class="number">0</span>];
+}
+</pre>
+            </div>
+            <div id="pyDC" class="code-content">
+<pre>
+<span class="comment"># The zipper merge (same as the two-list version).</span>
+<span class="keyword">def</span> merge_two(a, b):
+    dummy = Node(<span class="number">0</span>); tail = dummy
+    <span class="keyword">while</span> a <span class="keyword">and</span> b:
+        <span class="keyword">if</span> a.data &lt;= b.data:
+            tail.next, a = a, a.next
+        <span class="keyword">else</span>:
+            tail.next, b = b, b.next
+        tail = tail.next
+    tail.next = a <span class="keyword">if</span> a <span class="keyword">else</span> b
+    <span class="keyword">return</span> dummy.next
+
+<span class="comment"># Pairwise: halve the list count each pass. O(N log k).</span>
+<span class="keyword">def</span> merge_k_lists(lists):
+    <span class="keyword">if</span> <span class="keyword">not</span> lists:
+        <span class="keyword">return</span> <span class="keyword">None</span>
+    n = len(lists)
+    <span class="keyword">while</span> n &gt; <span class="number">1</span>:
+        k = (n + <span class="number">1</span>) // <span class="number">2</span>              <span class="comment"># pairs this round</span>
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(n // <span class="number">2</span>):
+            lists[i] = merge_two(lists[i], lists[i + k])
+        n = k
+    <span class="keyword">return</span> lists[<span class="number">0</span>]
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why halving is the key.</strong> The naive fold merges <code>list[0]</code> with everything, so the front nodes are re-walked <code>k</code> times. Pairwise merging guarantees every node participates in only <code>log k</code> merges — same total nodes per round, but far fewer rounds.
+        </div>
+
+        <h2>4. Comparing the two approaches</h2>
+        <p>Both hit <strong>O(N log k)</strong> time. They differ in space and feel:</p>
+
+        <table>
+            <thead>
+                <tr><th>Aspect</th><th>Min-heap</th><th>Divide &amp; conquer</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Time</td><td><code>O(N log k)</code></td><td><code>O(N log k)</code></td></tr>
+                <tr><td>Extra space</td><td><code>O(k)</code> for the heap</td><td><code>O(1)</code> iterative / <code>O(log k)</code> recursive</td></tr>
+                <tr><td>Streaming?</td><td>Yes &mdash; emits nodes one at a time</td><td>No &mdash; needs all lists up front</td></tr>
+                <tr><td>Mental model</td><td>"Always pop the global smallest front"</td><td>"Tournament bracket of zipper merges"</td></tr>
+                <tr><td>Best when</td><td>Lists arrive as a stream; <code>k</code> is large</td><td>All lists known; want minimal extra memory</td></tr>
+            </tbody>
+        </table>
+
+        <p>Rule of thumb: reach for the <strong>heap</strong> when lists are produced lazily or <code>k</code> is huge, and for <strong>divide-and-conquer</strong> when you already hold all the lists and want the leanest memory footprint. Pick whichever you can write bug-free under pressure — the asymptotics are identical.</p>
+
+        <h2>See the min-heap in action</h2>
+        <p>The widget below shows <code>k</code> small sorted lists. The amber-outlined node in each row is that list's <strong>front candidate</strong>. The dashed box is the <strong>heap</strong> — it holds exactly those candidates. Each step finds the smallest candidate (the global front), pops it into the result, and pulls in the next node from the list it came from.</p>
+
+        <div class="playground">
+            <div class="pg-title">🔺 Min-Heap Merge Visualizer</div>
+            <div class="pg-sub">The heap holds the front node of each list. Each step pops the smallest and refills from its source list.</div>
+            <div id="rows"></div>
+            <div class="heap-box">
+                <div class="heap-label">Heap (front candidates &mdash; smallest pops next)</div>
+                <div class="heap-chips" id="heapChips"></div>
+            </div>
+            <div class="row" style="border-top:1px dashed #e2e8f0;padding-top:14px"><div class="row-label" style="color:#16a34a">Result</div><div id="rowR" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div></div>
+            <div class="pg-status" id="status">The heap is seeded with the head of each list. Press "Next Step".</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()">Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="reset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Reading the heap.</strong> A real implementation stores these candidates in a binary heap so "find the smallest" costs <code>O(log k)</code> instead of scanning. Here we just show the candidate set and highlight which one wins — the mechanic is identical: <em>always take the global smallest of the front elements.</em>
+        </div>
+
+        <h2>Complexity summary</h2>
+        <table>
+            <thead>
+                <tr><th>Approach</th><th>Time</th><th>Extra space</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Naive sequential fold</td><td><code>O(N &middot; k)</code></td><td><code>O(1)</code></td></tr>
+                <tr><td>Min-heap / priority queue</td><td><code>O(N log k)</code></td><td><code>O(k)</code></td></tr>
+                <tr><td>Divide &amp; conquer (iterative)</td><td><code>O(N log k)</code></td><td><code>O(1)</code></td></tr>
+                <tr><td>Divide &amp; conquer (recursive)</td><td><code>O(N log k)</code></td><td><code>O(log k)</code></td></tr>
+            </tbody>
+        </table>
+        <p style="color:#64748b;font-size:0.85em"><code>N</code> = total nodes across all lists, <code>k</code> = number of lists.</p>
+
+        <footer style="margin-top:48px;padding-top:24px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:0.85em">
+            Linked Lists Visualized | C++, Java &amp; Python | Interactive Learning
+        </footer>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Each list is an array; ptr[i] = index of the current front in list i.
+        const LISTS0 = [
+            [1, 5, 9],
+            [2, 6, 7],
+            [3, 4, 8]
+        ];
+        let lists, ptr, result, done;
+        const setStatus = t => document.getElementById('status').innerHTML = t;
+
+        // returns array of {list, val} for the current front candidates (the heap contents)
+        function candidates() {
+            const c = [];
+            lists.forEach((arr, li) => {
+                if (ptr[li] < arr.length) c.push({ list: li, val: arr[ptr[li]] });
+            });
+            return c;
+        }
+
+        function smallestIndex(cands) {
+            let best = 0;
+            for (let k = 1; k < cands.length; k++) {
+                if (cands[k].val < cands[best].val) best = k;
+            }
+            return best;
+        }
+
+        function render(opts = {}) {
+            const winnerList = opts.winnerList; // list index whose front is the smallest
+            const rows = document.getElementById('rows');
+            rows.innerHTML = '';
+            lists.forEach((arr, li) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                const lbl = document.createElement('div');
+                lbl.className = 'row-label';
+                lbl.textContent = 'List ' + (li + 1);
+                row.appendChild(lbl);
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center';
+                arr.forEach((v, k) => {
+                    const d = document.createElement('div');
+                    let cls = 'mini list';
+                    if (k < ptr[li]) cls += ' taken';
+                    else if (k === ptr[li]) {
+                        cls += (li === winnerList) ? ' smallest' : ' front';
+                    }
+                    d.className = cls;
+                    d.textContent = v;
+                    wrap.appendChild(d);
+                });
+                if (ptr[li] >= arr.length) {
+                    const d = document.createElement('div');
+                    d.className = 'mini empty';
+                    d.textContent = '∅';
+                    wrap.appendChild(d);
+                }
+                row.appendChild(wrap);
+                rows.appendChild(row);
+            });
+
+            // heap chips
+            const hc = document.getElementById('heapChips');
+            hc.innerHTML = '';
+            const cands = candidates();
+            if (cands.length === 0) {
+                const e = document.createElement('div');
+                e.className = 'mini empty';
+                e.textContent = 'empty';
+                hc.appendChild(e);
+            } else {
+                cands.forEach(c => {
+                    const d = document.createElement('div');
+                    d.className = 'mini' + (c.list === winnerList ? ' smallest' : ' front');
+                    d.textContent = c.val;
+                    d.title = 'from List ' + (c.list + 1);
+                    hc.appendChild(d);
+                });
+            }
+
+            // result row
+            const rowR = document.getElementById('rowR');
+            rowR.innerHTML = '';
+            result.forEach((v, k) => {
+                const d = document.createElement('div');
+                d.className = 'mini res';
+                d.textContent = v;
+                rowR.appendChild(d);
+                if (k < result.length - 1) {
+                    const a = document.createElement('span');
+                    a.className = 'arrow';
+                    a.textContent = '→';
+                    rowR.appendChild(a);
+                }
+            });
+        }
+
+        function step() {
+            if (done) return;
+            const cands = candidates();
+            if (cands.length === 0) return;
+            const si = smallestIndex(cands);
+            const win = cands[si];
+            // highlight the winner first
+            render({ winnerList: win.list });
+            setStatus(`Heap front candidates: ${cands.map(c => c.val).join(', ')}. Smallest is <b style="color:#16a34a">${win.val}</b> (from List ${win.list + 1}) → pop it into the result, then push List ${win.list + 1}'s next node.`);
+            // commit: append to result, advance that list's pointer
+            result.push(win.val);
+            ptr[win.list]++;
+            // re-render committed state after a tick so the "smallest" highlight is visible
+            setTimeout(() => {
+                if (candidates().length === 0) {
+                    done = true;
+                    document.getElementById('stepBtn').disabled = true;
+                    render();
+                    setStatus(`<b style="color:#16a34a">Done!</b> Every list is empty. Merged ${result.length} nodes into one sorted list.`);
+                } else {
+                    render();
+                }
+            }, 350);
+        }
+
+        function reset() {
+            lists = LISTS0.map(a => a.slice());
+            ptr = lists.map(() => 0);
+            result = [];
+            done = false;
+            document.getElementById('stepBtn').disabled = false;
+            setStatus('The heap is seeded with the head of each list. Press "Next Step".');
+            render();
+        }
+        reset();
+    </script>
+</body>
+</html>
