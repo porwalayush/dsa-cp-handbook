@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distance Problems in a Tree - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        a { color: #6366f1; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls label { font-size: 0.8em; color: #64748b; font-weight: 600; }
+        .pg-controls select, .pg-controls input { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; background: white; cursor: pointer; }
+        .pg-controls input { width: 70px; cursor: text; }
+        .pg-controls select:focus, .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-fire { background: #ea580c; color: white; }
+        .btn-fire:hover { background: #c2410c; transform: translateY(-1px); }
+        .btn-fire:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Binary Trees</a>
+        <h1>Distance Problems in a Tree</h1>
+        <p>Here is the one mental shift that unlocks this entire family of problems: a binary tree is normally a <strong>one-way street</strong> &mdash; you can walk from a parent down to its children, but never back up. Most "distance" questions, though, need to travel in <em>any</em> direction. The fix is to stop thinking of the tree as parent-points-to-child and start thinking of it as a plain <strong>undirected graph</strong> where every edge can be walked both ways.</p>
+        <p>Once a node can reach its left child, its right child, <em>and</em> its parent, distance becomes simple: it is just the number of edges on the shortest walk between two nodes. And the cleanest tool for "shortest number of steps" in an unweighted graph is <strong>breadth-first search (BFS)</strong> &mdash; it explores outward in expanding rings, one ring per unit of distance.</p>
+        <p>This page builds up that idea step by step: first the shared prerequisite (a parent map), then four classic problems that all reuse it &mdash; nodes at distance K, burning the tree, cousins, and the distance between two nodes.</p>
+
+        <h2>See It: Ripples and Fire</h2>
+        <p>The widget below runs on a fixed 10-node tree. In <strong>distance mode</strong>, pick a target and a distance K, then watch BFS ripple outward ring by ring &mdash; the nodes that land exactly K steps away light up green. In <strong>burn mode</strong>, a fire starts at the target and spreads to every neighbour each second; the clock stops when the last node catches, which is exactly the farthest distance from the target.</p>
+
+        <div class="playground">
+            <div class="pg-title">&#127881; Distance Rings &amp; Burning Tree</div>
+            <div class="pg-sub">Treat the tree as an undirected graph (children + parent). BFS expands outward one ring per step.</div>
+            <svg id="distSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="distStatus">Pick a target node and K, then press a button below.</div>
+            <div class="legend">
+                <span><span class="dot" style="background:#ede9fe;border:2px solid #7c3aed"></span>target</span>
+                <span><span class="dot" style="background:#eef2ff;border:2px solid #6366f1"></span>reached (closer ring)</span>
+                <span><span class="dot" style="background:#ecfdf5;border:2px solid #16a34a"></span>exactly distance K</span>
+                <span><span class="dot" style="background:#ffedd5;border:2px solid #ea580c"></span>on fire</span>
+            </div>
+            <div class="pg-controls">
+                <label>Target:</label>
+                <select id="pickTarget"></select>
+                <label>K:</label>
+                <input id="pickK" type="number" min="0" max="6" value="2">
+                <button class="btn btn-primary" id="distBtn" onclick="runDistanceK()">Show nodes at distance K &#9654;</button>
+                <button class="btn btn-fire" id="burnBtn" onclick="runBurn()">Burn the tree &#128293;</button>
+                <button class="btn btn-ghost" onclick="resetDist()">&#8634; Reset</button>
+            </div>
+        </div>
+
+        <h2>1. The Shared Prerequisite: a Parent Map</h2>
+        <p>Think of every node as knowing only who its kids are &mdash; like a manager who knows their direct reports but, oddly, has forgotten who <em>their own</em> boss is. To walk "upward" we first have to hand each node a sticky note saying "your parent is X". That collection of sticky notes is the <strong>parent map</strong>.</p>
+        <p>We build it with one pass of BFS or DFS from the root: whenever we step from a node into a child, we record <code>parent[child] = node</code>. After this single pass, any node can move in <strong>three directions</strong> &mdash; <code>left</code>, <code>right</code>, and <code>parent</code> &mdash; which is exactly what turns the tree into an undirected graph.</p>
+
+        <div class="visual">
+<pre>
+            (1)                  parent map (child -> parent)
+           /   \                 -------------------------
+        (2)     (3)              2 -> 1     3 -> 1
+        / \       \              4 -> 2     5 -> 2     6 -> 3
+     (4)  (5)     (6)            7 -> 5     8 -> 5     9 -> 8
+         /  \                    10 -> 6
+      (7)   (8)
+            /
+         (9)
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'pmcpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'pmjava')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pmpy')">Python</button>
+            </div>
+            <div id="pmcpp" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode {
+    <span class="keyword">int</span> val;
+    TreeNode *left, *right;
+    TreeNode(<span class="keyword">int</span> v) : val(v), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+
+<span class="comment">// Map each node to its parent via BFS. root maps to nullptr.</span>
+unordered_map&lt;TreeNode*, TreeNode*&gt; buildParents(TreeNode* root) {
+    unordered_map&lt;TreeNode*, TreeNode*&gt; parent;
+    queue&lt;TreeNode*&gt; q;
+    parent[root] = <span class="keyword">nullptr</span>;
+    q.push(root);
+    <span class="keyword">while</span> (!q.empty()) {
+        TreeNode* node = q.front(); q.pop();
+        <span class="keyword">if</span> (node-&gt;left)  { parent[node-&gt;left]  = node; q.push(node-&gt;left);  }
+        <span class="keyword">if</span> (node-&gt;right) { parent[node-&gt;right] = node; q.push(node-&gt;right); }
+    }
+    <span class="keyword">return</span> parent;  <span class="comment">// now every node can reach left, right, AND parent</span>
+}
+</pre>
+            </div>
+            <div id="pmjava" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> {
+    <span class="keyword">int</span> val;
+    <span class="type">TreeNode</span> left, right;
+    <span class="type">TreeNode</span>(<span class="keyword">int</span> v) { val = v; }
+}
+
+<span class="comment">// Map each node to its parent via BFS. root maps to null.</span>
+<span class="type">Map</span>&lt;<span class="type">TreeNode</span>, <span class="type">TreeNode</span>&gt; buildParents(<span class="type">TreeNode</span> root) {
+    <span class="type">Map</span>&lt;<span class="type">TreeNode</span>, <span class="type">TreeNode</span>&gt; parent = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    <span class="type">Queue</span>&lt;<span class="type">TreeNode</span>&gt; q = <span class="keyword">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+    parent.put(root, <span class="keyword">null</span>);
+    q.add(root);
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="type">TreeNode</span> node = q.poll();
+        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  { parent.put(node.left, node);  q.add(node.left);  }
+        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) { parent.put(node.right, node); q.add(node.right); }
+    }
+    <span class="keyword">return</span> parent;  <span class="comment">// now every node can reach left, right, AND parent</span>
+}
+</pre>
+            </div>
+            <div id="pmpy" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">class</span> <span class="type">TreeNode</span>:
+    <span class="keyword">def</span> __init__(self, val):
+        self.val = val
+        self.left = <span class="keyword">None</span>
+        self.right = <span class="keyword">None</span>
+
+<span class="comment"># Map each node to its parent via BFS. root maps to None.</span>
+<span class="keyword">def</span> build_parents(root):
+    parent = {root: <span class="keyword">None</span>}
+    q = deque([root])
+    <span class="keyword">while</span> q:
+        node = q.popleft()
+        <span class="keyword">for</span> child <span class="keyword">in</span> (node.left, node.right):
+            <span class="keyword">if</span> child:
+                parent[child] = node
+                q.append(child)
+    <span class="keyword">return</span> parent  <span class="comment"># now every node can reach left, right, AND parent</span>
+</pre>
+            </div>
+        </div>
+        <p>Building the map is <strong>O(n)</strong> time and <strong>O(n)</strong> space. Every problem below assumes you have run this once.</p>
+
+        <div class="note">
+            <strong>Why this matters.</strong> A downward-only tree can answer "how far down is X?" but not "what is K steps away in <em>any</em> direction?". The parent map is the bridge that turns a rooted tree into a navigable undirected graph &mdash; the single trick behind problems 2 and 3.
+        </div>
+
+        <h2>2. All Nodes at Distance K from a Target</h2>
+        <p>Picture dropping a pebble into a pond at the target node. Ripples spread outward in rings: ring 0 is the target itself, ring 1 is its immediate neighbours, ring 2 is their neighbours, and so on. The nodes sitting on <strong>ring K</strong> are exactly the answer.</p>
+        <p>Because the tree is now undirected (thanks to the parent map), each node has up to three neighbours: <code>left</code>, <code>right</code>, and <code>parent</code>. We run a BFS from the target, tracking distance level by level, and collect everyone whose distance equals K. A <code>visited</code> set stops us from bouncing back the way we came.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'kcpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'kjava')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'kpy')">Python</button>
+            </div>
+            <div id="kcpp" class="code-content active">
+<pre>
+<span class="comment">// All node values exactly K edges from `target`. Uses buildParents() above.</span>
+vector&lt;<span class="keyword">int</span>&gt; distanceK(TreeNode* root, TreeNode* target, <span class="keyword">int</span> K) {
+    <span class="keyword">auto</span> parent = buildParents(root);
+    unordered_set&lt;TreeNode*&gt; visited;
+    queue&lt;TreeNode*&gt; q;
+    q.push(target);
+    visited.insert(target);
+    <span class="keyword">int</span> dist = <span class="number">0</span>;
+
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">if</span> (dist == K) {                 <span class="comment">// this whole ring is distance K</span>
+            vector&lt;<span class="keyword">int</span>&gt; res;
+            <span class="keyword">while</span> (!q.empty()) { res.push_back(q.front()-&gt;val); q.pop(); }
+            <span class="keyword">return</span> res;
+        }
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode* node = q.front(); q.pop();
+            <span class="keyword">for</span> (TreeNode* nb : {node-&gt;left, node-&gt;right, parent[node]}) {
+                <span class="keyword">if</span> (nb &amp;&amp; !visited.count(nb)) { visited.insert(nb); q.push(nb); }
+            }
+        }
+        dist++;
+    }
+    <span class="keyword">return</span> {};  <span class="comment">// K larger than tree radius</span>
+}
+</pre>
+            </div>
+            <div id="kjava" class="code-content">
+<pre>
+<span class="comment">// All node values exactly K edges from `target`. Uses buildParents() above.</span>
+<span class="type">List</span>&lt;<span class="type">Integer</span>&gt; distanceK(<span class="type">TreeNode</span> root, <span class="type">TreeNode</span> target, <span class="keyword">int</span> K) {
+    <span class="type">Map</span>&lt;<span class="type">TreeNode</span>, <span class="type">TreeNode</span>&gt; parent = buildParents(root);
+    <span class="type">Set</span>&lt;<span class="type">TreeNode</span>&gt; visited = <span class="keyword">new</span> <span class="type">HashSet</span>&lt;&gt;();
+    <span class="type">Queue</span>&lt;<span class="type">TreeNode</span>&gt; q = <span class="keyword">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+    q.add(target); visited.add(target);
+    <span class="keyword">int</span> dist = <span class="number">0</span>;
+
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">if</span> (dist == K) {                 <span class="comment">// this whole ring is distance K</span>
+            <span class="type">List</span>&lt;<span class="type">Integer</span>&gt; res = <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;();
+            <span class="keyword">for</span> (<span class="type">TreeNode</span> n : q) res.add(n.val);
+            <span class="keyword">return</span> res;
+        }
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            <span class="type">TreeNode</span> node = q.poll();
+            <span class="keyword">for</span> (<span class="type">TreeNode</span> nb : <span class="keyword">new</span> <span class="type">TreeNode</span>[]{node.left, node.right, parent.get(node)}) {
+                <span class="keyword">if</span> (nb != <span class="keyword">null</span> &amp;&amp; visited.add(nb)) q.add(nb);
+            }
+        }
+        dist++;
+    }
+    <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">ArrayList</span>&lt;&gt;();  <span class="comment">// K larger than tree radius</span>
+}
+</pre>
+            </div>
+            <div id="kpy" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="comment"># All node values exactly K edges from `target`. Uses build_parents() above.</span>
+<span class="keyword">def</span> distance_k(root, target, K):
+    parent = build_parents(root)
+    visited = {target}
+    q = deque([target])
+    dist = <span class="number">0</span>
+
+    <span class="keyword">while</span> q:
+        <span class="keyword">if</span> dist == K:                    <span class="comment"># this whole ring is distance K</span>
+            <span class="keyword">return</span> [n.val <span class="keyword">for</span> n <span class="keyword">in</span> q]
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(len(q)):
+            node = q.popleft()
+            <span class="keyword">for</span> nb <span class="keyword">in</span> (node.left, node.right, parent[node]):
+                <span class="keyword">if</span> nb <span class="keyword">and</span> nb <span class="keyword">not</span> <span class="keyword">in</span> visited:
+                    visited.add(nb)
+                    q.append(nb)
+        dist += <span class="number">1</span>
+    <span class="keyword">return</span> []  <span class="comment"># K larger than tree radius</span>
+</pre>
+            </div>
+        </div>
+        <p>Time <strong>O(n)</strong> (each node enqueued once), extra space <strong>O(n)</strong> for the parent map, visited set, and queue.</p>
+
+        <h2>3. Burning Tree / Minimum Time to Burn the Whole Tree</h2>
+        <p>This is the <em>same ripple</em> as problem 2, just without stopping at ring K. Set the target node on fire at minute 0. Every minute, the fire jumps from each burning node to all of its unburnt neighbours &mdash; <code>left</code>, <code>right</code>, and <code>parent</code>. The whole tree is ash the moment the <strong>farthest</strong> node finally catches, so the answer is simply the <strong>maximum distance</strong> from the target to any node.</p>
+        <p>So we BFS outward exactly as before, but instead of returning ring K we keep counting rings until the queue empties. The number of full rings we spread is the burning time.</p>
+
+        <div class="visual">
+<pre>
+Fire starts at node 5:
+
+  minute 0:  {5}                   <- ignition
+  minute 1:  {2, 7, 8}            neighbours of 5 (parent 2, kids 7, 8)
+  minute 2:  {1, 4, 9}           neighbours of the above, still unburnt
+  minute 3:  {3}                 1's other child
+  minute 4:  {6}                 3's child
+  minute 5:  {10}                last to catch  ->  total time = 5
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'bcpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'bjava')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'bpy')">Python</button>
+            </div>
+            <div id="bcpp" class="code-content active">
+<pre>
+<span class="comment">// Minutes to burn the whole tree starting from `start`.</span>
+<span class="keyword">int</span> burnTime(TreeNode* root, TreeNode* start) {
+    <span class="keyword">auto</span> parent = buildParents(root);
+    unordered_set&lt;TreeNode*&gt; visited{start};
+    queue&lt;TreeNode*&gt; q;
+    q.push(start);
+    <span class="keyword">int</span> time = -<span class="number">1</span>;  <span class="comment">// the last ring adds no new minute</span>
+
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode* node = q.front(); q.pop();
+            <span class="keyword">for</span> (TreeNode* nb : {node-&gt;left, node-&gt;right, parent[node]})
+                <span class="keyword">if</span> (nb &amp;&amp; !visited.count(nb)) { visited.insert(nb); q.push(nb); }
+        }
+        time++;  <span class="comment">// one more ring caught fire</span>
+    }
+    <span class="keyword">return</span> time;  <span class="comment">// == max distance from start to any node</span>
+}
+</pre>
+            </div>
+            <div id="bjava" class="code-content">
+<pre>
+<span class="comment">// Minutes to burn the whole tree starting from `start`.</span>
+<span class="keyword">int</span> burnTime(<span class="type">TreeNode</span> root, <span class="type">TreeNode</span> start) {
+    <span class="type">Map</span>&lt;<span class="type">TreeNode</span>, <span class="type">TreeNode</span>&gt; parent = buildParents(root);
+    <span class="type">Set</span>&lt;<span class="type">TreeNode</span>&gt; visited = <span class="keyword">new</span> <span class="type">HashSet</span>&lt;&gt;();
+    visited.add(start);
+    <span class="type">Queue</span>&lt;<span class="type">TreeNode</span>&gt; q = <span class="keyword">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+    q.add(start);
+    <span class="keyword">int</span> time = -<span class="number">1</span>;  <span class="comment">// the last ring adds no new minute</span>
+
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">int</span> sz = q.size();
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            <span class="type">TreeNode</span> node = q.poll();
+            <span class="keyword">for</span> (<span class="type">TreeNode</span> nb : <span class="keyword">new</span> <span class="type">TreeNode</span>[]{node.left, node.right, parent.get(node)})
+                <span class="keyword">if</span> (nb != <span class="keyword">null</span> &amp;&amp; visited.add(nb)) q.add(nb);
+        }
+        time++;  <span class="comment">// one more ring caught fire</span>
+    }
+    <span class="keyword">return</span> time;  <span class="comment">// == max distance from start to any node</span>
+}
+</pre>
+            </div>
+            <div id="bpy" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="comment"># Minutes to burn the whole tree starting from `start`.</span>
+<span class="keyword">def</span> burn_time(root, start):
+    parent = build_parents(root)
+    visited = {start}
+    q = deque([start])
+    time = -<span class="number">1</span>  <span class="comment"># the last ring adds no new minute</span>
+
+    <span class="keyword">while</span> q:
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(len(q)):
+            node = q.popleft()
+            <span class="keyword">for</span> nb <span class="keyword">in</span> (node.left, node.right, parent[node]):
+                <span class="keyword">if</span> nb <span class="keyword">and</span> nb <span class="keyword">not</span> <span class="keyword">in</span> visited:
+                    visited.add(nb)
+                    q.append(nb)
+        time += <span class="number">1</span>  <span class="comment"># one more ring caught fire</span>
+    <span class="keyword">return</span> time  <span class="comment"># == max distance from start to any node</span>
+</pre>
+            </div>
+        </div>
+        <p>Time <strong>O(n)</strong>, extra space <strong>O(n)</strong>. Notice this is problem 2's BFS with the "stop at K" check removed and a ring counter added &mdash; one algorithm, two questions.</p>
+
+        <div class="note">
+            <strong>The unifying idea.</strong> "Nodes at distance K" and "time to burn the tree" are the <em>same multi-source-free BFS from one node</em>. Distance-K returns one specific ring; burning returns the index of the last ring. Master the ring-by-ring BFS once and you have both.
+        </div>
+
+        <h2>4. Cousins of a Node</h2>
+        <p>In a family tree, two people are cousins when they are in the <strong>same generation</strong> but have <strong>different parents</strong>. Same idea here: nodes <code>x</code> and <code>y</code> are cousins when they sit at the <strong>same depth</strong> (same level) but do <strong>not</strong> share a parent. Siblings (same parent) are explicitly <em>not</em> cousins.</p>
+        <p>No undirected graph needed here &mdash; a single BFS or DFS that records each node's <strong>depth</strong> and <strong>parent</strong> answers it. Find both nodes, then check: equal depth AND different parent.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'ccpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'cjava')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'cpy')">Python</button>
+            </div>
+            <div id="ccpp" class="code-content active">
+<pre>
+<span class="comment">// True if values x and y are cousins: same depth, different parent.</span>
+<span class="keyword">bool</span> isCousins(TreeNode* root, <span class="keyword">int</span> x, <span class="keyword">int</span> y) {
+    queue&lt;pair&lt;TreeNode*, TreeNode*&gt;&gt; q;  <span class="comment">// (node, its parent)</span>
+    q.push({root, <span class="keyword">nullptr</span>});
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">int</span> sz = q.size();
+        TreeNode *px = <span class="keyword">nullptr</span>, *py = <span class="keyword">nullptr</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {     <span class="comment">// one full level</span>
+            <span class="keyword">auto</span> [node, par] = q.front(); q.pop();
+            <span class="keyword">if</span> (node-&gt;val == x) px = par;
+            <span class="keyword">if</span> (node-&gt;val == y) py = par;
+            <span class="keyword">if</span> (node-&gt;left)  q.push({node-&gt;left, node});
+            <span class="keyword">if</span> (node-&gt;right) q.push({node-&gt;right, node});
+        }
+        <span class="keyword">if</span> (px || py)  <span class="comment">// at least one found on this level</span>
+            <span class="keyword">return</span> px &amp;&amp; py &amp;&amp; px != py;  <span class="comment">// both here, different parents</span>
+    }
+    <span class="keyword">return</span> <span class="keyword">false</span>;
+}
+</pre>
+            </div>
+            <div id="cjava" class="code-content">
+<pre>
+<span class="comment">// True if values x and y are cousins: same depth, different parent.</span>
+<span class="keyword">boolean</span> isCousins(<span class="type">TreeNode</span> root, <span class="keyword">int</span> x, <span class="keyword">int</span> y) {
+    <span class="type">Queue</span>&lt;<span class="type">TreeNode</span>[]&gt; q = <span class="keyword">new</span> <span class="type">LinkedList</span>&lt;&gt;();  <span class="comment">// {node, parent}</span>
+    q.add(<span class="keyword">new</span> <span class="type">TreeNode</span>[]{root, <span class="keyword">null</span>});
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">int</span> sz = q.size();
+        <span class="type">TreeNode</span> px = <span class="keyword">null</span>, py = <span class="keyword">null</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {      <span class="comment">// one full level</span>
+            <span class="type">TreeNode</span>[] cur = q.poll();
+            <span class="type">TreeNode</span> node = cur[<span class="number">0</span>], par = cur[<span class="number">1</span>];
+            <span class="keyword">if</span> (node.val == x) px = par;
+            <span class="keyword">if</span> (node.val == y) py = par;
+            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.add(<span class="keyword">new</span> <span class="type">TreeNode</span>[]{node.left, node});
+            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.add(<span class="keyword">new</span> <span class="type">TreeNode</span>[]{node.right, node});
+        }
+        <span class="keyword">if</span> (px != <span class="keyword">null</span> || py != <span class="keyword">null</span>)
+            <span class="keyword">return</span> px != <span class="keyword">null</span> &amp;&amp; py != <span class="keyword">null</span> &amp;&amp; px != py;
+    }
+    <span class="keyword">return</span> <span class="keyword">false</span>;
+}
+</pre>
+            </div>
+            <div id="cpy" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="comment"># True if values x and y are cousins: same depth, different parent.</span>
+<span class="keyword">def</span> is_cousins(root, x, y):
+    q = deque([(root, <span class="keyword">None</span>)])  <span class="comment"># (node, parent)</span>
+    <span class="keyword">while</span> q:
+        px = py = <span class="keyword">None</span>
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(len(q)):      <span class="comment"># one full level</span>
+            node, par = q.popleft()
+            <span class="keyword">if</span> node.val == x: px = par
+            <span class="keyword">if</span> node.val == y: py = par
+            <span class="keyword">if</span> node.left:  q.append((node.left, node))
+            <span class="keyword">if</span> node.right: q.append((node.right, node))
+        <span class="keyword">if</span> px <span class="keyword">or</span> py:                  <span class="comment"># at least one found this level</span>
+            <span class="keyword">return</span> px <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> py <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> px <span class="keyword">is</span> <span class="keyword">not</span> py
+    <span class="keyword">return</span> <span class="keyword">False</span>
+</pre>
+            </div>
+        </div>
+        <p>Time <strong>O(n)</strong>, extra space <strong>O(w)</strong> where <code>w</code> is the maximum width of the tree (the largest level the queue holds).</p>
+
+        <div class="warn">
+            <strong>Watch the edge cases.</strong> Two values that turn out to be <em>siblings</em> (same parent) are <strong>not</strong> cousins &mdash; the <code>px != py</code> check is doing the real work. If we find one value on a level but not the other, they are at different depths, so the answer is immediately <code>false</code>.
+        </div>
+
+        <h2>5. Distance Between Two Nodes</h2>
+        <p>The shortest path between two nodes in a tree always bends at exactly one point: their <strong>Lowest Common Ancestor (LCA)</strong>. Go up from <code>a</code> to the LCA, then down to <code>b</code> &mdash; there is no shortcut, because a tree has no cycles. So the distance is the two leg lengths added together:</p>
+        <div class="visual">
+<pre>
+dist(a, b) = depth(a) + depth(b) - 2 * depth(LCA(a, b))
+
+         (depth measured from the root, root = depth 0)
+
+  why "- 2 * depth(LCA)"?  the path from the root down to the LCA
+  is counted once inside depth(a) and once inside depth(b), so we
+  subtract that shared prefix twice to leave just the two legs.
+</pre>
+        </div>
+        <p>So the recipe is: find the LCA (see the <a href="lowest-common-ancestor.html">Lowest Common Ancestor</a> page for the full set of techniques), then combine three depths. We compute depth as the number of edges from the root down to a node.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'dcpp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'djava')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'dpy')">Python</button>
+            </div>
+            <div id="dcpp" class="code-content active">
+<pre>
+<span class="comment">// Standard LCA for a general binary tree (see the LCA page).</span>
+TreeNode* lca(TreeNode* root, TreeNode* a, TreeNode* b) {
+    <span class="keyword">if</span> (!root || root == a || root == b) <span class="keyword">return</span> root;
+    TreeNode* L = lca(root-&gt;left,  a, b);
+    TreeNode* R = lca(root-&gt;right, a, b);
+    <span class="keyword">if</span> (L &amp;&amp; R) <span class="keyword">return</span> root;
+    <span class="keyword">return</span> L ? L : R;
+}
+
+<span class="comment">// Edges from root down to `target` (-1 if absent).</span>
+<span class="keyword">int</span> depthOf(TreeNode* root, TreeNode* target, <span class="keyword">int</span> d = <span class="number">0</span>) {
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">if</span> (root == target) <span class="keyword">return</span> d;
+    <span class="keyword">int</span> left = depthOf(root-&gt;left, target, d + <span class="number">1</span>);
+    <span class="keyword">return</span> left != -<span class="number">1</span> ? left : depthOf(root-&gt;right, target, d + <span class="number">1</span>);
+}
+
+<span class="keyword">int</span> distance(TreeNode* root, TreeNode* a, TreeNode* b) {
+    TreeNode* anc = lca(root, a, b);
+    <span class="keyword">return</span> depthOf(root, a) + depthOf(root, b) - <span class="number">2</span> * depthOf(root, anc);
+}
+</pre>
+            </div>
+            <div id="djava" class="code-content">
+<pre>
+<span class="comment">// Standard LCA for a general binary tree (see the LCA page).</span>
+<span class="type">TreeNode</span> lca(<span class="type">TreeNode</span> root, <span class="type">TreeNode</span> a, <span class="type">TreeNode</span> b) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span> || root == a || root == b) <span class="keyword">return</span> root;
+    <span class="type">TreeNode</span> L = lca(root.left,  a, b);
+    <span class="type">TreeNode</span> R = lca(root.right, a, b);
+    <span class="keyword">if</span> (L != <span class="keyword">null</span> &amp;&amp; R != <span class="keyword">null</span>) <span class="keyword">return</span> root;
+    <span class="keyword">return</span> L != <span class="keyword">null</span> ? L : R;
+}
+
+<span class="comment">// Edges from root down to `target` (-1 if absent).</span>
+<span class="keyword">int</span> depthOf(<span class="type">TreeNode</span> root, <span class="type">TreeNode</span> target, <span class="keyword">int</span> d) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> -<span class="number">1</span>;
+    <span class="keyword">if</span> (root == target) <span class="keyword">return</span> d;
+    <span class="keyword">int</span> left = depthOf(root.left, target, d + <span class="number">1</span>);
+    <span class="keyword">return</span> left != -<span class="number">1</span> ? left : depthOf(root.right, target, d + <span class="number">1</span>);
+}
+
+<span class="keyword">int</span> distance(<span class="type">TreeNode</span> root, <span class="type">TreeNode</span> a, <span class="type">TreeNode</span> b) {
+    <span class="type">TreeNode</span> anc = lca(root, a, b);
+    <span class="keyword">return</span> depthOf(root, a, <span class="number">0</span>) + depthOf(root, b, <span class="number">0</span>) - <span class="number">2</span> * depthOf(root, anc, <span class="number">0</span>);
+}
+</pre>
+            </div>
+            <div id="dpy" class="code-content">
+<pre>
+<span class="comment"># Standard LCA for a general binary tree (see the LCA page).</span>
+<span class="keyword">def</span> lca(root, a, b):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> root <span class="keyword">is</span> a <span class="keyword">or</span> root <span class="keyword">is</span> b:
+        <span class="keyword">return</span> root
+    L = lca(root.left,  a, b)
+    R = lca(root.right, a, b)
+    <span class="keyword">if</span> L <span class="keyword">and</span> R:
+        <span class="keyword">return</span> root
+    <span class="keyword">return</span> L <span class="keyword">if</span> L <span class="keyword">else</span> R
+
+<span class="comment"># Edges from root down to `target` (-1 if absent).</span>
+<span class="keyword">def</span> depth_of(root, target, d=<span class="number">0</span>):
+    <span class="keyword">if</span> root <span class="keyword">is</span> <span class="keyword">None</span>:
+        <span class="keyword">return</span> -<span class="number">1</span>
+    <span class="keyword">if</span> root <span class="keyword">is</span> target:
+        <span class="keyword">return</span> d
+    left = depth_of(root.left, target, d + <span class="number">1</span>)
+    <span class="keyword">return</span> left <span class="keyword">if</span> left != -<span class="number">1</span> <span class="keyword">else</span> depth_of(root.right, target, d + <span class="number">1</span>)
+
+<span class="keyword">def</span> distance(root, a, b):
+    anc = lca(root, a, b)
+    <span class="keyword">return</span> depth_of(root, a) + depth_of(root, b) - <span class="number">2</span> * depth_of(root, anc)
+</pre>
+            </div>
+        </div>
+        <p>Each LCA and depth call is <strong>O(n)</strong>, so this is <strong>O(n)</strong> time and <strong>O(h)</strong> recursion space. For many repeated queries, precompute depths and use binary-lifting LCA (covered on the <a href="lowest-common-ancestor.html">LCA page</a>) to drop each query to <strong>O(log n)</strong>.</p>
+
+        <div class="note">
+            <strong>Alternative:</strong> you can also get the distance directly from the parent-map BFS of problem 2 &mdash; run BFS from <code>a</code> and read off the distance recorded when you reach <code>b</code>. The LCA formula is preferred when you already have depths or need many queries.
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Problem</th><th>Technique</th><th>Time</th><th>Extra Space</th></tr>
+            <tr><td>1. Build parent map</td><td>One BFS/DFS pass</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>2. Nodes at distance K</td><td>BFS outward (3 directions)</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>3. Burning tree</td><td>Same BFS, count rings</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>4. Cousins</td><td>Level-order, track parent</td><td>O(n)</td><td>O(w)</td></tr>
+            <tr><td>5. Distance between two nodes</td><td>LCA + depths</td><td>O(n)</td><td>O(h)</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>The takeaway.</strong> Four of these five problems collapse into the same move: build the parent map so the tree becomes undirected, then BFS outward in rings. Distance-K stops at a ring, burning counts all rings, and node-to-node distance can use the same BFS or the LCA depth formula. Learn the ripple, and the rest are variations.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Fixed sample tree (10 nodes) ----
+        //              1
+        //            /   \
+        //           2     3
+        //          / \     \
+        //         4   5     6
+        //            / \      \
+        //           7   8     10
+        //              /
+        //             9
+        const nodes = {
+            '1':  { val: 1,  left: '2', right: '3' },
+            '2':  { val: 2,  left: '4', right: '5' },
+            '3':  { val: 3,  left: null, right: '6' },
+            '4':  { val: 4,  left: null, right: null },
+            '5':  { val: 5,  left: '7', right: '8' },
+            '6':  { val: 6,  left: null, right: '10' },
+            '7':  { val: 7,  left: null, right: null },
+            '8':  { val: 8,  left: '9', right: null },
+            '9':  { val: 9,  left: null, right: null },
+            '10': { val: 10, left: null, right: null }
+        };
+        const ROOT = '1';
+
+        // child -> parent map (the shared prerequisite)
+        const parent = {};
+        (function buildParents(id, par) {
+            if (id == null) return;
+            parent[id] = par;
+            buildParents(nodes[id].left, id);
+            buildParents(nodes[id].right, id);
+        })(ROOT, null);
+
+        // neighbours = left, right, parent (treat tree as undirected graph)
+        function neighbours(id) {
+            const out = [];
+            if (nodes[id].left)  out.push(nodes[id].left);
+            if (nodes[id].right) out.push(nodes[id].right);
+            if (parent[id])      out.push(parent[id]);
+            return out;
+        }
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        // Reusable SVG tree renderer.
+        // opts.highlight: Set -> green (distance K). opts.active: id -> pulse indigo (target).
+        // opts.visited: Set -> faint indigo (reached). opts.fire: Set -> orange (burning).
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const fire = opts.fire || new Set();
+            const R = 20, vGap = 70, hGap = 48;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const bothFire = fire.has(id) && fire.has(c);
+                        const bothHot  = highlight.has(id) && highlight.has(c);
+                        const col = bothFire ? '#ea580c' : (bothHot ? '#16a34a' : '#cbd5e1');
+                        const wd  = (bothFire || bothHot) ? 3 : 2;
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${col}" stroke-width="${wd}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#cbd5e1', tcol = '#0f172a', sw = 2.5;
+                if (visited.has(id)) { fill = '#eef2ff'; stroke = '#6366f1'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; sw = 3; }
+                if (fire.has(id)) { fill = '#ffedd5'; stroke = '#ea580c'; sw = 3; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; sw = 4; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        const svg = document.getElementById('distSvg');
+        const stat = document.getElementById('distStatus');
+        function setStat(t) { stat.innerHTML = t; }
+
+        function fillPickers() {
+            const t = document.getElementById('pickTarget');
+            Object.keys(nodes).forEach(id => {
+                t.insertAdjacentHTML('beforeend', `<option value="${id}">node ${nodes[id].val}</option>`);
+            });
+            t.value = '5';
+        }
+
+        function setButtons(disabled) {
+            document.getElementById('distBtn').disabled = disabled;
+            document.getElementById('burnBtn').disabled = disabled;
+        }
+
+        function resetDist() {
+            if (busy) return;
+            const target = document.getElementById('pickTarget').value;
+            drawTree(svg, nodes, ROOT, { active: target });
+            setStat('Pick a target node and K, then press a button below.');
+        }
+
+        // Returns array of rings: rings[d] = Set of ids at distance d from start.
+        function bfsRings(start) {
+            const rings = [];
+            const visited = new Set([start]);
+            let frontier = [start], d = 0;
+            while (frontier.length) {
+                rings[d] = new Set(frontier);
+                const next = [];
+                for (const id of frontier) {
+                    for (const nb of neighbours(id)) {
+                        if (!visited.has(nb)) { visited.add(nb); next.push(nb); }
+                    }
+                }
+                frontier = next; d++;
+            }
+            return rings;
+        }
+
+        async function runDistanceK() {
+            if (busy) return;
+            busy = true; setButtons(true);
+            const target = document.getElementById('pickTarget').value;
+            let K = parseInt(document.getElementById('pickK').value, 10);
+            if (isNaN(K) || K < 0) K = 0;
+            const tv = nodes[target].val;
+            const rings = bfsRings(target);
+
+            const visited = new Set();
+            setStat(`Dropping a pebble at <b style="color:#7c3aed">node ${tv}</b>. Rippling outward&hellip;`);
+            drawTree(svg, nodes, ROOT, { active: target });
+            await sleep(650);
+
+            for (let d = 1; d <= K; d++) {
+                if (!rings[d]) {
+                    drawTree(svg, nodes, ROOT, { active: target, visited });
+                    setStat(`The tree's farthest node from <b>node ${tv}</b> is only ${rings.length - 1} step(s) away, so <b>no node sits at distance ${K}</b>.`);
+                    setButtons(false); busy = false;
+                    return;
+                }
+                // mark previous ring as visited
+                for (const id of rings[d - 1]) if (id !== target) visited.add(id);
+                const names = [...rings[d]].map(id => nodes[id].val).join(', ');
+                setStat(`Ring ${d}: nodes {${names}} are ${d} step(s) from node ${tv}.`);
+                drawTree(svg, nodes, ROOT, { active: target, visited, highlight: rings[d] });
+                await sleep(750);
+            }
+
+            const ringK = rings[K] || new Set();
+            const ids = [...ringK];
+            // pulse the answer ring
+            for (let p = 0; p < 3; p++) {
+                drawTree(svg, nodes, ROOT, { active: target, visited, highlight: ringK });
+                await sleep(300);
+                drawTree(svg, nodes, ROOT, { active: target, visited });
+                await sleep(200);
+            }
+            drawTree(svg, nodes, ROOT, { active: target, visited, highlight: ringK });
+            if (K === 0) {
+                setStat(`<b style="color:#16a34a">Distance 0 is the target itself: node ${tv}.</b>`);
+            } else if (ids.length === 0) {
+                setStat(`<b>No node sits exactly ${K} step(s)</b> from node ${tv}.`);
+            } else {
+                const vals = ids.map(id => nodes[id].val).join(', ');
+                setStat(`<b style="color:#16a34a">Nodes at distance ${K} from node ${tv}: {${vals}}.</b>`);
+            }
+            setButtons(false); busy = false;
+        }
+
+        async function runBurn() {
+            if (busy) return;
+            busy = true; setButtons(true);
+            const target = document.getElementById('pickTarget').value;
+            const tv = nodes[target].val;
+            const rings = bfsRings(target);
+
+            const onFire = new Set();
+            setStat(`&#128293; Minute 0: fire ignites at <b style="color:#ea580c">node ${tv}</b>.`);
+            onFire.add(target);
+            drawTree(svg, nodes, ROOT, { active: target, fire: onFire });
+            await sleep(800);
+
+            for (let d = 1; d < rings.length; d++) {
+                for (const id of rings[d]) onFire.add(id);
+                const names = [...rings[d]].map(id => nodes[id].val).join(', ');
+                setStat(`&#128293; Minute ${d}: fire spreads to {${names}}.`);
+                drawTree(svg, nodes, ROOT, { fire: onFire });
+                await sleep(800);
+            }
+
+            const total = rings.length - 1;
+            // flash the whole tree
+            for (let p = 0; p < 2; p++) {
+                drawTree(svg, nodes, ROOT, {});
+                await sleep(180);
+                drawTree(svg, nodes, ROOT, { fire: onFire });
+                await sleep(260);
+            }
+            setStat(`&#128293; The last node caught at minute ${total}. <b style="color:#ea580c">Total time to burn the whole tree from node ${tv} = ${total} minute(s)</b> &mdash; the max distance to any node.`);
+            setButtons(false); busy = false;
+        }
+
+        document.getElementById('pickTarget').addEventListener('change', () => { if (!busy) resetDist(); });
+
+        fillPickers();
+        resetDist();
+    </script>
+
+    <footer style="text-align:center;color:#94a3b8;font-size:0.85em;margin-top:40px;">Binary Trees Visualized | C++, Java &amp; Python | Interactive Learning</footer>
+</body>
+</html>

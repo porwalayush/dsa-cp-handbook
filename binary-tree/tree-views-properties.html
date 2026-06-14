@@ -41,6 +41,24 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn.sel { background: #6366f1; color: white; }
+        .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 10px; height: 10px; border-radius: 3px; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,7 +66,28 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Binary Tree Views &amp; Properties</h1>
-        <p>This guide covers the structural <strong>properties</strong> of binary trees (height, diameter, balance, width) and the classic <strong>views</strong> obtained by traversal (left, right, top, bottom, vertical, boundary). Most of these reduce to a single DFS or BFS pass running in O(n). All examples assume the node type below.</p>
+        <p>Imagine the tree as a real object hanging in front of you. Some questions are about its <strong>shape</strong> &mdash; how tall is it, what's the longest stick you could lay across it? Those are its <strong>properties</strong> (height, diameter, balance, width). Other questions are about <strong>what you'd see if you walked around it</strong> and only noticed the nearest node at each level &mdash; those are its <strong>views</strong> (left, right, top, bottom, and so on).</p>
+        <p>The good news: almost all of these are answered by one walk over the tree, either top-down level by level (BFS) or all the way down each branch and back (DFS), in O(n) time. Play with the visualizer below first &mdash; click a button and watch which nodes light up &mdash; then read how each one is computed. All code examples assume the node type below.</p>
+
+        <div class="playground">
+            <div class="pg-title">🌳 Properties &amp; Views Explorer</div>
+            <div class="pg-sub">Click a button to highlight the nodes that answer that question. Green = the nodes in the answer; the status line explains what you're looking at.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">Pick a property or a view to highlight it on the tree.</div>
+            <div class="legend">
+                <span><span class="dot" style="background:#86efac"></span>nodes in the answer</span>
+                <span><span class="dot" style="background:#cbd5e1"></span>everything else</span>
+            </div>
+            <div class="pg-controls">
+                <button class="btn btn-ghost" id="bHeight" onclick="showProp('height')">Height</button>
+                <button class="btn btn-ghost" id="bDiam" onclick="showProp('diameter')">Diameter</button>
+                <button class="btn btn-ghost" id="bLeft" onclick="showProp('left')">Left view</button>
+                <button class="btn btn-ghost" id="bRight" onclick="showProp('right')">Right view</button>
+                <button class="btn btn-ghost" id="bTop" onclick="showProp('top')">Top view</button>
+                <button class="btn btn-ghost" id="bBottom" onclick="showProp('bottom')">Bottom view</button>
+                <button class="btn btn-danger" onclick="showProp('clear')">↺ Clear</button>
+            </div>
+        </div>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -86,7 +125,8 @@
         </div>
 
         <h2>1. Height &amp; Depth</h2>
-        <p>These two terms are often confused, so be precise:</p>
+        <p>Think of the tree as a building with the root on the ground floor. <strong>Depth</strong> answers "how far down from the entrance am I?" &mdash; you count floors going <em>down</em> from the root. <strong>Height</strong> answers "how many floors are still below me before I hit the basement (a leaf)?" &mdash; you count floors going <em>up</em> from the lowest leaf. The two are mirror images: depth is measured from the top, height from the bottom.</p>
+        <p>With that picture in mind, here are the precise definitions:</p>
         <ul>
             <li><strong>Depth of a node</strong> = number of edges on the path from the <strong>root</strong> down to that node. The root has depth 0.</li>
             <li><strong>Height of a node</strong> = number of edges on the longest path from that node down to a <strong>leaf</strong>. A leaf has height 0.</li>
@@ -234,7 +274,8 @@ Tree height = A.height = longest root->leaf path = A-B-D-F = 3 edges.
         </div>
 
         <h2>3. Diameter of a Binary Tree</h2>
-        <p>The <strong>diameter</strong> is the length of the longest path between any two nodes, measured in <strong>edges</strong>. That path need not pass through the root. A naive solution computes height at every node (O(n&sup2;)). The clean approach is a single postorder pass: each call returns its node's <em>height</em>, and while returning, it updates a global maximum with the longest path that <em>bends</em> at the current node, namely <code>leftHeight + rightHeight + 2</code> edges.</p>
+        <p>Picture stretching a piece of string between the two most distant nodes in the tree, pulled tight. The <strong>diameter</strong> is the length of that string, counted in <strong>edges</strong>. The catch beginners miss: that longest string often does <em>not</em> pass through the root &mdash; it can bend at any node, going down one branch and back up another.</p>
+        <p>Formally, the diameter is the length of the longest path between any two nodes, measured in <strong>edges</strong>. That path need not pass through the root. A naive solution computes height at every node (O(n&sup2;)). The clean approach is a single postorder pass: each call returns its node's <em>height</em>, and while returning, it updates a global maximum with the longest path that <em>bends</em> at the current node, namely <code>leftHeight + rightHeight + 2</code> edges.</p>
 
         <div class="visual">
 <pre>
@@ -495,9 +536,10 @@ Maximum width over all levels = 4.
         </div>
 
         <h2>6. Tree Views via Level Traversal</h2>
+        <p>A <strong>view</strong> is what you see when you stand on one side of the tree and squint: at each level, only the <em>nearest</em> node to you is visible &mdash; the ones behind it are blocked. Walk to a different side and a different node blocks your view at each level. That single idea &mdash; "keep the closest node per level (or per column)" &mdash; gives every view below.</p>
 
         <h3>Left View and Right View</h3>
-        <p>Standing to the left of the tree, the <strong>left view</strong> is the <em>first</em> node seen at each level; the <strong>right view</strong> is the <em>last</em> node at each level. With BFS, that is simply the first / last node dequeued per level.</p>
+        <p>Stand to the <em>left</em> of the tree and look across each level: the closest node you see is the <strong>first</strong> one at that level &mdash; that's the <strong>left view</strong>. Walk around to the right side and the closest node per level is the <strong>last</strong> one &mdash; the <strong>right view</strong>. With BFS, that is simply the first / last node dequeued per level.</p>
 
         <div class="visual">
 <pre>
@@ -584,7 +626,7 @@ List&lt;<span class="type">Integer</span>&gt; sideView(<span class="type">Node</
         </div>
 
         <h3>Top View and Bottom View (Horizontal Distance)</h3>
-        <p>Assign each node a <strong>horizontal distance</strong> (HD): the root is HD 0, a left child is <code>HD - 1</code>, a right child is <code>HD + 1</code>. Do a BFS and keep a map keyed by HD.</p>
+        <p>Now look <em>straight down</em> from above the tree (top view) or <em>straight up</em> from underneath it (bottom view). Imagine each node drops a vertical line; nodes that line up in the same column overlap. From the top you see whichever node in a column is highest; from below, whichever is lowest. We label each column with a <strong>horizontal distance</strong> (HD): the root is HD 0, a left child is <code>HD - 1</code>, a right child is <code>HD + 1</code>. Do a BFS and keep a map keyed by HD.</p>
         <ul>
             <li><strong>Top view:</strong> for each HD, keep the <em>first</em> node encountered (the topmost). With BFS this is the first time an HD appears.</li>
             <li><strong>Bottom view:</strong> for each HD, keep the <em>last</em> node encountered (the lowest), so always overwrite the map entry.</li>
@@ -800,6 +842,143 @@ Boundary = 1, 2, 4, 8, 9, 6, 7, 3
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ----- Reusable SVG tree renderer -----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c) && (opts.edgeJoin ? opts.edgeJoin.has(id + '-' + c) : true);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ----- The demo tree (ids === string keys) -----
+        // Shape:           1
+        //                /   \
+        //               2     3
+        //              / \
+        //             4   5
+        //            /     \
+        //           6       8
+        //          /         \
+        //         9           10
+        const TREE = {
+            '1': { val: 1, left: '2',  right: '3'  },
+            '2': { val: 2, left: '4',  right: '5'  },
+            '3': { val: 3, left: null, right: null },
+            '4': { val: 4, left: '6',  right: null },
+            '5': { val: 5, left: null, right: '8'  },
+            '6': { val: 6, left: '9',  right: null },
+            '8': { val: 8, left: null, right: '10' },
+            '9': { val: 9, left: null, right: null },
+            '10': { val: 10, left: null, right: null }
+        };
+        const ROOT = '1';
+        const svg = document.getElementById('treeSvg');
+        const statusEl = document.getElementById('status');
+        const propBtns = { height: 'bHeight', diameter: 'bDiam', left: 'bLeft', right: 'bRight', top: 'bTop', bottom: 'bBottom' };
+
+        function paint(highlightIds, edgeJoin) {
+            const hi = new Set(highlightIds.map(String));
+            const dim = new Set(Object.keys(TREE).filter(id => !hi.has(id)));
+            drawTree(svg, TREE, ROOT, { highlight: hi, dimmed: dim, edgeJoin: edgeJoin });
+        }
+        function setSel(prop) {
+            for (const k in propBtns) document.getElementById(propBtns[k]).classList.toggle('sel', k === prop);
+        }
+        function vals(ids) { return ids.map(id => TREE[id].val).join(', '); }
+
+        function showProp(prop) {
+            setSel(prop);
+            if (prop === 'clear') {
+                drawTree(svg, TREE, ROOT, {});
+                statusEl.innerHTML = 'Pick a property or a view to highlight it on the tree.';
+                return;
+            }
+            if (prop === 'height') {
+                // longest root-to-leaf path: 1-2-4-6-9 (4 edges)
+                const path = ['1', '2', '4', '6', '9'];
+                const join = new Set(['1-2', '2-4', '4-6', '6-9']);
+                paint(path, join);
+                statusEl.innerHTML = '<b>Height = 4 edges.</b> The tallest root-to-leaf path is 1→2→4→6→9 — count the green edges, not the nodes. This is the deepest the tree goes.';
+                return;
+            }
+            if (prop === 'diameter') {
+                // longest path overall: 9-6-4-2-5-8-10 (6 edges), bends at node 2
+                const path = ['9', '6', '4', '2', '5', '8', '10'];
+                const join = new Set(['4-6', '6-9', '2-4', '2-5', '5-8', '8-10']);
+                paint(path, join);
+                statusEl.innerHTML = '<b>Diameter = 6 edges.</b> The longest path is 9→6→4→2→5→8→10. Notice it <b>bends at node 2</b> and never touches the root — the diameter does not have to go through the root.';
+                return;
+            }
+            if (prop === 'left') {
+                const ids = ['1', '2', '4', '6', '9']; // first per level
+                paint(ids, new Set());
+                statusEl.innerHTML = 'Standing on the <b>left</b> side, you only see the first node at each level: <b>' + vals(ids) + '</b>. The nodes behind them on each level are hidden.';
+                return;
+            }
+            if (prop === 'right') {
+                const ids = ['1', '3', '5', '8', '10']; // last per level
+                paint(ids, new Set());
+                statusEl.innerHTML = 'Standing on the <b>right</b> side, you only see the last node at each level: <b>' + vals(ids) + '</b>.';
+                return;
+            }
+            if (prop === 'top') {
+                // first node seen per horizontal-distance column (BFS): HD -4..+2
+                const ids = ['9', '6', '4', '2', '1', '3', '10'];
+                paint(ids, new Set());
+                statusEl.innerHTML = 'Looking <b>straight down from above</b>, each column shows its highest node: <b>' + vals(ids) + '</b> (left to right). Where node 1 and 5 share a column, the higher one (1) wins.';
+                return;
+            }
+            if (prop === 'bottom') {
+                // last node seen per column: HD -4..+2
+                const ids = ['9', '6', '4', '2', '5', '8', '10'];
+                paint(ids, new Set());
+                statusEl.innerHTML = 'Looking <b>straight up from below</b>, each column shows its lowest node: <b>' + vals(ids) + '</b> (left to right). In the center column the lower node (5) wins over the root.';
+                return;
+            }
+        }
+
+        drawTree(svg, TREE, ROOT, {});
     </script>
 </body>
 </html>

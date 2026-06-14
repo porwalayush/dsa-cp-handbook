@@ -41,6 +41,24 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls label { font-size: 0.8em; color: #64748b; font-weight: 600; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,7 +66,8 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Binary Tree Path Problems</h1>
-        <p>A huge family of binary tree interview questions boils down to reasoning about <strong>paths</strong>: sequences of connected nodes. They look different on the surface, but they share one DFS skeleton. Learn the skeleton once and the variations become bookkeeping.</p>
+        <p>Imagine the tree is a cave system. You start at the entrance (the <strong>root</strong>) and walk downward. Every room (node) has a pile of <strong>coins</strong> on the floor &mdash; that&rsquo;s the node&rsquo;s value &mdash; and you scoop them up as you pass through. A <strong>path</strong> is simply one route you walk; the <strong>running sum</strong> is how many coins you&rsquo;re carrying so far.</p>
+        <p>Almost every &ldquo;tree path&rdquo; interview question is a twist on this walk: <em>Is there a route to an exit (a leaf) where I end up holding exactly N coins? List every such route. Count routes between any two rooms that total N.</em> They look different on the surface, but they share one DFS skeleton. Learn the walk once and the variations become bookkeeping.</p>
 
         <h2>The Family of Path Problems</h2>
         <p>Path problems differ along two axes: <strong>where a path may start/end</strong> and <strong>what we compute</strong> over it.</p>
@@ -169,7 +188,28 @@ vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; allPaths(TreeNode* 
         </div>
 
         <h2>2. Path Sum I &mdash; Does a Root-to-Leaf Path Equal Target?</h2>
-        <p>We do not need to carry the running sum; instead <strong>subtract</strong> each node's value from the remaining target as we descend. At a leaf, the path works iff the remaining target equals the leaf's value. This returns a single boolean &mdash; the moment one branch succeeds, short-circuit.</p>
+        <p>Back to the coin-collecting walk: you want to know whether <em>some</em> route from the entrance to an exit leaves you holding exactly the target number of coins. Two equivalent ways to track it &mdash; add coins up as you go (a running sum), or start with the target in your pocket and <strong>subtract</strong> each room&rsquo;s coins as you pass; if you reach an exit with exactly zero left, that route worked. The code below uses the subtract trick and short-circuits the moment one branch succeeds.</p>
+
+        <h3>See It: Walk Every Route and Sum the Coins</h3>
+        <p>Type a target and press <strong>Check root-to-leaf paths</strong>. The widget walks each route from the root to a leaf one at a time, lighting it up and showing the running sum in the status line. Routes whose total hits the target turn <span style="color:#16a34a;font-weight:700">green</span>.</p>
+
+        <div class="playground">
+            <div class="pg-title">&#127916; Root-to-Leaf Sum Walker</div>
+            <div class="pg-sub">Each root-to-leaf route collects coins (node values). We light up each route and check its running sum against the target.</div>
+            <svg id="pathSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="pathStatus">Set a target sum, then press &ldquo;Check root-to-leaf paths&rdquo;.</div>
+            <div class="legend">
+                <span><span class="dot" style="background:#eef2ff;border:2px solid #6366f1"></span>route being walked</span>
+                <span><span class="dot" style="background:#ecfdf5;border:2px solid #16a34a"></span>sum = target</span>
+                <span><span class="dot" style="background:#fef2f2;border:2px solid #dc2626"></span>sum &ne; target</span>
+            </div>
+            <div class="pg-controls">
+                <label>Target:</label>
+                <input type="number" id="targetIn" value="22">
+                <button class="btn btn-primary" id="pathBtn" onclick="runPaths()">Check root-to-leaf paths</button>
+                <button class="btn btn-ghost" onclick="resetPaths()">&#8634; Reset</button>
+            </div>
+        </div>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -554,6 +594,159 @@ Answer = 42  (path 15 -> 20 -> 7, peak at 20)
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Fixed sample tree ----
+        //            5
+        //          /   \
+        //         4     8
+        //        /     / \
+        //      11    13   4
+        //      / \         \
+        //     7   2         1
+        // root-to-leaf sums: 27, 22, 26, 18
+        const nodes = {
+            'a': { val: 5, left: 'b', right: 'c' },
+            'b': { val: 4, left: 'd', right: null },
+            'c': { val: 8, left: 'e', right: 'f' },
+            'd': { val: 11, left: 'g', right: 'h' },
+            'e': { val: 13, left: null, right: null },
+            'f': { val: 4, left: null, right: 'i' },
+            'g': { val: 7, left: null, right: null },
+            'h': { val: 2, left: null, right: null },
+            'i': { val: 1, left: null, right: null }
+        };
+        const ROOT = 'a';
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        // Renderer: opts.active = single pulsed node; opts.path = Set of ids on current route;
+        // opts.state ('hit'|'miss') colors the whole lit path green/red when a route completes.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const path = opts.path || new Set();
+            const active = opts.active;
+            const state = opts.state; // 'hit' | 'miss' | undefined
+            const R = 20, vGap = 70, hGap = 50;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+
+            const edgeCol = state === 'hit' ? '#16a34a' : state === 'miss' ? '#dc2626' : '#6366f1';
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = path.has(id) && path.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? edgeCol : '#cbd5e1'}" stroke-width="${hot ? 4 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#cbd5e1', sw = 2.5;
+                if (path.has(id)) {
+                    if (state === 'hit') { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                    else if (state === 'miss') { fill = '#fef2f2'; stroke = '#dc2626'; }
+                    else { fill = '#eef2ff'; stroke = '#6366f1'; }
+                }
+                if (id === active) { sw = 4; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#0f172a">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // collect all root-to-leaf paths as arrays of ids
+        function allRootToLeaf() {
+            const paths = [], cur = [];
+            (function dfs(id) {
+                if (id == null) return;
+                cur.push(id);
+                if (nodes[id].left == null && nodes[id].right == null) {
+                    paths.push(cur.slice());
+                } else {
+                    dfs(nodes[id].left);
+                    dfs(nodes[id].right);
+                }
+                cur.pop();
+            })(ROOT);
+            return paths;
+        }
+
+        const svg = document.getElementById('pathSvg');
+        const stat = document.getElementById('pathStatus');
+        function setStat(t) { stat.innerHTML = t; }
+
+        function resetPaths() {
+            if (busy) return;
+            drawTree(svg, nodes, ROOT, {});
+            setStat('Set a target sum, then press &ldquo;Check root-to-leaf paths&rdquo;.');
+        }
+
+        async function runPaths() {
+            if (busy) return;
+            const target = parseInt(document.getElementById('targetIn').value, 10);
+            if (isNaN(target)) { setStat('Please enter a numeric target.'); return; }
+            busy = true;
+            document.getElementById('pathBtn').disabled = true;
+            const routes = allRootToLeaf();
+            let hits = 0;
+
+            for (let r = 0; r < routes.length; r++) {
+                const route = routes[r];
+                const set = new Set();
+                let sum = 0;
+                // walk down the route one node at a time
+                for (let i = 0; i < route.length; i++) {
+                    const id = route[i];
+                    set.add(id);
+                    sum += nodes[id].val;
+                    drawTree(svg, nodes, ROOT, { path: set, active: id });
+                    const terms = route.slice(0, i + 1).map(x => nodes[x].val).join(' + ');
+                    setStat(`Route ${r + 1} of ${routes.length}: ${terms} = <b>${sum}</b> &hellip; (target ${target})`);
+                    await sleep(480);
+                }
+                // route complete -> verdict
+                const ok = sum === target;
+                if (ok) hits++;
+                drawTree(svg, nodes, ROOT, { path: set, state: ok ? 'hit' : 'miss' });
+                const terms = route.map(x => nodes[x].val).join(' + ');
+                if (ok) {
+                    setStat(`Route ${r + 1}: ${terms} = <b style="color:#16a34a">${sum}</b> &mdash; matches the target! &#10003;`);
+                } else {
+                    setStat(`Route ${r + 1}: ${terms} = <b style="color:#dc2626">${sum}</b> &mdash; ${sum > target ? 'too many coins' : 'not enough coins'}, not the target.`);
+                }
+                await sleep(950);
+            }
+
+            // final summary
+            drawTree(svg, nodes, ROOT, {});
+            if (hits === 0) {
+                setStat(`Checked all ${routes.length} root-to-leaf routes. <b>None</b> sum to ${target}. (Try 22, 26, 27, or 18.)`);
+            } else {
+                setStat(`Done: <b style="color:#16a34a">${hits}</b> of ${routes.length} root-to-leaf routes sum to exactly ${target}.`);
+            }
+            document.getElementById('pathBtn').disabled = false;
+            busy = false;
+        }
+
+        resetPaths();
     </script>
 </body>
 </html>

@@ -41,6 +41,26 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .pg-string { margin-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.95em; background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 10px; min-height: 46px; word-break: break-all; letter-spacing: 0.02em; line-height: 1.9; }
+        .pg-string .tok { display: inline-block; padding: 1px 5px; border-radius: 5px; margin: 1px; }
+        .pg-string .tok-new { background: #7c3aed; color: white; }
+        .pg-string .tok-null { color: #94a3b8; }
+        .pg-string .tok-cur { background: #16a34a; color: white; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -49,14 +69,29 @@
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Serialize &amp; Deserialize a Binary Tree</h1>
 
-        <p><strong>Serialization</strong> is the process of converting a tree (an in-memory pointer structure) into a flat, linear representation — usually a string or byte stream — so it can be stored on disk or sent over a network. <strong>Deserialization</strong> is the exact inverse: rebuilding the original tree from that flat representation.</p>
+        <p>Imagine you built a beautiful tree in memory and you want to text it to a friend. You can't send pointers over a text message &mdash; you can only send a flat string of characters. So you <strong>flatten the tree into a string</strong>, send it, and your friend reads that string back and rebuilds the exact same tree on their end. That round trip is the whole topic.</p>
 
-        <p>The two operations are packaged together as a <strong>Codec</strong>: one method <code>serialize(root)</code> produces a string, and a matching method <code>deserialize(data)</code> consumes that same string to reconstruct an identical tree. The only hard requirement is the <strong>round-trip property</strong>: <code>deserialize(serialize(root))</code> must yield a tree structurally equal to <code>root</code>.</p>
+        <p><strong>Serialization</strong> is turning the tree (an in-memory structure full of pointers) into a flat, linear string you can save to a file or send over a network. <strong>Deserialization</strong> is the exact reverse: reading that string back and reconstructing the original tree, node for node.</p>
+
+        <p>The two halves travel together as a <strong>Codec</strong> (coder/decoder): <code>serialize(root)</code> produces the string, and its partner <code>deserialize(data)</code> reads that same string to rebuild the tree. The one promise they must keep is the <strong>round-trip property</strong>: if your friend runs <code>deserialize(serialize(root))</code>, they must get back a tree shaped exactly like yours.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Serialize &amp; Deserialize, step by step</div>
+            <div class="pg-sub">Click <strong>Serialize ▶</strong> to walk the tree in preorder and grow the string one token at a time (a value, or <code>#</code> for a missing child). Then switch to <strong>Deserialize ▶</strong> to consume that string left-to-right and watch the tree get rebuilt node by node.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-string" id="strOut">&nbsp;</div>
+            <div class="pg-status" id="status">Ready. This is the original tree. Press “Serialize ▶” to flatten it into a string.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="btnSer" onclick="serStep()">Serialize ▶</button>
+                <button class="btn btn-primary" id="btnDes" onclick="desStep()">Deserialize ▶</button>
+                <button class="btn btn-ghost" onclick="resetPg()">↺ Reset</button>
+            </div>
+        </div>
 
         <h2>Why Null Markers Are Essential</h2>
-        <p>A plain traversal of a binary tree is <strong>ambiguous</strong>. Consider just a preorder list of values like <code>1, 2, 3</code>. Many different trees produce that exact sequence — there is no way to know whether <code>2</code> is a left child, whether <code>3</code> hangs off <code>1</code> or off <code>2</code>, and so on. One traversal alone does not encode <em>shape</em>, only order.</p>
+        <p>Here's the trap: if you just text your friend the list of values <code>1, 2, 3</code>, they have no idea what shape to build. Is <code>2</code> a left child or a right child? Does <code>3</code> hang off <code>1</code> or off <code>2</code>? The list records the <em>order</em> you visited nodes, but it says nothing about the tree's <em>shape</em>. Lots of different trees produce the exact same list.</p>
 
-        <p>The fix is to explicitly record the absence of a child with a <strong>null marker</strong> (we use <code>#</code>). Once every missing child is written down, a single traversal becomes a <strong>bijection</strong> — exactly one tree maps to exactly one string and vice versa. This is what makes a single preorder (or postorder, or level-order) walk sufficient to rebuild the tree.</p>
+        <p>The fix is to also write down every <strong>empty spot</strong> &mdash; every place where a child is missing &mdash; using a <strong>null marker</strong> (we'll use <code>#</code>). It's like telling your friend "...and here there's nothing." Once every gap is spelled out, the string describes exactly one tree, and that tree produces exactly one string. That perfect one-to-one match (a <strong>bijection</strong>) is what lets a single walk of the tree be enough to rebuild it.</p>
 
         <div class="visual">
 <pre>
@@ -73,7 +108,7 @@ With null markers, each shape has a UNIQUE string.
         </div>
 
         <h2>Preorder With Null Markers</h2>
-        <p>The most common contest/interview format. We walk the tree in <strong>preorder</strong> (root, then left subtree, then right subtree). At each step we emit the node's value, and when we hit an empty pointer we emit the null marker <code>#</code>. Values are joined by a delimiter (a comma) so multi-digit and negative numbers survive intact.</p>
+        <p>This is the most common interview format, and it's exactly what the visualizer above does. We walk the tree in <strong>preorder</strong> &mdash; visit the node first, then its whole left subtree, then its whole right subtree. At each node we write its value; whenever we step onto an empty child we write <code>#</code>. Values are separated by a comma so multi-digit and negative numbers stay readable.</p>
 
         <div class="visual">
 <pre>
@@ -95,7 +130,7 @@ Serialized string:  "1,2,#,#,3,4,#,#,5,#,#"
 </pre>
         </div>
 
-        <p><strong>Deserialize</strong> reads the tokens left to right through a shared cursor (a queue or an index/iterator). Because the tokens were emitted in preorder, we rebuild in the same order: read one token; if it is <code>#</code> return null; otherwise create the node, then <em>recursively</em> build its left subtree, then its right subtree. The cursor advances exactly once per token, so the recursion consumes the stream in lockstep with how it was produced — guaranteeing deserialize inverts serialize.</p>
+        <p><strong>Deserialize</strong> reads the tokens left to right through one shared cursor (a queue, or an index/iterator). Because the tokens came out in preorder, we rebuild in the same order: read one token; if it's <code>#</code>, return null; otherwise create the node, then <em>recursively</em> build its left subtree, then its right subtree. The cursor advances exactly once per token, so the recursion eats the stream in the same rhythm it was produced &mdash; which is precisely why deserialize perfectly undoes serialize.</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -221,7 +256,7 @@ Serialized string:  "1,2,#,#,3,4,#,#,5,#,#"
         </div>
 
         <h2>Level-Order (BFS) Serialization</h2>
-        <p>This is the format LeetCode uses to display trees: <code>[1,2,3,null,null,4,5]</code>. We perform a breadth-first traversal with a queue, emitting each node's value (or <code>null</code> for an empty child) level by level.</p>
+        <p>This is the format LeetCode uses to draw trees: <code>[1,2,3,null,null,4,5]</code>. Instead of going deep first, we sweep the tree <strong>level by level</strong> (breadth-first) with a queue, writing each node's value &mdash; or <code>null</code> for an empty child &mdash; as we go.</p>
 
         <div class="visual">
 <pre>
@@ -240,7 +275,7 @@ trimmed by LeetCode's display, but emitting them is fine.
 </pre>
         </div>
 
-        <p><strong>Serialize</strong>: push the root, then repeatedly pop a node — if it is non-null, emit its value and enqueue both children (even null ones); if it is null, emit <code>#</code> and enqueue nothing. <strong>Deserialize</strong>: read the first token as the root and enqueue it. Then for each dequeued parent, consume the <em>next two tokens</em> as its left and right children, attaching and enqueuing any non-null child. The queue links parents to children in the same order BFS visited them, so the rebuild is exact.</p>
+        <p><strong>Serialize</strong>: push the root, then repeatedly pop a node &mdash; if it's real, write its value and enqueue both children (even null ones); if it's null, write <code>#</code> and enqueue nothing. <strong>Deserialize</strong>: read the first token as the root and enqueue it. Then for each dequeued parent, grab the <em>next two tokens</em> as its left and right children, attaching and enqueuing any real child. The queue keeps parents lined up with children in the same order BFS visited them, so the rebuild comes out exact.</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -388,7 +423,7 @@ trimmed by LeetCode's display, but emitting them is fine.
         </div>
 
         <h2>Special Case: Serializing a BST</h2>
-        <p>For a <strong>Binary Search Tree</strong> you can drop the null markers entirely. A bare preorder list such as <code>5,3,2,4,8,7,9</code> is already unambiguous: the BST ordering invariant plus value bounds tell you exactly where each node belongs. During deserialization you carry a <code>(lower, upper)</code> bound; a node attaches as a left or right child only if its value fits the bound, which uniquely reconstructs the shape.</p>
+        <p>For a <strong>Binary Search Tree</strong> you get to drop the null markers entirely &mdash; the ordering rule does the work for you. A bare preorder list such as <code>5,3,2,4,8,7,9</code> is already unambiguous, because the BST invariant plus value bounds pin down exactly where each node belongs. During deserialization you carry a <code>(lower, upper)</code> bound, and a node attaches as a left or right child only if its value fits that bound &mdash; which uniquely rebuilds the shape.</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -427,8 +462,8 @@ trimmed by LeetCode's display, but emitting them is fine.
         <ul>
             <li><strong>Empty tree:</strong> <code>serialize(null)</code> must produce a string that deserializes back to null. Preorder yields <code>"#"</code>; the BFS version above returns <code>""</code> and special-cases it on the way back.</li>
             <li><strong>Single node:</strong> a lone root with no children serializes (preorder) to <code>"1,#,#"</code> and must rebuild to a node with both children null.</li>
-            <li><strong>Negative and multi-digit values:</strong> never serialize one character per node. A value like <code>-12</code> or <code>305</code> needs a real delimiter (a comma) between tokens — otherwise <code>-12</code> and <code>1,2</code> become indistinguishable. Always split on the delimiter, never on character position.</li>
-            <li><strong>Duplicate values:</strong> fine for a general binary tree (shape is encoded explicitly), but the BST-without-markers trick assumes a strict ordering — decide up front whether duplicates go left or right and keep the bound comparison consistent.</li>
+            <li><strong>Negative and multi-digit values:</strong> never serialize one character per node. A value like <code>-12</code> or <code>305</code> needs a real delimiter (a comma) between tokens &mdash; otherwise <code>-12</code> and <code>1,2</code> become indistinguishable. Always split on the delimiter, never on character position.</li>
+            <li><strong>Duplicate values:</strong> fine for a general binary tree (shape is encoded explicitly), but the BST-without-markers trick assumes a strict ordering &mdash; decide up front whether duplicates go left or right and keep the bound comparison consistent.</li>
         </ul>
 
         <div class="warn">
@@ -446,7 +481,7 @@ trimmed by LeetCode's display, but emitting them is fine.
         <p>Every node and every null marker is visited exactly once in each direction, so all four operations are <strong>O(n) time</strong>. The output string holds O(n) tokens, and the recursion stack or BFS queue holds at most O(n) entries, so space is <strong>O(n)</strong> as well.</p>
 
         <div class="note">
-            <strong>Key insight:</strong> a raw traversal records order but not shape, so it maps many trees to one string — it is not invertible. Adding an explicit <strong>null marker</strong> for every missing child restores the shape information, turning an ambiguous traversal into a <strong>bijection</strong> between trees and strings. That single change is what makes <code>deserialize</code> a true inverse of <code>serialize</code>.
+            <strong>Key insight:</strong> a raw traversal records order but not shape, so it maps many trees to one string &mdash; it is not invertible. Adding an explicit <strong>null marker</strong> for every missing child restores the shape information, turning an ambiguous traversal into a <strong>bijection</strong> between trees and strings. That single change is what makes <code>deserialize</code> a true inverse of <code>serialize</code>.
         </div>
     </div>
 
@@ -458,6 +493,203 @@ trimmed by LeetCode's display, but emitting them is fine.
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Reusable SVG tree renderer ----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- Tree data: matches "1,2,#,#,3,4,#,#,5,#,#" ----
+        // tree:        1
+        //            /   \
+        //           2     3
+        //                / \
+        //               4   5
+        const fullTree = {
+            n1: { val: 1, left: 'n2', right: 'n3' },
+            n2: { val: 2, left: null, right: null },
+            n3: { val: 3, left: 'n4', right: 'n5' },
+            n4: { val: 4, left: null, right: null },
+            n5: { val: 5, left: null, right: null }
+        };
+        const svg = document.getElementById('treeSvg');
+        const status = t => document.getElementById('status').textContent = t;
+
+        // Build the preorder token plan: each step is {node, val} or {node:null}
+        let plan = [];
+        (function plan_walk(id) {
+            if (id == null) { plan.push({ id: null, val: '#' }); return; }
+            plan.push({ id, val: String(fullTree[id].val) });
+            plan_walk(fullTree[id].left);
+            plan_walk(fullTree[id].right);
+        })('n1');
+
+        // ---- Serialize state ----
+        let serStepIdx = 0;
+        // ---- Deserialize state ----
+        let desStepIdx = 0;
+        let built = {};         // ids that have a node created so far
+        let buildOrder = [];    // for revealing
+        let desStack = [];      // frames {id, side: 'left'|'right'|'done'}
+        const SER_STRING = plan.map(p => p.val).join(',');
+
+        function renderString(upto, curIdx) {
+            const out = document.getElementById('strOut');
+            if (upto <= 0) { out.innerHTML = '&nbsp;'; return; }
+            const parts = [];
+            for (let i = 0; i < upto; i++) {
+                const p = plan[i];
+                let cls = p.val === '#' ? 'tok tok-null' : 'tok';
+                if (i === upto - 1 && curIdx === 'new') cls += ' tok-new';
+                if (i === curIdx) cls = (p.val === '#' ? 'tok tok-null' : 'tok') + ' tok-cur';
+                parts.push(`<span class="${cls}">${p.val}</span>`);
+                if (i < upto - 1) parts.push('<span style="color:#475569">,</span>');
+            }
+            out.innerHTML = parts.join('');
+        }
+
+        function resetPg() {
+            serStepIdx = 0;
+            desStepIdx = 0;
+            built = {};
+            buildOrder = [];
+            desStack = [];
+            document.getElementById('btnSer').disabled = false;
+            document.getElementById('btnDes').disabled = false;
+            document.getElementById('btnSer').textContent = 'Serialize ▶';
+            document.getElementById('btnDes').textContent = 'Deserialize ▶';
+            renderString(0);
+            drawTree(svg, fullTree, 'n1', {});
+            status('Ready. This is the original tree. Press “Serialize ▶” to flatten it into a string.');
+        }
+
+        function serStep() {
+            if (serStepIdx >= plan.length) {
+                serStepIdx = 0;
+                renderString(0);
+                drawTree(svg, fullTree, 'n1', {});
+                document.getElementById('btnSer').textContent = 'Serialize ▶';
+                status('Restarting the serialize walk. Press “Serialize ▶” again to step through.');
+                return;
+            }
+            const step = plan[serStepIdx];
+            const visited = new Set();
+            for (let i = 0; i < serStepIdx; i++) if (plan[i].id) visited.add(plan[i].id);
+            serStepIdx++;
+            renderString(serStepIdx, 'new');
+            if (step.id) {
+                drawTree(svg, fullTree, 'n1', { active: step.id, visited });
+                status(`Preorder visit: node ${step.val}. Append "${step.val}" to the string.`);
+            } else {
+                drawTree(svg, fullTree, 'n1', { visited });
+                status(`Empty child — append the null marker "#" so the shape is recorded.`);
+            }
+            if (serStepIdx >= plan.length) {
+                document.getElementById('btnSer').textContent = 'Serialize ↺';
+                status(`Done! Full string: ${SER_STRING}  — now press “Deserialize ▶” to rebuild it.`);
+            }
+        }
+
+        // Deserialize: walk the same plan, building nodes left-to-right.
+        // We reconstruct using the preorder recursion expressed as a stack.
+        function buildDesQueue() {
+            // produce a flat list of {tokenIdx, action} where action attaches a node
+            // Simpler: replay recursion, recording each token consumption + which node it creates.
+            const events = [];
+            let idx = 0;
+            (function rec() {
+                const p = plan[idx]; const tokenIdx = idx; idx++;
+                if (p.val === '#') { events.push({ tokenIdx, id: null }); return; }
+                events.push({ tokenIdx, id: p.id });
+                rec();
+                rec();
+            })();
+            return events;
+        }
+        let desEvents = null;
+
+        function desStep() {
+            if (serStepIdx < plan.length) {
+                status('Serialize the tree first (press “Serialize ▶” until it finishes), then deserialize.');
+                return;
+            }
+            if (!desEvents) desEvents = buildDesQueue();
+            if (desStepIdx >= desEvents.length) {
+                status('Rebuild complete! deserialize(serialize(tree)) gave back the exact same tree. 🎉');
+                document.getElementById('btnDes').textContent = 'Deserialize ✓';
+                return;
+            }
+            const ev = desEvents[desStepIdx];
+            desStepIdx++;
+            renderString(plan.length, ev.tokenIdx);
+            if (ev.id) {
+                built[ev.id] = true;
+                // build partial tree: only nodes in `built`, others hidden
+                const partial = {};
+                for (const id in fullTree) {
+                    if (built[id]) {
+                        partial[id] = {
+                            val: fullTree[id].val,
+                            left: built[fullTree[id].left] ? fullTree[id].left : null,
+                            right: built[fullTree[id].right] ? fullTree[id].right : null
+                        };
+                    }
+                }
+                drawTree(svg, partial, 'n1', { active: ev.id });
+                status(`Read token "${plan[ev.tokenIdx].val}" → create node ${plan[ev.tokenIdx].val} and attach it in preorder position.`);
+            } else {
+                status(`Read token "#" → this child is null, so nothing gets attached here.`);
+            }
+            if (desStepIdx >= desEvents.length) {
+                status('Rebuild complete! deserialize(serialize(tree)) gave back the exact same tree. 🎉');
+                document.getElementById('btnDes').textContent = 'Deserialize ✓';
+            }
+        }
+
+        resetPg();
     </script>
 </body>
 </html>

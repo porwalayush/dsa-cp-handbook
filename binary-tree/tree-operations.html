@@ -41,6 +41,21 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,7 +63,7 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Structural Operations on Binary Trees</h1>
-        <p>This guide covers the classic <strong>structural operations</strong> on binary trees: inverting, comparing, flattening, merging, and counting. Nearly all of them share one shape &mdash; a recursion that visits each node once, does O(1) work, and combines the answers from its children. Every operation here runs in <strong>O(n)</strong> time.</p>
+        <p>This guide covers the classic <strong>structural operations</strong> on binary trees: inverting, comparing, flattening, merging, and counting. Here's the comforting part &mdash; almost all of them are the same idea wearing different hats: a recursion that visits each node once, does a tiny bit of work, and stitches together the answers from its two children. Every operation here runs in <strong>O(n)</strong> time.</p>
 
         <p>All examples assume a standard node definition:</p>
         <div class="code-container">
@@ -88,21 +103,21 @@
         </div>
 
         <h2>1. Invert / Mirror a Tree</h2>
-        <p>Inverting a binary tree means swapping the left and right child of <em>every</em> node. The recursion is trivial: swap the children of the current node, then recurse into both subtrees.</p>
+        <p>Picture holding the whole tree up to a mirror. Everything that was on the left is now on the right, and vice versa &mdash; at <em>every</em> level, all the way down. That's all "inverting" means: at every node, swap its left and right child. The recursion is delightfully short: swap the current node's two children, then go do the same thing inside both subtrees.</p>
 
-        <div class="visual">
-<pre>
-        BEFORE                         AFTER (mirrored)
-
-           4                              4
-         /   \                          /   \
-        2     7                        7     2
-       / \   / \                      / \   / \
-      1   3 6   9                    9   6 3   1
-
-Every left/right pair is swapped, top to bottom.
-</pre>
+        <div class="playground">
+            <div class="pg-title">🪞 Mirror the tree, one swap at a time</div>
+            <div class="pg-sub">Press <strong>Next Step ▶</strong> to swap one node's children at a time and watch the tree flip in place, or <strong>Invert all ▶</strong> to animate the whole mirror level by level. The status line tells you whose children are being swapped. <strong>Reset</strong> restores the original.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">This is the original tree. Step through to mirror it.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="btnStep" onclick="nextStep()">Next Step ▶</button>
+                <button class="btn btn-primary" id="btnAll" onclick="invertAll()">Invert all ▶</button>
+                <button class="btn btn-ghost" onclick="resetPg()">↺ Reset</button>
+            </div>
         </div>
+
+        <p>The visualizer walks the nodes top-to-bottom (level by level) so you can see the flip propagate. Note that a node with no children, or with two empty children, has "nothing to swap" &mdash; the work only shows up where children actually exist.</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -147,7 +162,7 @@ TreeNode invertTree(TreeNode root) {
         </div>
 
         <h2>2. Check if Two Trees Are Identical</h2>
-        <p>Two trees are identical when they have the <strong>same structure and the same node values</strong>. Walk both trees in lockstep: at each step, both nodes must be null together, or both non-null with equal values and identical subtrees.</p>
+        <p>Think of laying one tree on top of the other like two transparencies and checking they line up perfectly &mdash; same shape, same number in every matching spot. Formally, two trees are identical when they have the <strong>same structure and the same node values</strong>. You walk both at once, in lockstep: at each step the two nodes must be empty together, or both present with equal values and identical subtrees underneath.</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -192,7 +207,7 @@ TreeNode invertTree(TreeNode root) {
         </div>
 
         <h2>3. Check if a Tree Is Symmetric</h2>
-        <p>A tree is <strong>symmetric</strong> if its left subtree is a mirror image of its right subtree. This is a <em>paired recursion</em> with two pointers walking outward in opposite directions: compare <code>left.left</code> against <code>right.right</code> (the outer pair) and <code>left.right</code> against <code>right.left</code> (the inner pair).</p>
+        <p>A symmetric tree is one that looks the same in a mirror &mdash; fold it down the middle and the two halves match. So a tree is <strong>symmetric</strong> when its left subtree is a mirror image of its right subtree. The clever bit is a <em>paired recursion</em> with two pointers walking outward in opposite directions: you compare <code>left.left</code> against <code>right.right</code> (the outer pair) and <code>left.right</code> against <code>right.left</code> (the inner pair).</p>
 
         <div class="visual">
 <pre>
@@ -264,7 +279,7 @@ TreeNode invertTree(TreeNode root) {
         </div>
 
         <h2>4. Subtree Check</h2>
-        <p>Given trees <code>s</code> and <code>t</code>, decide whether <code>t</code> is a subtree of <code>s</code> &mdash; i.e. some node in <code>s</code> roots a tree identical to <code>t</code>. The straightforward approach reuses <code>isSameTree</code>: at every node of <code>s</code>, test whether the subtree rooted there equals <code>t</code>. This costs <strong>O(n &times; m)</strong> in the worst case (n, m = sizes of s, t).</p>
+        <p>Given trees <code>s</code> and <code>t</code>, you want to know: does <code>t</code> appear somewhere inside <code>s</code> as an exact piece &mdash; like spotting a smaller shape nested inside a bigger one? In other words, is there a node in <code>s</code> that roots a tree identical to <code>t</code>? The straightforward approach reuses <code>isSameTree</code>: at every node of <code>s</code>, test whether the subtree rooted there equals <code>t</code>. That costs <strong>O(n &times; m)</strong> in the worst case (n, m = sizes of s, t).</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -337,7 +352,7 @@ TreeNode invertTree(TreeNode root) {
         </div>
 
         <h2>5. Flatten Binary Tree to a Linked List</h2>
-        <p>Flatten the tree in place so that it becomes a right-skewed "linked list" following <strong>preorder</strong> order: each node's <code>left</code> is set to null and its <code>right</code> points to the next node in preorder.</p>
+        <p>Imagine grabbing the tree and pulling it straight, so all the nodes line up in a single right-leaning chain &mdash; in the exact order a <strong>preorder</strong> walk would visit them. After flattening, every node's <code>left</code> is null and its <code>right</code> points to whatever comes next in preorder. We do it in place, reusing the existing nodes.</p>
 
         <div class="visual">
 <pre>
@@ -358,7 +373,7 @@ TreeNode invertTree(TreeNode root) {
         </div>
 
         <h3>Approach A &mdash; Reverse-preorder recursion, O(n) time / O(h) stack</h3>
-        <p>Process nodes in <strong>reverse preorder</strong> (right, then left, then current) while keeping a <code>prev</code> pointer to the last node already flattened. For each node, point its <code>right</code> at <code>prev</code>, clear its <code>left</code>, then set <code>prev</code> to itself. Because we visit in reverse preorder, <code>prev</code> is always exactly the node that should follow the current one.</p>
+        <p>Here's a neat trick: build the chain backwards. Process nodes in <strong>reverse preorder</strong> (right, then left, then the node itself) while keeping a <code>prev</code> pointer to the last node you already linked. For each node, point its <code>right</code> at <code>prev</code>, clear its <code>left</code>, then set <code>prev</code> to this node. Because you're moving in reverse preorder, <code>prev</code> always happens to be exactly the node that should come next.</p>
 
         <div class="code-container">
             <div class="code-tabs">
@@ -619,6 +634,163 @@ TreeNode mergeTrees(TreeNode a, TreeNode b) {
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Reusable SVG tree renderer ----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- Tree:        4
+        //                 /   \
+        //                2     7
+        //               / \   / \
+        //              1   3 6   9
+        function makeTree() {
+            return {
+                n4: { val: 4, left: 'n2', right: 'n7' },
+                n2: { val: 2, left: 'n1', right: 'n3' },
+                n7: { val: 7, left: 'n6', right: 'n9' },
+                n1: { val: 1, left: null, right: null },
+                n3: { val: 3, left: null, right: null },
+                n6: { val: 6, left: null, right: null },
+                n9: { val: 9, left: null, right: null }
+            };
+        }
+        let tree = makeTree();
+        const svg = document.getElementById('treeSvg');
+        const status = t => document.getElementById('status').textContent = t;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        // BFS (level-order) list of node ids to drive the step-through.
+        function levelOrder() {
+            const out = [], q = ['n4'];
+            while (q.length) {
+                const id = q.shift();
+                out.push(id);
+                if (tree[id].left) q.push(tree[id].left);
+                if (tree[id].right) q.push(tree[id].right);
+            }
+            return out;
+        }
+        let swapList = [];
+        let stepIdx = 0;
+
+        function swapChildren(id) {
+            const t = tree[id];
+            const tmp = t.left; t.left = t.right; t.right = tmp;
+        }
+
+        function resetPg() {
+            if (busy) return;
+            tree = makeTree();
+            swapList = levelOrder();
+            stepIdx = 0;
+            document.getElementById('btnStep').disabled = false;
+            document.getElementById('btnAll').disabled = false;
+            document.getElementById('btnStep').textContent = 'Next Step ▶';
+            drawTree(svg, tree, 'n4', {});
+            status('This is the original tree. Step through to mirror it.');
+        }
+
+        function nextStep() {
+            if (busy) return;
+            if (stepIdx >= swapList.length) {
+                status('Every node has been mirrored — the tree is now the full reflection. Press Reset to start over.');
+                document.getElementById('btnStep').textContent = 'Done ✓';
+                return;
+            }
+            const id = swapList[stepIdx];
+            stepIdx++;
+            const node = tree[id];
+            const hasKids = node.left || node.right;
+            swapChildren(id);
+            drawTree(svg, tree, 'n4', { active: id });
+            if (hasKids) {
+                status(`Node ${node.val}: swap its left and right children. They have now traded places.`);
+            } else {
+                status(`Node ${node.val} is a leaf — no children to swap, move on.`);
+            }
+            if (stepIdx >= swapList.length) {
+                document.getElementById('btnStep').textContent = 'Done ✓';
+                status(`Node ${node.val} done. The whole tree is now mirrored top to bottom. Press Reset to replay.`);
+            }
+        }
+
+        async function invertAll() {
+            if (busy) return;
+            busy = true;
+            document.getElementById('btnStep').disabled = true;
+            document.getElementById('btnAll').disabled = true;
+            // restart from a clean tree for a full animated mirror
+            tree = makeTree();
+            swapList = levelOrder();
+            stepIdx = 0;
+            drawTree(svg, tree, 'n4', {});
+            status('Mirroring the whole tree level by level…');
+            await sleep(500);
+            for (const id of swapList) {
+                const node = tree[id];
+                const hasKids = node.left || node.right;
+                swapChildren(id);
+                drawTree(svg, tree, 'n4', { active: id });
+                status(hasKids
+                    ? `Swapping node ${node.val}'s children…`
+                    : `Node ${node.val} is a leaf — nothing to swap.`);
+                await sleep(650);
+            }
+            stepIdx = swapList.length;
+            drawTree(svg, tree, 'n4', {});
+            status('Done! The tree is the complete mirror image of the original. Press Reset to restore it.');
+            document.getElementById('btnStep').textContent = 'Done ✓';
+            document.getElementById('btnAll').disabled = false;
+            busy = false;
+        }
+
+        resetPg();
     </script>
 </body>
 </html>

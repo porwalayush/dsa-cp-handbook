@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Traversals - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .mode-btn.sel { background: #4f46e5; box-shadow: 0 0 0 3px rgba(99,102,241,0.18); }
+        .pg-out { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; min-height: 34px; align-items: center; }
+        .pg-out .lbl { font-size: 0.75em; color: #94a3b8; font-weight: 600; margin-right: 4px; }
+        .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 8px; background: #eef2ff; color: #4f46e5; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85em; border: 1px solid #c7d2fe; animation: pop 0.25s ease; }
+        .chip.sep { background: transparent; border: none; color: #cbd5e1; min-width: 12px; padding: 0; font-weight: 400; }
+        @keyframes pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Binary Trees</a>
+        <h1>Special Traversals</h1>
+        <p>Once you know the classic ways to walk a tree &mdash; preorder, inorder, postorder, and level-order &mdash; a whole family of <strong>geometry-flavoured</strong> traversals opens up. Instead of asking "deep or wide?", these ask <strong>"where does each node sit on the page?"</strong> They group nodes by an invisible grid drawn over the tree.</p>
+        <p>This page covers the three you are most likely to be asked about that are <em>not</em> already on the other pages:</p>
+        <ul>
+            <li><strong>Vertical order</strong> &mdash; read the tree in columns, like reading newspaper columns top-to-bottom, left-to-right.</li>
+            <li><strong>Diagonal</strong> &mdash; read the tree in slanted lines, like rain streaking down a window.</li>
+            <li><strong>Zigzag / spiral</strong> &mdash; level-order, but snaking left and right (a quick recap; the full version lives on the Tree Traversals page).</li>
+        </ul>
+
+        <div class="note">
+            Already covered elsewhere: <strong>preorder / inorder / postorder / level-order / Morris</strong> live on the <strong>Tree Traversals</strong> page, and <strong>top / bottom / left / right views</strong> plus <strong>boundary traversal</strong> live on the <strong>Tree Views &amp; Properties</strong> page. This page is the rest of the family.
+        </div>
+
+        <h2>The Running Example</h2>
+        <p>Throughout this page we use one fixed tree. It is <em>not</em> a BST &mdash; these traversals care about <strong>shape and position</strong>, not key order.</p>
+
+        <div class="visual">
+<pre>
+                1
+              /   \
+             2     3
+            / \   / \
+           4   5 6   7
+                \   \
+                 8   9
+</pre>
+        </div>
+
+        <p>The big idea: lay a coordinate grid over this drawing. Give the root <strong>column 0</strong>. Every time you step <strong>left</strong> you move one column left (<code>col - 1</code>); every step <strong>right</strong> moves one column right (<code>col + 1</code>). The <strong>row</strong> is just the depth (root = row 0). Different traversals slice that grid differently.</p>
+
+        <h2>The Node Definition</h2>
+        <p>All code below assumes this simple binary tree node.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppNode')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaNode')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyNode')">Python</button>
+            </div>
+            <div id="cppNode" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode {
+    <span class="keyword">int</span> val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(<span class="keyword">int</span> x) : val(x), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+</pre>
+            </div>
+            <div id="javaNode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> {
+    <span class="keyword">int</span> val;
+    TreeNode left, right;
+    TreeNode(<span class="keyword">int</span> x) { val = x; }
+}
+</pre>
+            </div>
+            <div id="pyNode" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span>:
+    <span class="keyword">def</span> __init__(self, val=<span class="number">0</span>, left=<span class="keyword">None</span>, right=<span class="keyword">None</span>):
+        self.val = val
+        self.left = left
+        self.right = right
+</pre>
+            </div>
+        </div>
+
+        <h2>Try It: Vertical Order &amp; Diagonal Step-Through</h2>
+        <p>Theory clicks faster when you watch the grid fill in. Press <strong>Vertical Order ▶</strong> to first tag every node with its <code>(row, col)</code> coordinates, then light up each column left-to-right and emit its values. Or switch to <strong>Diagonal ▶</strong> to watch slanted lines light up one at a time.</p>
+
+        <div class="playground">
+            <div class="pg-title">&#127916; Special Traversal Animator</div>
+            <div class="pg-sub">1. Pick a mode. 2. Press <strong>Next Step ▶</strong> to advance one step. Vertical order tags coordinates first, then sweeps columns; diagonal sweeps slanted lines. The status line narrates each step.</div>
+            <div class="pg-controls" style="margin-top:0;margin-bottom:8px">
+                <button class="btn btn-primary mode-btn" id="m-vert" onclick="pick('vert')">Vertical Order ▶</button>
+                <button class="btn btn-primary mode-btn" id="m-diag" onclick="pick('diag')">Diagonal ▶</button>
+            </div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-out"><span class="lbl" id="outLbl">OUTPUT:</span><span id="out"></span></div>
+            <div class="pg-status" id="status">Pick a mode above to begin.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()" disabled>Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="resetWalk()">&#8634; Reset</button>
+            </div>
+        </div>
+
+        <h2>1. Vertical Order Traversal</h2>
+        <p><strong>Analogy:</strong> imagine the tree drawn on a window and a low sun behind it casting <em>vertical</em> shadows straight down. Every node falls into a column. Vertical order reads those columns from the leftmost to the rightmost, and within a column, top to bottom.</p>
+
+        <p>Concretely, assign each node a column:</p>
+        <ul>
+            <li>Root gets column <code>0</code>.</li>
+            <li>Going <strong>left</strong> &rarr; <code>col - 1</code>.</li>
+            <li>Going <strong>right</strong> &rarr; <code>col + 1</code>.</li>
+        </ul>
+        <p>For our tree the columns work out to:</p>
+
+        <div class="visual">
+<pre>
+   col:   -2    -1     0     1     2     3
+          ----------------------------------
+   row 0               1
+   row 1         2           3
+   row 2    4          5,6         7
+   row 3                     8           9
+
+   Vertical order (col -2 .. +3):
+       [4]  [2]  [1, 5, 6]  [3, 8]  [7]  [9]
+   Flattened:  4 2 1 5 6 3 8 7 9
+</pre>
+        </div>
+
+        <div class="note">
+            <strong>The tie-break rule (the tricky part).</strong> Two nodes can land in the <em>same</em> column at the <em>same</em> row &mdash; here <code>5</code> and <code>6</code> both sit at column <code>0</code>, row <code>2</code>. The LeetCode "Vertical Order Traversal" rule says: sort all nodes by the triple <strong>(col, row, val)</strong>. So within a column we go top row first, and when row also ties, the <strong>smaller value</strong> comes first. That is why the order is <code>5</code> then <code>6</code>, not <code>6</code> then <code>5</code>.
+        </div>
+
+        <div class="warn">
+            <strong>Watch out &mdash; two different problems share a name.</strong> The older "Vertical Order" problem (GeeksforGeeks / LeetCode 314) breaks same-column ties by <strong>insertion order from a BFS</strong> (left-to-right), <em>not</em> by value. The newer LeetCode 987 "Vertical Order Traversal" breaks ties by <strong>value</strong> via the <code>(col, row, val)</code> sort. Read the problem statement carefully &mdash; for a same row+column pair they can disagree. The code below implements the <code>(col, row, val)</code> rule.
+        </div>
+
+        <p>The clean implementation: do any traversal (DFS or BFS), recording <code>(row, col, val)</code> for every node into a list, then sort that list by the triple and group by column.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppVert')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaVert')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyVert')">Python</button>
+            </div>
+            <div id="cppVert" class="code-content active">
+<pre>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; verticalTraversal(TreeNode* root) {
+    <span class="comment">// collect tuples of (col, row, val)</span>
+    vector&lt;array&lt;<span class="keyword">int</span>, <span class="number">3</span>&gt;&gt; nodes;
+    <span class="keyword">function</span>&lt;<span class="keyword">void</span>(TreeNode*, <span class="keyword">int</span>, <span class="keyword">int</span>)&gt; dfs =
+        [&amp;](TreeNode* n, <span class="keyword">int</span> row, <span class="keyword">int</span> col) {
+            <span class="keyword">if</span> (!n) <span class="keyword">return</span>;
+            nodes.push_back({col, row, n-&gt;val});
+            dfs(n-&gt;left,  row + <span class="number">1</span>, col - <span class="number">1</span>);
+            dfs(n-&gt;right, row + <span class="number">1</span>, col + <span class="number">1</span>);
+        };
+    dfs(root, <span class="number">0</span>, <span class="number">0</span>);
+    <span class="comment">// sort by (col, row, val)</span>
+    sort(nodes.begin(), nodes.end());
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; out;
+    <span class="keyword">int</span> prevCol = INT_MIN;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; t : nodes) {
+        <span class="keyword">if</span> (t[<span class="number">0</span>] != prevCol) { out.push_back({}); prevCol = t[<span class="number">0</span>]; }
+        out.back().push_back(t[<span class="number">2</span>]);
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaVert" class="code-content">
+<pre>
+List&lt;List&lt;Integer&gt;&gt; verticalTraversal(TreeNode root) {
+    <span class="comment">// each entry: {col, row, val}</span>
+    List&lt;<span class="keyword">int</span>[]&gt; nodes = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    dfs(root, <span class="number">0</span>, <span class="number">0</span>, nodes);
+    <span class="comment">// sort by col, then row, then val</span>
+    nodes.sort((a, b) -&gt;
+        a[<span class="number">0</span>] != b[<span class="number">0</span>] ? a[<span class="number">0</span>] - b[<span class="number">0</span>] :
+        a[<span class="number">1</span>] != b[<span class="number">1</span>] ? a[<span class="number">1</span>] - b[<span class="number">1</span>] :
+        a[<span class="number">2</span>] - b[<span class="number">2</span>]);
+    List&lt;List&lt;Integer&gt;&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    Integer prevCol = <span class="keyword">null</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span>[] t : nodes) {
+        <span class="keyword">if</span> (prevCol == <span class="keyword">null</span> || t[<span class="number">0</span>] != prevCol) {
+            out.add(<span class="keyword">new</span> ArrayList&lt;&gt;());
+            prevCol = t[<span class="number">0</span>];
+        }
+        out.get(out.size() - <span class="number">1</span>).add(t[<span class="number">2</span>]);
+    }
+    <span class="keyword">return</span> out;
+}
+
+<span class="keyword">void</span> dfs(TreeNode n, <span class="keyword">int</span> row, <span class="keyword">int</span> col, List&lt;<span class="keyword">int</span>[]&gt; nodes) {
+    <span class="keyword">if</span> (n == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    nodes.add(<span class="keyword">new</span> <span class="keyword">int</span>[]{col, row, n.val});
+    dfs(n.left,  row + <span class="number">1</span>, col - <span class="number">1</span>, nodes);
+    dfs(n.right, row + <span class="number">1</span>, col + <span class="number">1</span>, nodes);
+}
+</pre>
+            </div>
+            <div id="pyVert" class="code-content">
+<pre>
+<span class="keyword">def</span> vertical_traversal(root):
+    nodes = []                       <span class="comment"># list of (col, row, val)</span>
+
+    <span class="keyword">def</span> dfs(n, row, col):
+        <span class="keyword">if</span> <span class="keyword">not</span> n:
+            <span class="keyword">return</span>
+        nodes.append((col, row, n.val))
+        dfs(n.left,  row + <span class="number">1</span>, col - <span class="number">1</span>)
+        dfs(n.right, row + <span class="number">1</span>, col + <span class="number">1</span>)
+
+    dfs(root, <span class="number">0</span>, <span class="number">0</span>)
+    nodes.sort()                     <span class="comment"># sorts by col, then row, then val</span>
+
+    out, prev_col = [], <span class="keyword">None</span>
+    <span class="keyword">for</span> col, row, val <span class="keyword">in</span> nodes:
+        <span class="keyword">if</span> col != prev_col:
+            out.append([])
+            prev_col = col
+        out[-<span class="number">1</span>].append(val)
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <p><strong>Complexity.</strong> We touch each of the <code>n</code> nodes once to collect, then sort the list of triples: <strong>O(n log n)</strong> time. Space is <strong>O(n)</strong> for the triple list and the output. (If a problem uses the BFS insertion-order tie-break instead of value, you can skip the value sort and use a column-keyed map plus a BFS, giving O(n) time after sorting only the column keys.)</p>
+
+        <h2>2. Diagonal Traversal</h2>
+        <p><strong>Analogy:</strong> tilt your head and picture rain streaking down the tree at a 45&deg; slant from upper-left to lower-right. Each raindrop trail is a <em>diagonal</em>. The rule: walking <strong>right keeps you on the same diagonal</strong>, but walking <strong>left drops you onto the next diagonal</strong> down.</p>
+
+        <p>So we give each node a diagonal index <code>d</code>:</p>
+        <ul>
+            <li>Root: <code>d = 0</code>.</li>
+            <li>Right child: <strong>same</strong> diagonal &rarr; <code>d</code>.</li>
+            <li>Left child: <strong>next</strong> diagonal &rarr; <code>d + 1</code>.</li>
+        </ul>
+        <p>Then read diagonal 0, then diagonal 1, and so on. Within a diagonal, nodes come out in the natural traversal order (top-to-bottom along the slant).</p>
+
+        <div class="visual">
+<pre>
+   Diagonals (right = same d, left = d + 1):
+
+   d = 0 :  1  3  7  9      (root, keep going right)
+   d = 1 :  2  5  8  6      (one left-step off d=0)
+   d = 2 :  4               (two left-steps)
+
+   Diagonal traversal:  1 3 7 9 2 5 8 6 4
+</pre>
+        </div>
+
+        <p>The cleanest code keeps a queue per diagonal, or a single map from diagonal index to its list. Here is the map approach via DFS &mdash; group by <code>d</code>, then emit diagonals in increasing order.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDiag')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDiag')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDiag')">Python</button>
+            </div>
+            <div id="cppDiag" class="code-content active">
+<pre>
+vector&lt;<span class="keyword">int</span>&gt; diagonalTraversal(TreeNode* root) {
+    <span class="comment">// map keeps diagonals sorted by key (0, 1, 2, ...)</span>
+    map&lt;<span class="keyword">int</span>, vector&lt;<span class="keyword">int</span>&gt;&gt; diag;
+    <span class="keyword">function</span>&lt;<span class="keyword">void</span>(TreeNode*, <span class="keyword">int</span>)&gt; dfs =
+        [&amp;](TreeNode* n, <span class="keyword">int</span> d) {
+            <span class="keyword">if</span> (!n) <span class="keyword">return</span>;
+            diag[d].push_back(n-&gt;val);
+            dfs(n-&gt;left,  d + <span class="number">1</span>);   <span class="comment">// left -&gt; next diagonal</span>
+            dfs(n-&gt;right, d);         <span class="comment">// right -&gt; same diagonal</span>
+        };
+    dfs(root, <span class="number">0</span>);
+    vector&lt;<span class="keyword">int</span>&gt; out;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [d, vals] : diag)
+        <span class="keyword">for</span> (<span class="keyword">int</span> v : vals) out.push_back(v);
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaDiag" class="code-content">
+<pre>
+List&lt;Integer&gt; diagonalTraversal(TreeNode root) {
+    <span class="comment">// TreeMap keeps diagonals sorted by key</span>
+    TreeMap&lt;Integer, List&lt;Integer&gt;&gt; diag = <span class="keyword">new</span> TreeMap&lt;&gt;();
+    dfs(root, <span class="number">0</span>, diag);
+    List&lt;Integer&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">for</span> (List&lt;Integer&gt; vals : diag.values())
+        out.addAll(vals);
+    <span class="keyword">return</span> out;
+}
+
+<span class="keyword">void</span> dfs(TreeNode n, <span class="keyword">int</span> d, TreeMap&lt;Integer, List&lt;Integer&gt;&gt; diag) {
+    <span class="keyword">if</span> (n == <span class="keyword">null</span>) <span class="keyword">return</span>;
+    diag.computeIfAbsent(d, k -&gt; <span class="keyword">new</span> ArrayList&lt;&gt;()).add(n.val);
+    dfs(n.left,  d + <span class="number">1</span>, diag);   <span class="comment">// left -&gt; next diagonal</span>
+    dfs(n.right, d, diag);         <span class="comment">// right -&gt; same diagonal</span>
+}
+</pre>
+            </div>
+            <div id="pyDiag" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict
+
+<span class="keyword">def</span> diagonal_traversal(root):
+    diag = defaultdict(list)
+
+    <span class="keyword">def</span> dfs(n, d):
+        <span class="keyword">if</span> <span class="keyword">not</span> n:
+            <span class="keyword">return</span>
+        diag[d].append(n.val)
+        dfs(n.left,  d + <span class="number">1</span>)   <span class="comment"># left -&gt; next diagonal</span>
+        dfs(n.right, d)         <span class="comment"># right -&gt; same diagonal</span>
+
+    dfs(root, <span class="number">0</span>)
+    out = []
+    <span class="keyword">for</span> d <span class="keyword">in</span> sorted(diag):
+        out.extend(diag[d])
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Order within a diagonal.</strong> No extra sort is needed &mdash; the recursion order does the work. A node is appended to its diagonal before its own children, and a node always reaches its same-diagonal right-chain in order, so values come out in the natural traversal order along the slant (e.g. diagonal 1 above emits <code>2, 5, 8, 6</code>: node 2 first, then everything reachable from its left/right before backtracking).
+        </div>
+
+        <p><strong>Complexity.</strong> Every node is visited once and appended to one diagonal list: <strong>O(n)</strong> work. With a hash map plus a final key sort it is O(n + k log k) where k is the number of diagonals (k &le; n); with an ordered map (above) the keys stay sorted for free. Space is <strong>O(n)</strong>.</p>
+
+        <h2>3. Zigzag / Spiral Order (Recap)</h2>
+        <p><strong>Analogy:</strong> read the tree level by level like normal BFS, but make your eyes <em>snake</em> &mdash; left-to-right on one level, right-to-left on the next, like the way an old printer head sweeps back and forth.</p>
+
+        <p>For our tree the levels are <code>[1]</code>, <code>[2, 3]</code>, <code>[4, 5, 6, 7]</code>, <code>[8, 9]</code>. Reversing every other level gives:</p>
+
+        <div class="visual">
+<pre>
+   level 0 (L&rarr;R):  1
+   level 1 (R&rarr;L):  3 2
+   level 2 (L&rarr;R):  4 5 6 7
+   level 3 (R&rarr;L):  9 8
+
+   Zigzag:  [[1], [3, 2], [4, 5, 6, 7], [9, 8]]
+</pre>
+        </div>
+
+        <p>It is ordinary level-order with one extra boolean: track whether the current level runs left-to-right, build the level list, reverse it on alternate levels, and flip the flag.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppZig')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaZig')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyZig')">Python</button>
+            </div>
+            <div id="cppZig" class="code-content active">
+<pre>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; zigzag(TreeNode* root) {
+    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; out;
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> out;
+    queue&lt;TreeNode*&gt; q;
+    q.push(root);
+    <span class="keyword">bool</span> leftToRight = <span class="keyword">true</span>;
+    <span class="keyword">while</span> (!q.empty()) {
+        <span class="keyword">int</span> sz = q.size();
+        vector&lt;<span class="keyword">int</span>&gt; level(sz);
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode* node = q.front(); q.pop();
+            <span class="keyword">int</span> idx = leftToRight ? i : sz - <span class="number">1</span> - i;
+            level[idx] = node-&gt;val;
+            <span class="keyword">if</span> (node-&gt;left)  q.push(node-&gt;left);
+            <span class="keyword">if</span> (node-&gt;right) q.push(node-&gt;right);
+        }
+        out.push_back(level);
+        leftToRight = !leftToRight;
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaZig" class="code-content">
+<pre>
+List&lt;List&lt;Integer&gt;&gt; zigzag(TreeNode root) {
+    List&lt;List&lt;Integer&gt;&gt; out = <span class="keyword">new</span> ArrayList&lt;&gt;();
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> out;
+    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();
+    q.offer(root);
+    <span class="keyword">boolean</span> leftToRight = <span class="keyword">true</span>;
+    <span class="keyword">while</span> (!q.isEmpty()) {
+        <span class="keyword">int</span> sz = q.size();
+        Integer[] level = <span class="keyword">new</span> Integer[sz];
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sz; i++) {
+            TreeNode node = q.poll();
+            <span class="keyword">int</span> idx = leftToRight ? i : sz - <span class="number">1</span> - i;
+            level[idx] = node.val;
+            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);
+            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);
+        }
+        out.add(Arrays.asList(level));
+        leftToRight = !leftToRight;
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyZig" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> zigzag(root):
+    out = []
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> out
+    q = deque([root])
+    left_to_right = <span class="keyword">True</span>
+    <span class="keyword">while</span> q:
+        level = []
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(len(q)):
+            node = q.popleft()
+            level.append(node.val)
+            <span class="keyword">if</span> node.left:
+                q.append(node.left)
+            <span class="keyword">if</span> node.right:
+                q.append(node.right)
+        out.append(level <span class="keyword">if</span> left_to_right <span class="keyword">else</span> level[::-<span class="number">1</span>])
+        left_to_right = <span class="keyword">not</span> left_to_right
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            For the full BFS walk-through (queue mechanics, level-by-level grouping, and the boolean-flip detail), see the <strong>Zigzag / Spiral Order</strong> section on the <strong>Tree Traversals</strong> page. <strong>Complexity</strong> is the same as plain level-order: <strong>O(n)</strong> time, <strong>O(w)</strong> space where <code>w</code> is the maximum width.
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <p>Here <code>n</code> = number of nodes, <code>k</code> = number of distinct columns/diagonals (<code>k &le; n</code>), <code>w</code> = maximum tree width.</p>
+        <table>
+            <tr><th>Traversal</th><th>Time</th><th>Space</th><th>Grouping key</th><th>Tie-break within group</th></tr>
+            <tr><td>Vertical order (LC 987)</td><td>O(n log n)</td><td>O(n)</td><td>column (left −1, right +1)</td><td>(row, then value)</td></tr>
+            <tr><td>Vertical order (LC 314)</td><td>O(n + k log k)</td><td>O(n)</td><td>column</td><td>BFS insertion order</td></tr>
+            <tr><td>Diagonal</td><td>O(n) / O(n + k log k)</td><td>O(n)</td><td>diagonal (right same, left +1)</td><td>traversal order (no sort)</td></tr>
+            <tr><td>Zigzag / spiral</td><td>O(n)</td><td>O(w)</td><td>level (depth)</td><td>alternating L→R / R→L</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>How to spot which one a problem wants:</strong>
+            <ul>
+                <li><strong>Vertical order</strong> &mdash; the prompt mentions "columns", "vertical lines", or assigns left/right a horizontal distance. Watch the tie-break wording closely.</li>
+                <li><strong>Diagonal</strong> &mdash; the prompt talks about "diagonals", "slanting lines", or "45-degree" groupings; remember <em>right keeps the diagonal, left starts a new one</em>.</li>
+                <li><strong>Zigzag / spiral</strong> &mdash; "level by level but alternate direction", "snake", or "boustrophedon". It is just BFS with a flip flag.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Renders tree into svgEl. layout via inorder x-index. Returns positions map.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const labels = opts.labels || {};   // id -> string drawn under the node
+            const R = 20, vGap = 78, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 50;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+                if (labels[id]) {
+                    circles += `<text x="${p.x}" y="${p.y + R + 16}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600" fill="#7c3aed">${labels[id]}</text>`;
+                }
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // Fixed sample tree (ids === values). NOT a BST -- shape matters here.
+        //            1
+        //          /   \
+        //         2     3
+        //        / \   / \
+        //       4   5 6   7
+        //            \   \
+        //             8   9
+        const TREE = {
+            '1': { val: 1, left: '2', right: '3' },
+            '2': { val: 2, left: '4', right: '5' },
+            '3': { val: 3, left: '6', right: '7' },
+            '4': { val: 4, left: null, right: null },
+            '5': { val: 5, left: null, right: '8' },
+            '6': { val: 6, left: null, right: null },
+            '7': { val: 7, left: null, right: '9' },
+            '8': { val: 8, left: null, right: null },
+            '9': { val: 9, left: null, right: null }
+        };
+        const ROOT = '1';
+        const svg = document.getElementById('treeSvg');
+
+        // Compute (row, col, diag) for every node via DFS.
+        const COORD = {};   // id -> {row, col, diag}
+        (function coords(id, row, col, diag) {
+            if (id == null) return;
+            COORD[id] = { row, col, diag };
+            coords(TREE[id].left,  row + 1, col - 1, diag + 1);  // left: col-1, next diagonal
+            coords(TREE[id].right, row + 1, col + 1, diag);      // right: col+1, same diagonal
+        })(ROOT, 0, 0, 0);
+
+        // All node ids (for tagging phase).
+        const ALL_IDS = Object.keys(TREE);
+
+        // --- VERTICAL ORDER: build the column groups, sorted by (col, row, val) ---
+        function verticalGroups() {
+            const byCol = {};
+            ALL_IDS.forEach(id => {
+                const c = COORD[id].col;
+                (byCol[c] = byCol[c] || []).push(id);
+            });
+            const cols = Object.keys(byCol).map(Number).sort((a, b) => a - b);
+            return cols.map(c => {
+                const ids = byCol[c].slice().sort((a, b) =>
+                    COORD[a].row - COORD[b].row || TREE[a].val - TREE[b].val);
+                return { col: c, ids };
+            });
+        }
+
+        // --- DIAGONAL: build diagonal groups in traversal order ---
+        function diagonalGroups() {
+            const byDiag = {};
+            (function dfs(id) {
+                if (id == null) return;
+                const d = COORD[id].diag;
+                (byDiag[d] = byDiag[d] || []).push(id);
+                dfs(TREE[id].left);
+                dfs(TREE[id].right);
+            })(ROOT);
+            const ds = Object.keys(byDiag).map(Number).sort((a, b) => a - b);
+            return ds.map(d => ({ diag: d, ids: byDiag[d] }));
+        }
+
+        let mode = null;        // 'vert' | 'diag'
+        let steps = [];         // list of step descriptors
+        let idx = 0;            // next step to apply
+        let emitted = [];       // sequence of {val, groupStart} chips emitted so far
+
+        function setStatus(t) { document.getElementById('status').innerHTML = t; }
+
+        // Build the ordered list of steps for the chosen mode.
+        function buildSteps(m) {
+            const s = [];
+            if (m === 'vert') {
+                // Phase 1: tag each node with (row,col) in BFS order.
+                const bfs = [];
+                const q = [ROOT];
+                while (q.length) {
+                    const id = q.shift();
+                    bfs.push(id);
+                    if (TREE[id].left) q.push(TREE[id].left);
+                    if (TREE[id].right) q.push(TREE[id].right);
+                }
+                bfs.forEach(id => s.push({ type: 'tag', id }));
+                // Phase 2: sweep columns left -> right, emit each.
+                verticalGroups().forEach(g => {
+                    g.ids.forEach((id, i) => s.push({ type: 'emit', id, col: g.col, groupStart: i === 0 }));
+                });
+            } else {
+                diagonalGroups().forEach(g => {
+                    g.ids.forEach((id, i) => s.push({ type: 'emit', id, diag: g.diag, groupStart: i === 0 }));
+                });
+            }
+            return s;
+        }
+
+        function labelsForVisible() {
+            // During vertical mode, show (r,c) tags on nodes already tagged.
+            const labels = {};
+            if (mode !== 'vert') return labels;
+            for (let i = 0; i < idx && i < steps.length; i++) {
+                const st = steps[i];
+                if (st.type === 'tag') labels[st.id] = `(${COORD[st.id].row},${COORD[st.id].col})`;
+            }
+            // keep tags visible during emit phase too
+            const tagsDone = steps.filter(st => st.type === 'tag').length;
+            if (idx >= tagsDone) {
+                steps.filter(st => st.type === 'tag').forEach(st => labels[st.id] = `(${COORD[st.id].row},${COORD[st.id].col})`);
+            }
+            return labels;
+        }
+
+        function render() {
+            const visited = new Set();
+            let active = null;
+            for (let i = 0; i < idx && i < steps.length; i++) {
+                const st = steps[i];
+                if (st.type === 'emit') visited.add(st.id);
+                if (st.type === 'tag') visited.add(st.id);
+            }
+            if (idx > 0 && idx <= steps.length) active = steps[idx - 1].id;
+            // active should be the node we just acted on; clear from visited so it pulses
+            if (active) visited.delete(active);
+            drawTree(svg, TREE, ROOT, { visited, active, labels: labelsForVisible() });
+            // render emitted chips
+            const out = document.getElementById('out');
+            out.innerHTML = emitted.map(e =>
+                (e.sep ? '<span class="chip sep">|</span>' : '') + `<span class="chip">${e.val}</span>`
+            ).join('');
+        }
+
+        function pick(m) {
+            mode = m;
+            steps = buildSteps(m);
+            idx = 0;
+            emitted = [];
+            document.getElementById('m-vert').classList.toggle('sel', m === 'vert');
+            document.getElementById('m-diag').classList.toggle('sel', m === 'diag');
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('outLbl').textContent = m === 'vert' ? 'COLUMNS:' : 'DIAGONALS:';
+            render();
+            if (m === 'vert') {
+                setStatus('<b>Vertical order.</b> First we tag every node with its <b>(row, col)</b>: root is (0,0); left does col&minus;1, right does col+1. Press <b>Next Step ▶</b>.');
+            } else {
+                setStatus('<b>Diagonal.</b> Root starts on diagonal 0. Going <b>right keeps the diagonal</b>; going <b>left</b> starts the next one. We sweep diagonals 0, 1, 2&hellip; Press <b>Next Step ▶</b>.');
+            }
+        }
+
+        function step() {
+            if (!mode || idx >= steps.length) return;
+            const st = steps[idx];
+            idx++;
+            if (st.type === 'tag') {
+                render();
+                const c = COORD[st.id];
+                const tagsLeft = steps.slice(idx).filter(s => s.type === 'tag').length;
+                if (tagsLeft === 0) {
+                    setStatus(`Tagged node <b>${TREE[st.id].val}</b> at <b>(row ${c.row}, col ${c.col})</b>. All nodes tagged &mdash; now we sweep columns <b>left to right</b>, breaking row+column ties by smaller value. Press <b>Next Step ▶</b>.`);
+                } else {
+                    setStatus(`Tagging <b>(row, col)</b>. Node <b>${TREE[st.id].val}</b> &rarr; <b>(${c.row}, ${c.col})</b>. ${tagsLeft} node(s) left to tag.`);
+                }
+                return;
+            }
+            // emit step
+            emitted.push({ val: TREE[st.id].val, sep: st.groupStart && emitted.length > 0 });
+            render();
+            if (mode === 'vert') {
+                const c = COORD[st.id];
+                if (st.groupStart) {
+                    setStatus(`New column <b>${st.col}</b>. Emitting node <b>${TREE[st.id].val}</b> at (row ${c.row}, col ${c.col}).`);
+                } else {
+                    setStatus(`Same column <b>${st.col}</b>, next by (row, value): node <b>${TREE[st.id].val}</b> at (row ${c.row}, col ${c.col}).`);
+                }
+            } else {
+                if (st.groupStart) {
+                    setStatus(`New diagonal <b>${st.diag}</b>. Emitting node <b>${TREE[st.id].val}</b>.`);
+                } else {
+                    setStatus(`Same diagonal <b>${st.diag}</b> (we stepped right): node <b>${TREE[st.id].val}</b>.`);
+                }
+            }
+            if (idx >= steps.length) {
+                const vals = emitted.map(e => e.val).join(' ');
+                const what = mode === 'vert' ? 'Vertical order' : 'Diagonal traversal';
+                setStatus(`<b>${what} complete:</b> ${vals}. The <span style="color:#94a3b8">|</span> marks separate ${mode === 'vert' ? 'columns' : 'diagonals'}.`);
+                document.getElementById('stepBtn').disabled = true;
+            }
+        }
+
+        function resetWalk() {
+            if (!mode) { setStatus('Pick a mode above to begin.'); drawTree(svg, TREE, ROOT, {}); document.getElementById('out').innerHTML = ''; return; }
+            idx = 0;
+            emitted = [];
+            document.getElementById('stepBtn').disabled = false;
+            render();
+            pick(mode);
+        }
+
+        drawTree(svg, TREE, ROOT, {});
+    </script>
+</body>
+</html>

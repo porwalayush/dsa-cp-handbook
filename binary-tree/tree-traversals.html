@@ -41,6 +41,23 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .mode-btn.sel { background: #4f46e5; box-shadow: 0 0 0 3px rgba(99,102,241,0.18); }
+        .pg-out { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; min-height: 34px; align-items: center; }
+        .pg-out .lbl { font-size: 0.75em; color: #94a3b8; font-weight: 600; margin-right: 4px; }
+        .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 8px; background: #eef2ff; color: #4f46e5; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85em; border: 1px solid #c7d2fe; animation: pop 0.25s ease; }
+        @keyframes pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,7 +65,9 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Binary Tree Traversals</h1>
-        <p>A <strong>traversal</strong> is a systematic way to visit every node in a tree exactly once. The two main families are <strong>Depth-First Search (DFS)</strong> &mdash; which dives deep along a branch before backtracking (preorder, inorder, postorder) &mdash; and <strong>Breadth-First Search (BFS)</strong>, also called level-order, which visits nodes level by level.</p>
+        <p>A <strong>traversal</strong> just means a plan for visiting every node in a tree exactly once. There are two very different styles, and a simple picture tells them apart.</p>
+        <p><strong>Depth-First Search (DFS)</strong> is like <strong>exploring a cave</strong>: you pick a tunnel and follow it all the way to the dead end before you ever back up to try another. You go <em>deep</em> first. The three DFS flavours &mdash; <strong>preorder</strong>, <strong>inorder</strong>, and <strong>postorder</strong> &mdash; only differ in <em>when</em> you jot down the current room: before exploring, between the two tunnels, or after both.</p>
+        <p><strong>Breadth-First Search (BFS)</strong>, also called <strong>level-order</strong>, is like <strong>water flooding the cave</strong>: it fills everything one step away from the entrance, then everything two steps away, and so on. You visit the tree <em>level by level</em>, top to bottom, left to right &mdash; never diving deep until the current level is fully covered.</p>
 
         <h2>The Running Example</h2>
         <p>Throughout this page we use one fixed binary tree. It happens to be a <strong>Binary Search Tree (BST)</strong>, which lets us highlight a useful property of inorder traversal later.</p>
@@ -69,6 +88,26 @@ DFS results for this tree:
 BFS result:
   Level-order (top to bottom):     4 2 6 1 3 5 7
 </pre>
+        </div>
+
+        <p>Reading those four sequences is one thing &mdash; watching them happen is another. Pick a traversal, then press <strong>Next Step</strong> to visit one node at a time. The purple node is the one being visited right now; faded nodes are already done; each visit drops a chip into the output row.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Traversal Animator</div>
+            <div class="pg-sub">1. Choose a traversal. 2. Press <strong>Next Step ▶</strong> to visit nodes one at a time. The status line explains the rule as you go.</div>
+            <div class="pg-controls" style="margin-top:0;margin-bottom:8px">
+                <button class="btn btn-primary mode-btn" id="m-pre" onclick="pick('pre')">Preorder</button>
+                <button class="btn btn-primary mode-btn" id="m-in" onclick="pick('in')">Inorder</button>
+                <button class="btn btn-primary mode-btn" id="m-post" onclick="pick('post')">Postorder</button>
+                <button class="btn btn-primary mode-btn" id="m-level" onclick="pick('level')">Level-order</button>
+            </div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-out"><span class="lbl">VISITED:</span><span id="out"></span></div>
+            <div class="pg-status" id="status">Pick a traversal above to begin.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="step()" disabled>Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="resetWalk()">↺ Reset</button>
+            </div>
         </div>
 
         <div class="compare">
@@ -930,6 +969,150 @@ List&lt;Integer&gt; morrisInorder(TreeNode root) {
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // Renders tree into svgEl. layout via inorder x-index. Returns positions map.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // The fixed BST sample tree from the page (ids === values):
+        //        4
+        //      /   \
+        //     2     6
+        //    / \   / \
+        //   1   3 5   7
+        const TREE = {
+            '4': { val: 4, left: '2', right: '6' },
+            '2': { val: 2, left: '1', right: '3' },
+            '6': { val: 6, left: '5', right: '7' },
+            '1': { val: 1, left: null, right: null },
+            '3': { val: 3, left: null, right: null },
+            '5': { val: 5, left: null, right: null },
+            '7': { val: 7, left: null, right: null }
+        };
+        const ROOT = '4';
+        const svg = document.getElementById('treeSvg');
+        const RULES = {
+            pre:   'Preorder = <b>visit node, then left, then right</b>. We record a room the moment we enter it.',
+            in:    'Inorder = <b>left, then visit node, then right</b>. We record a room only after exploring its whole left tunnel.',
+            post:  'Postorder = <b>left, then right, then visit node</b>. We record a room last, after both tunnels are done.',
+            level: 'Level-order (BFS) = <b>visit level by level, top to bottom</b>. Like water flooding the cave one ring at a time.'
+        };
+        const NAMES = { pre: 'Preorder', in: 'Inorder', post: 'Postorder', level: 'Level-order' };
+
+        // Precompute the visit sequence for a mode.
+        function sequence(mode) {
+            const seq = [];
+            if (mode === 'level') {
+                const q = [ROOT];
+                while (q.length) {
+                    const id = q.shift();
+                    seq.push(id);
+                    if (TREE[id].left) q.push(TREE[id].left);
+                    if (TREE[id].right) q.push(TREE[id].right);
+                }
+                return seq;
+            }
+            (function dfs(id) {
+                if (id == null) return;
+                if (mode === 'pre') seq.push(id);
+                dfs(TREE[id].left);
+                if (mode === 'in') seq.push(id);
+                dfs(TREE[id].right);
+                if (mode === 'post') seq.push(id);
+            })(ROOT);
+            return seq;
+        }
+
+        let mode = null, seq = [], idx = 0;
+        function setStatus(t) { document.getElementById('status').innerHTML = t; }
+
+        function renderWalk() {
+            const visited = new Set(seq.slice(0, idx));
+            const active = idx < seq.length ? seq[idx] : null;
+            // already-visited (but not the active) are dimmed; active pulses purple.
+            drawTree(svg, TREE, ROOT, { visited, active });
+            const out = document.getElementById('out');
+            out.innerHTML = seq.slice(0, idx).map(id => `<span class="chip">${TREE[id].val}</span>`).join('');
+        }
+
+        function pick(m) {
+            mode = m;
+            seq = sequence(m);
+            idx = 0;
+            ['pre', 'in', 'post', 'level'].forEach(k =>
+                document.getElementById('m-' + k).classList.toggle('sel', k === m));
+            document.getElementById('stepBtn').disabled = false;
+            renderWalk();
+            setStatus(RULES[m] + ' Press <b>Next Step ▶</b> to begin.');
+        }
+
+        function step() {
+            if (!mode || idx >= seq.length) return;
+            const id = seq[idx];
+            idx++;
+            renderWalk();
+            if (idx >= seq.length) {
+                const vals = seq.map(i => TREE[i].val).join(' ');
+                setStatus(`Visited node <b>${TREE[id].val}</b>. <b>${NAMES[mode]} complete:</b> ${vals}.`);
+                document.getElementById('stepBtn').disabled = true;
+            } else {
+                setStatus(`${RULES[mode]} &nbsp;&rarr;&nbsp; Just visited <b>${TREE[id].val}</b>; next up is <b>${TREE[seq[idx]].val}</b>.`);
+            }
+        }
+
+        function resetWalk() {
+            if (!mode) { setStatus('Pick a traversal above to begin.'); drawTree(svg, TREE, ROOT, {}); document.getElementById('out').innerHTML = ''; return; }
+            idx = 0;
+            document.getElementById('stepBtn').disabled = false;
+            renderWalk();
+            setStatus(RULES[mode] + ' Press <b>Next Step ▶</b> to begin.');
+        }
+
+        drawTree(svg, TREE, ROOT, {});
     </script>
 </body>
 </html>

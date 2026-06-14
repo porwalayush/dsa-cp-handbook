@@ -41,6 +41,28 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .chip-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .chip-row .label { font-size: 0.78em; font-weight: 700; color: #64748b; width: 78px; font-family: 'JetBrains Mono', monospace; }
+        .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 8px; border: 2px solid #e2e8f0; background: white; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.9em; color: #0f172a; transition: all 0.2s ease; }
+        .chip.root { border-color: #7c3aed; background: #ede9fe; color: #6d28d9; transform: translateY(-3px); box-shadow: 0 4px 12px rgba(124,58,237,0.25); }
+        .chip.leftset { border-color: #16a34a; background: #ecfdf5; color: #15803d; }
+        .chip.rightset { border-color: #f59e0b; background: #fffbeb; color: #b45309; }
+        .chip.done { border-color: #cbd5e1; background: #f8fafc; color: #94a3b8; }
+        .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 4px 0 12px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 10px; height: 10px; border-radius: 3px; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,10 +70,29 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Constructing Binary Trees from Traversals</h1>
-        <p>A classic family of problems asks you to <strong>rebuild a binary tree</strong> from one or more of its traversal sequences. The challenge is figuring out which traversals carry enough information to pin down a <em>unique</em> tree, and then doing the reconstruction efficiently in O(n) time.</p>
+        <p>Think of a traversal as a <strong>fingerprint</strong> the tree leaves behind. If you walk the tree in a fixed order and write down the values you pass, you get a sequence. The question this page answers is the reverse: <strong>given the fingerprints, can you rebuild the exact original tree?</strong></p>
+        <p>It turns out one fingerprint is never enough &mdash; but the <em>right two</em> are. The reason is a neat division of labor: one traversal tells you <strong>who the root is</strong>, and a second one (inorder) tells you <strong>which nodes go left of the root and which go right</strong>. Put those two facts together, recurse, and the whole tree falls out. The step-through builder below shows exactly this happening, one node at a time.</p>
+
+        <div class="playground">
+            <div class="pg-title">🏗️ Step-Through Tree Builder (Preorder + Inorder)</div>
+            <div class="pg-sub">Press "Next Step ▶" to place one node at a time. Watch how the current preorder element becomes a root, and how inorder splits the rest into a left and right subtree.</div>
+            <div class="chip-row"><span class="label">preorder</span><span id="preChips"></span></div>
+            <div class="chip-row"><span class="label">inorder</span><span id="inChips"></span></div>
+            <div class="legend">
+                <span><span class="dot" style="background:#a78bfa"></span>current root (from preorder)</span>
+                <span><span class="dot" style="background:#86efac"></span>left subtree (inorder)</span>
+                <span><span class="dot" style="background:#fbbf24"></span>right subtree (inorder)</span>
+            </div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%;min-height:60px"></svg>
+            <div class="pg-status" id="status">Press "Next Step ▶" to pick the first root.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="stepBuild()">Next Step ▶</button>
+                <button class="btn btn-danger" onclick="resetBuild()">↺ Reset</button>
+            </div>
+        </div>
 
         <h2>Why One Traversal Is Not Enough</h2>
-        <p>A single traversal is <strong>ambiguous</strong>: many different tree shapes produce the same sequence. Consider the preorder sequence <code>[1, 2]</code>. Two completely different trees yield it:</p>
+        <p>A single traversal is <strong>ambiguous</strong>: many different tree shapes leave the exact same fingerprint. Consider the preorder sequence <code>[1, 2]</code>. Two completely different trees yield it:</p>
 
         <div class="visual">
 <pre>
@@ -84,7 +125,7 @@ whether 2 is a left child or a right child.
         </div>
 
         <h2>1. Build from Preorder + Inorder</h2>
-        <p>The recipe relies on two facts:</p>
+        <p>This is the workhorse pairing, and it's exactly what the builder at the top of the page animates. The recipe relies on two facts:</p>
         <ul>
             <li><strong>Preorder</strong> visits <em>root, then left subtree, then right subtree</em> &mdash; so the <strong>first</strong> unused preorder element is always the next root.</li>
             <li><strong>Inorder</strong> visits <em>left subtree, then root, then right subtree</em> &mdash; so once we know the root's position in inorder, everything to its left is the left subtree and everything to its right is the right subtree.</li>
@@ -531,6 +572,188 @@ range [15,20,7]: first level-order value present = 20 -> root
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ----- Reusable SVG tree renderer -----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            if (rootId == null) { svgEl.innerHTML = ''; svgEl.removeAttribute('viewBox'); return {}; }
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ----- Step-through builder data -----
+        const PRE = [3, 9, 20, 15, 7];
+        const IN  = [9, 3, 15, 20, 7];
+
+        // Precompute build steps in preorder (node-creation) order.
+        // Each step: {val, inL, inR, mid, leftRange, rightRange, parent, side}
+        const inIdx = {}; IN.forEach((v, i) => inIdx[v] = i);
+        const steps = [];
+        const nodesById = {}; // id -> {val,left,right}
+        let preP = 0;
+        (function build(inL, inR, parent, side) {
+            if (inL > inR) return null;
+            const val = PRE[preP++];
+            const mid = inIdx[val];
+            const id = 'n' + val;
+            nodesById[id] = { val: val, left: null, right: null }; // children filled lazily during animation
+            steps.push({
+                id: id, val: val, inL: inL, inR: inR, mid: mid,
+                parent: parent, side: side
+            });
+            const leftId = build(inL, mid - 1, id, 'left');
+            const rightId = build(mid + 1, inR, id, 'right');
+            // store intended children so we can attach them when each child step runs
+            nodesById[id]._wantLeft = leftId;
+            nodesById[id]._wantRight = rightId;
+            return id;
+        })(0, IN.length - 1, null, null);
+        const ROOT_ID = steps.length ? steps[0].id : null;
+
+        const svg = document.getElementById('treeSvg');
+        const statusEl = document.getElementById('status');
+        const preChipsEl = document.getElementById('preChips');
+        const inChipsEl = document.getElementById('inChips');
+        const stepBtn = document.getElementById('stepBtn');
+
+        let cursor = 0;            // index of NEXT step to apply
+        let placed = {};           // id -> live node object currently shown
+
+        function renderChips(active) {
+            // active = {preIndex, inL, inR, mid} or null
+            preChipsEl.innerHTML = '';
+            PRE.forEach((v, i) => {
+                const c = document.createElement('span');
+                c.className = 'chip';
+                if (active && i === active.preIndex) c.classList.add('root');
+                else if (active && i < active.preIndex) c.classList.add('done');
+                c.textContent = v;
+                preChipsEl.appendChild(c);
+            });
+            inChipsEl.innerHTML = '';
+            IN.forEach((v, i) => {
+                const c = document.createElement('span');
+                c.className = 'chip';
+                if (active) {
+                    if (i === active.mid) c.classList.add('root');
+                    else if (i >= active.inL && i < active.mid) c.classList.add('leftset');
+                    else if (i > active.mid && i <= active.inR) c.classList.add('rightset');
+                    else c.classList.add('done');
+                }
+                c.textContent = v;
+                inChipsEl.appendChild(c);
+            });
+        }
+
+        function renderTree(activeId) {
+            // build a nodes map of only placed nodes; missing children stay null
+            const view = {};
+            for (const id in placed) {
+                const n = placed[id];
+                view[id] = {
+                    val: n.val,
+                    left: (n.left && placed[n.left.id]) ? n.left.id : null,
+                    right: (n.right && placed[n.right.id]) ? n.right.id : null
+                };
+            }
+            if (!ROOT_ID || !placed[ROOT_ID]) { drawTree(svg, {}, null, {}); return; }
+            drawTree(svg, view, ROOT_ID, { active: activeId });
+        }
+
+        function ordinal(n) { return ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][n] || (n + 1) + 'th'; }
+
+        function stepBuild() {
+            if (cursor >= steps.length) return;
+            const s = steps[cursor];
+            // create live node
+            placed[s.id] = { id: s.id, val: s.val, left: null, right: null };
+            // attach to parent
+            if (s.parent) {
+                placed[s.parent][s.side] = placed[s.id];
+            }
+            renderChips({ preIndex: cursor, inL: s.inL, inR: s.inR, mid: s.mid });
+            renderTree(s.id);
+
+            const leftVals = IN.slice(s.inL, s.mid);
+            const rightVals = IN.slice(s.mid + 1, s.inR + 1);
+            let msg = `Step ${cursor + 1}: <b>preorder[${cursor}] = ${s.val}</b> is the next root`;
+            if (s.parent) msg += ` (it becomes the <b>${s.side}</b> child of ${placed[s.parent].val})`;
+            msg += `. In inorder we find <b>${s.val}</b>, and split: `;
+            msg += `left subtree = [${leftVals.length ? leftVals.join(', ') : '∅'}], `;
+            msg += `right subtree = [${rightVals.length ? rightVals.join(', ') : '∅'}]`;
+            if (!leftVals.length && !rightVals.length) msg += ` — nothing on either side, so ${s.val} is a <b>leaf</b>.`;
+            else msg += '.';
+            statusEl.innerHTML = msg;
+
+            cursor++;
+            if (cursor >= steps.length) {
+                stepBtn.disabled = true;
+                stepBtn.textContent = 'Done ✓';
+                statusEl.innerHTML += ' <b style="color:#16a34a">All nodes placed — tree fully rebuilt!</b>';
+                // clear the chip highlighting roots but keep tree
+                renderChipsFinished();
+                renderTree(null);
+            }
+        }
+
+        function renderChipsFinished() {
+            [preChipsEl, inChipsEl].forEach(el => {
+                el.querySelectorAll('.chip').forEach(c => { c.className = 'chip done'; });
+            });
+        }
+
+        function resetBuild() {
+            cursor = 0;
+            placed = {};
+            stepBtn.disabled = false;
+            stepBtn.textContent = 'Next Step ▶';
+            renderChips(null);
+            drawTree(svg, {}, null, {});
+            statusEl.innerHTML = 'Press "Next Step ▶" to pick the first root.';
+        }
+
+        resetBuild();
     </script>
 </body>
 </html>

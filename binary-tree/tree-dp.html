@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree DP &amp; Rerooting - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls label { font-size: 0.8em; color: #64748b; font-weight: 600; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Binary Trees</a>
+        <h1>Tree DP &amp; Rerooting</h1>
+        <p>Picture a company org chart. You&rsquo;re a manager, and your boss asks: &ldquo;How many people are under you, total?&rdquo; You don&rsquo;t count them yourself. You ask each of your direct reports the same question, wait for their answers, add them up, add yourself, and report that one number up the chain. That tiny ritual &mdash; <strong>ask the children, fold their answers into one small summary, hand it to your parent</strong> &mdash; is the entire idea behind tree dynamic programming.</p>
+        <p>The path-problems page solved a whole family of questions with one DFS skeleton. This page zooms out: that skeleton was a special case of a general pattern called <strong>tree DP</strong>, where each node computes a compact &ldquo;summary&rdquo; from its children&rsquo;s summaries. Once you see the pattern, problems that look wildly different &mdash; robbing houses, placing security cameras, summing distances &mdash; all collapse into the same shape.</p>
+
+        <h2>1. The Tree-DP Mindset</h2>
+        <p>Tree DP is just the org-chart ritual made precise. Process the tree in <strong>postorder</strong> (children before parent), and have each node return a small fixed-size summary &mdash; often a single number or a tiny tuple &mdash; computed purely from its children&rsquo;s summaries plus the node&rsquo;s own value. The parent never re-examines a grandchild; it trusts the summary its child handed up.</p>
+
+        <p>On the <a href="path-problems.html">Tree Path Problems</a> page, the Maximum Path Sum solution did exactly this: each node returned its &ldquo;best gain ending here&rdquo; (a one-number summary) while quietly updating a global answer. That was tree DP in disguise. The mental upgrade here is to stop thinking &ldquo;path trick&rdquo; and start thinking &ldquo;<em>what is the smallest summary a node must report so its parent can do its own job?</em>&rdquo; Answer that question and the recursion writes itself.</p>
+
+        <div class="visual">
+<pre>
+The tree-DP skeleton (postorder)
+--------------------------------
+solve(node):
+    if node is null: return base-case summary
+    childSummaries = [solve(c) for c in node.children]
+    mySummary = combine(node.value, childSummaries)   # the only creative step
+    return mySummary
+
+The whole craft is designing "summary" and "combine":
+  * summary must be SMALL  (O(1) per node) and SELF-CONTAINED
+  * combine uses only the node + its children's summaries
+  * sometimes a global answer is updated as a side effect
+</pre>
+        </div>
+
+        <div class="note">
+            <strong>How to design the summary.</strong> Ask: &ldquo;If my children already solved their subtrees perfectly and handed me an answer, what do I need from them to solve mine?&rdquo; If one number isn&rsquo;t enough, return a tuple. House Robber III needs two numbers per node; cameras need three states. The summary is always O(1), so the whole pass is O(n).
+        </div>
+
+        <h2>2. House Robber III</h2>
+        <p>You&rsquo;re a (cartoon) burglar and the houses are arranged as a tree. Each house has some cash. The one rule: <strong>you can&rsquo;t rob two houses that are directly connected</strong> (parent and child), or the silent alarm trips. Maximize the cash you take. This is the classic line &ldquo;House Robber&rdquo; problem bent onto a tree.</p>
+
+        <p>The summary insight: for each node, the only thing the parent cares about is two numbers &mdash; <em>how much can I make in this subtree if I rob this node</em>, and <em>how much if I skip it</em>. Return that pair <code>{rob, skip}</code> and the parent combines them:</p>
+        <ul>
+            <li><strong>If I rob this node:</strong> I take its cash, but then I must <em>skip</em> both children. So <code>rob = node.val + left.skip + right.skip</code>.</li>
+            <li><strong>If I skip this node:</strong> each child is free to do whatever is best for it &mdash; rob or skip, whichever is larger. So <code>skip = max(left.rob, left.skip) + max(right.rob, right.skip)</code>.</li>
+        </ul>
+        <p>The final answer is <code>max(root.rob, root.skip)</code>. One postorder pass, O(n) time, O(1) per node. Try the step-through widget below to watch the <code>{rob, skip}</code> pair get computed bottom-up.</p>
+
+        <h3>See It: Compute Bottom-Up</h3>
+        <p>Press <strong>Compute &#9654;</strong> to do a postorder walk. Each node pulses indigo as it&rsquo;s visited, and its <code>{rob, skip}</code> summary is shown beside it and narrated in the status line. At the end, the chosen (robbed) houses light up <span style="color:#16a34a;font-weight:700">green</span> and the max total is shown.</p>
+
+        <div class="playground">
+            <div class="pg-title">&#127916; House Robber III &mdash; Postorder DP Walker</div>
+            <div class="pg-sub">Each node reports a tiny summary {rob, skip}. We compute it children-first, then trace which houses the optimal plan robs.</div>
+            <svg id="robSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="robStatus">Press &ldquo;Compute &#9654;&rdquo; to run the postorder DP.</div>
+            <div class="legend">
+                <span><span class="dot" style="background:#ede9fe;border:2px solid #7c3aed"></span>node being computed</span>
+                <span><span class="dot" style="background:#eef2ff;border:2px solid #6366f1"></span>summary computed</span>
+                <span><span class="dot" style="background:#ecfdf5;border:2px solid #16a34a"></span>robbed in optimal plan</span>
+            </div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="robBtn" onclick="runRob()">Compute &#9654;</button>
+                <button class="btn btn-ghost" onclick="resetRob()">&#8634; Reset</button>
+            </div>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppRob')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaRob')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyRob')">Python</button>
+            </div>
+            <div id="cppRob" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode { <span class="keyword">int</span> val; TreeNode *left, *right; };
+
+<span class="comment">// returns {rob, skip} for the subtree rooted at node</span>
+pair&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; dfs(TreeNode* node) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> {<span class="number">0</span>, <span class="number">0</span>};       <span class="comment">// base case</span>
+    <span class="keyword">auto</span> [lRob, lSkip] = dfs(node-&gt;left);
+    <span class="keyword">auto</span> [rRob, rSkip] = dfs(node-&gt;right);
+    <span class="keyword">int</span> rob  = node-&gt;val + lSkip + rSkip;          <span class="comment">// take node -&gt; skip kids</span>
+    <span class="keyword">int</span> skip = max(lRob, lSkip) + max(rRob, rSkip); <span class="comment">// kids free</span>
+    <span class="keyword">return</span> {rob, skip};
+}
+
+<span class="keyword">int</span> rob(TreeNode* root) {
+    <span class="keyword">auto</span> [r, s] = dfs(root);
+    <span class="keyword">return</span> max(r, s);
+}
+</pre>
+            </div>
+            <div id="javaRob" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> { <span class="keyword">int</span> val; <span class="type">TreeNode</span> left, right; }
+
+<span class="comment">// returns {rob, skip} for the subtree rooted at node</span>
+<span class="keyword">int</span>[] dfs(<span class="type">TreeNode</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">new</span> <span class="keyword">int</span>[]{<span class="number">0</span>, <span class="number">0</span>};
+    <span class="keyword">int</span>[] L = dfs(node.left);
+    <span class="keyword">int</span>[] R = dfs(node.right);
+    <span class="keyword">int</span> rob  = node.val + L[<span class="number">1</span>] + R[<span class="number">1</span>];        <span class="comment">// take node -&gt; skip kids</span>
+    <span class="keyword">int</span> skip = <span class="type">Math</span>.max(L[<span class="number">0</span>], L[<span class="number">1</span>])
+             + <span class="type">Math</span>.max(R[<span class="number">0</span>], R[<span class="number">1</span>]);          <span class="comment">// kids free</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> <span class="keyword">int</span>[]{rob, skip};
+}
+
+<span class="keyword">int</span> rob(<span class="type">TreeNode</span> root) {
+    <span class="keyword">int</span>[] res = dfs(root);
+    <span class="keyword">return</span> <span class="type">Math</span>.max(res[<span class="number">0</span>], res[<span class="number">1</span>]);
+}
+</pre>
+            </div>
+            <div id="pyRob" class="code-content">
+<pre>
+<span class="keyword">def</span> rob(root):
+    <span class="keyword">def</span> dfs(node):                          <span class="comment"># returns (rob, skip)</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span> (<span class="number">0</span>, <span class="number">0</span>)                    <span class="comment"># base case</span>
+        l_rob, l_skip = dfs(node.left)
+        r_rob, r_skip = dfs(node.right)
+        rob_here  = node.val + l_skip + r_skip          <span class="comment"># skip kids</span>
+        skip_here = max(l_rob, l_skip) + max(r_rob, r_skip)
+        <span class="keyword">return</span> (rob_here, skip_here)
+    <span class="keyword">return</span> max(dfs(root))
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why two numbers, not one?</strong> If a node returned only its best subtree total, the parent couldn&rsquo;t tell whether that total used the child &mdash; and the adjacency rule depends on exactly that. Carrying both the &ldquo;used me&rdquo; and &ldquo;didn&rsquo;t use me&rdquo; values lets the parent make a legal choice. This &ldquo;return one value per relevant state&rdquo; idea generalizes to the camera problem next.
+        </div>
+
+        <h2>3. Binary Tree Cameras (Greedy Postorder)</h2>
+        <p>Now you&rsquo;re installing security cameras. A camera on a node watches <strong>itself, its parent, and its direct children</strong>. You want every node watched using the <em>fewest</em> cameras. This feels like an optimization nightmare, but a small greedy insight tames it: <strong>never waste a camera on a leaf</strong> &mdash; a leaf is covered for free by putting the camera on its parent, which also covers the parent and the grandparent. So decisions should bubble up from the bottom.</p>
+
+        <p>Each node reports one of three states to its parent:</p>
+        <ul>
+            <li><strong>0 &mdash; &ldquo;I need coverage&rdquo;:</strong> I have no camera and nothing below me is watching me. My parent must place a camera.</li>
+            <li><strong>1 &mdash; &ldquo;I&rsquo;m covered, no camera here&rdquo;:</strong> a child of mine has a camera watching me. My parent can relax about me.</li>
+            <li><strong>2 &mdash; &ldquo;I have a camera&rdquo;:</strong> I&rsquo;m watching upward, so my parent is covered too.</li>
+        </ul>
+        <p>The combine rule, postorder: if <em>either</em> child says &ldquo;I need coverage&rdquo; (0), I must place a camera here (return 2, count++). Else if <em>either</em> child has a camera (2), I&rsquo;m already covered (return 1). Otherwise both children are merely covered, so I&rsquo;m exposed &mdash; return 0 and let my parent handle me. Treat <code>null</code> children as state 1 (covered) so leaves end up reporting 0. One final check at the root: if the root reports 0, add one camera.</p>
+
+        <div class="visual">
+<pre>
+Camera watches: itself + parent + direct children
+state codes returned upward:  0 = needs cover, 1 = covered, 2 = has camera
+
+        0            root: a child returned 0? no. has a camera (2)? yes -&gt; root covered
+       / \
+     [2]  1          left child holds the camera (state 2)
+     / \
+    0   0            leaves: bare, return 0  -&gt; force a camera on their parent
+
+cameras placed = 1
+</pre>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppCam')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaCam')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyCam')">Python</button>
+            </div>
+            <div id="cppCam" class="code-content active">
+<pre>
+<span class="comment">// states: 0 = needs cover, 1 = covered, 2 = has camera</span>
+<span class="keyword">int</span> cameras = <span class="number">0</span>;
+
+<span class="keyword">int</span> dfs(TreeNode* node) {
+    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="number">1</span>;            <span class="comment">// null is "covered"</span>
+    <span class="keyword">int</span> L = dfs(node-&gt;left);
+    <span class="keyword">int</span> R = dfs(node-&gt;right);
+    <span class="keyword">if</span> (L == <span class="number">0</span> || R == <span class="number">0</span>) {        <span class="comment">// a child is exposed</span>
+        cameras++;
+        <span class="keyword">return</span> <span class="number">2</span>;                      <span class="comment">// place camera here</span>
+    }
+    <span class="keyword">if</span> (L == <span class="number">2</span> || R == <span class="number">2</span>) <span class="keyword">return</span> <span class="number">1</span>; <span class="comment">// a child covers me</span>
+    <span class="keyword">return</span> <span class="number">0</span>;                          <span class="comment">// exposed, ask parent</span>
+}
+
+<span class="keyword">int</span> minCameraCover(TreeNode* root) {
+    cameras = <span class="number">0</span>;
+    <span class="keyword">if</span> (dfs(root) == <span class="number">0</span>) cameras++;  <span class="comment">// root left exposed</span>
+    <span class="keyword">return</span> cameras;
+}
+</pre>
+            </div>
+            <div id="javaCam" class="code-content">
+<pre>
+<span class="comment">// states: 0 = needs cover, 1 = covered, 2 = has camera</span>
+<span class="keyword">int</span> cameras = <span class="number">0</span>;
+
+<span class="keyword">int</span> dfs(<span class="type">TreeNode</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">1</span>;    <span class="comment">// null is "covered"</span>
+    <span class="keyword">int</span> L = dfs(node.left);
+    <span class="keyword">int</span> R = dfs(node.right);
+    <span class="keyword">if</span> (L == <span class="number">0</span> || R == <span class="number">0</span>) {        <span class="comment">// a child is exposed</span>
+        cameras++;
+        <span class="keyword">return</span> <span class="number">2</span>;                      <span class="comment">// place camera here</span>
+    }
+    <span class="keyword">if</span> (L == <span class="number">2</span> || R == <span class="number">2</span>) <span class="keyword">return</span> <span class="number">1</span>; <span class="comment">// a child covers me</span>
+    <span class="keyword">return</span> <span class="number">0</span>;                          <span class="comment">// exposed, ask parent</span>
+}
+
+<span class="keyword">int</span> minCameraCover(<span class="type">TreeNode</span> root) {
+    cameras = <span class="number">0</span>;
+    <span class="keyword">if</span> (dfs(root) == <span class="number">0</span>) cameras++;  <span class="comment">// root left exposed</span>
+    <span class="keyword">return</span> cameras;
+}
+</pre>
+            </div>
+            <div id="pyCam" class="code-content">
+<pre>
+<span class="keyword">def</span> min_camera_cover(root):
+    cameras = <span class="number">0</span>
+    <span class="comment"># states: 0 = needs cover, 1 = covered, 2 = has camera</span>
+    <span class="keyword">def</span> dfs(node):
+        <span class="keyword">nonlocal</span> cameras
+        <span class="keyword">if</span> <span class="keyword">not</span> node:
+            <span class="keyword">return</span> <span class="number">1</span>                    <span class="comment"># null is "covered"</span>
+        L = dfs(node.left)
+        R = dfs(node.right)
+        <span class="keyword">if</span> L == <span class="number">0</span> <span class="keyword">or</span> R == <span class="number">0</span>:           <span class="comment"># a child is exposed</span>
+            cameras += <span class="number">1</span>
+            <span class="keyword">return</span> <span class="number">2</span>                    <span class="comment"># place camera here</span>
+        <span class="keyword">if</span> L == <span class="number">2</span> <span class="keyword">or</span> R == <span class="number">2</span>:
+            <span class="keyword">return</span> <span class="number">1</span>                    <span class="comment"># a child covers me</span>
+        <span class="keyword">return</span> <span class="number">0</span>                        <span class="comment"># exposed, ask parent</span>
+    <span class="keyword">if</span> dfs(root) == <span class="number">0</span>:
+        cameras += <span class="number">1</span>
+    <span class="keyword">return</span> cameras
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Same shape, different summary.</strong> House Robber III returned a 2-tuple of <em>sums</em>; cameras return a single <em>state code</em> and mutate a global counter. Both are postorder, both fold children into an O(1) report. Once you internalize &ldquo;design the summary,&rdquo; the two problems feel like cousins rather than strangers.
+        </div>
+
+        <h2>4. The Children-Sum Property</h2>
+        <p>A tree has the <strong>children-sum property</strong> when, for every non-leaf node, the node&rsquo;s value equals the sum of its children&rsquo;s values (a missing child counts as 0). Think of it as a budget rule: every manager&rsquo;s number must equal the sum of their direct reports&rsquo; numbers. Leaves are free to hold anything.</p>
+
+        <h3>Checking it</h3>
+        <p>Pure tree DP: each node reports its own value upward; a parent compares its value against the sum of what its children reported. If any node fails, the whole tree fails. One postorder pass.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppCheck')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaCheck')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyCheck')">Python</button>
+            </div>
+            <div id="cppCheck" class="code-content active">
+<pre>
+<span class="keyword">bool</span> isChildrenSum(TreeNode* node) {
+    <span class="keyword">if</span> (!node || (!node-&gt;left &amp;&amp; !node-&gt;right))
+        <span class="keyword">return</span> <span class="keyword">true</span>;                       <span class="comment">// null or leaf: ok</span>
+    <span class="keyword">int</span> sum = (node-&gt;left  ? node-&gt;left-&gt;val  : <span class="number">0</span>)
+            + (node-&gt;right ? node-&gt;right-&gt;val : <span class="number">0</span>);
+    <span class="keyword">return</span> node-&gt;val == sum
+        &amp;&amp; isChildrenSum(node-&gt;left)
+        &amp;&amp; isChildrenSum(node-&gt;right);
+}
+</pre>
+            </div>
+            <div id="javaCheck" class="code-content">
+<pre>
+<span class="keyword">boolean</span> isChildrenSum(<span class="type">TreeNode</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span> || (node.left == <span class="keyword">null</span> &amp;&amp; node.right == <span class="keyword">null</span>))
+        <span class="keyword">return</span> <span class="keyword">true</span>;                       <span class="comment">// null or leaf: ok</span>
+    <span class="keyword">int</span> sum = (node.left  != <span class="keyword">null</span> ? node.left.val  : <span class="number">0</span>)
+            + (node.right != <span class="keyword">null</span> ? node.right.val : <span class="number">0</span>);
+    <span class="keyword">return</span> node.val == sum
+        &amp;&amp; isChildrenSum(node.left)
+        &amp;&amp; isChildrenSum(node.right);
+}
+</pre>
+            </div>
+            <div id="pyCheck" class="code-content">
+<pre>
+<span class="keyword">def</span> is_children_sum(node):
+    <span class="keyword">if</span> <span class="keyword">not</span> node <span class="keyword">or</span> (<span class="keyword">not</span> node.left <span class="keyword">and</span> <span class="keyword">not</span> node.right):
+        <span class="keyword">return</span> <span class="keyword">True</span>                      <span class="comment"># null or leaf: ok</span>
+    s = (node.left.val  <span class="keyword">if</span> node.left  <span class="keyword">else</span> <span class="number">0</span>) \
+      + (node.right.val <span class="keyword">if</span> node.right <span class="keyword">else</span> <span class="number">0</span>)
+    <span class="keyword">return</span> (node.val == s
+            <span class="keyword">and</span> is_children_sum(node.left)
+            <span class="keyword">and</span> is_children_sum(node.right))
+</pre>
+            </div>
+        </div>
+
+        <h3>Converting a tree to satisfy it</h3>
+        <p>You&rsquo;re allowed to only <em>increase</em> node values. The trick is a two-way conversation per node:</p>
+        <ul>
+            <li><strong>Top-down nudge:</strong> if the children&rsquo;s total is already &ge; the parent, bump the parent up to match it (we can only increase, so the larger side wins). If the parent is larger, push the surplus down into a child so the children can grow to meet the parent.</li>
+            <li><strong>Bottom-up fix:</strong> after recursing, recompute the parent as the sum of its (now possibly larger) children, so any growth that happened deeper is reflected upward.</li>
+        </ul>
+        <p>That postorder &ldquo;recompute parent from children after the recursion&rdquo; step is the tree-DP move &mdash; the parent&rsquo;s final value is a summary of the subtree below it.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppConv')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaConv')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyConv')">Python</button>
+            </div>
+            <div id="cppConv" class="code-content active">
+<pre>
+<span class="keyword">void</span> convert(TreeNode* node) {
+    <span class="keyword">if</span> (!node || (!node-&gt;left &amp;&amp; !node-&gt;right)) <span class="keyword">return</span>;
+    <span class="keyword">int</span> childSum = (node-&gt;left  ? node-&gt;left-&gt;val  : <span class="number">0</span>)
+                 + (node-&gt;right ? node-&gt;right-&gt;val : <span class="number">0</span>);
+    <span class="keyword">if</span> (childSum &gt;= node-&gt;val) {
+        node-&gt;val = childSum;                 <span class="comment">// bump parent up</span>
+    } <span class="keyword">else</span> {
+        <span class="keyword">int</span> diff = node-&gt;val - childSum;       <span class="comment">// push surplus down</span>
+        <span class="keyword">if</span> (node-&gt;left)  node-&gt;left-&gt;val  += diff;
+        <span class="keyword">else</span>            node-&gt;right-&gt;val += diff;
+    }
+    convert(node-&gt;left);
+    convert(node-&gt;right);
+    <span class="keyword">int</span> total = (node-&gt;left  ? node-&gt;left-&gt;val  : <span class="number">0</span>)
+             + (node-&gt;right ? node-&gt;right-&gt;val : <span class="number">0</span>);
+    node-&gt;val = total;                        <span class="comment">// bottom-up fix</span>
+}
+</pre>
+            </div>
+            <div id="javaConv" class="code-content">
+<pre>
+<span class="keyword">void</span> convert(<span class="type">TreeNode</span> node) {
+    <span class="keyword">if</span> (node == <span class="keyword">null</span> || (node.left == <span class="keyword">null</span> &amp;&amp; node.right == <span class="keyword">null</span>)) <span class="keyword">return</span>;
+    <span class="keyword">int</span> childSum = (node.left  != <span class="keyword">null</span> ? node.left.val  : <span class="number">0</span>)
+                 + (node.right != <span class="keyword">null</span> ? node.right.val : <span class="number">0</span>);
+    <span class="keyword">if</span> (childSum &gt;= node.val) {
+        node.val = childSum;                  <span class="comment">// bump parent up</span>
+    } <span class="keyword">else</span> {
+        <span class="keyword">int</span> diff = node.val - childSum;        <span class="comment">// push surplus down</span>
+        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>) node.left.val  += diff;
+        <span class="keyword">else</span>                   node.right.val += diff;
+    }
+    convert(node.left);
+    convert(node.right);
+    <span class="keyword">int</span> total = (node.left  != <span class="keyword">null</span> ? node.left.val  : <span class="number">0</span>)
+             + (node.right != <span class="keyword">null</span> ? node.right.val : <span class="number">0</span>);
+    node.val = total;                         <span class="comment">// bottom-up fix</span>
+}
+</pre>
+            </div>
+            <div id="pyConv" class="code-content">
+<pre>
+<span class="keyword">def</span> convert(node):
+    <span class="keyword">if</span> <span class="keyword">not</span> node <span class="keyword">or</span> (<span class="keyword">not</span> node.left <span class="keyword">and</span> <span class="keyword">not</span> node.right):
+        <span class="keyword">return</span>
+    child_sum = (node.left.val  <span class="keyword">if</span> node.left  <span class="keyword">else</span> <span class="number">0</span>) \
+              + (node.right.val <span class="keyword">if</span> node.right <span class="keyword">else</span> <span class="number">0</span>)
+    <span class="keyword">if</span> child_sum &gt;= node.val:
+        node.val = child_sum                  <span class="comment"># bump parent up</span>
+    <span class="keyword">else</span>:
+        diff = node.val - child_sum           <span class="comment"># push surplus down</span>
+        <span class="keyword">if</span> node.left:
+            node.left.val += diff
+        <span class="keyword">else</span>:
+            node.right.val += diff
+    convert(node.left)
+    convert(node.right)
+    total = (node.left.val  <span class="keyword">if</span> node.left  <span class="keyword">else</span> <span class="number">0</span>) \
+          + (node.right.val <span class="keyword">if</span> node.right <span class="keyword">else</span> <span class="number">0</span>)
+    node.val = total                          <span class="comment"># bottom-up fix</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Rerooting: An Answer for Every Node, in O(n)</h2>
+        <p>Here&rsquo;s the question that breaks naive tree DP: <strong>for every node, compute the sum of distances from that node to all other nodes.</strong> The obvious approach &mdash; run a fresh BFS/DFS from each node &mdash; is O(n&sup2;). For a million-node tree that&rsquo;s a trillion steps. Rerooting gets the same answer in O(n).</p>
+
+        <p>The intuition is a relay race between neighbors. Imagine you&rsquo;ve computed the answer for the root. Now you want the answer for a child <strong>c</strong>. Instead of recomputing from scratch, ask: <em>what changes when I &ldquo;move the camera&rdquo; from the parent to c?</em> Every node in c&rsquo;s own subtree gets <strong>one step closer</strong> to c, and every node <em>not</em> in c&rsquo;s subtree gets <strong>one step farther</strong>. So:</p>
+        <div class="visual">
+<pre>
+ans[child] = ans[parent] - (nodes inside child's subtree)
+                          + (nodes outside child's subtree)
+
+Let cnt[c] = size of c's subtree, n = total nodes.
+nodes outside = n - cnt[c], so:
+
+ans[child] = ans[parent] - cnt[child] + (n - cnt[child])
+           = ans[parent] + n - 2 * cnt[child]
+</pre>
+        </div>
+
+        <p>That one-line update is the whole magic. The algorithm is two passes:</p>
+        <ol>
+            <li><strong>Pass 1 (postorder, bottom-up):</strong> compute <code>cnt[v]</code> = subtree size, and <code>ans[root]</code> = total distance from the root, by accumulating child contributions. (When you pull a child&rsquo;s subtree up one level, you add <code>cnt[child]</code> to the running distance &mdash; one extra edge for each node down there.)</li>
+            <li><strong>Pass 2 (preorder, push-down):</strong> walk from the root downward; for each child apply <code>ans[child] = ans[parent] + n - 2*cnt[child]</code>, reusing the parent&rsquo;s freshly finalized answer.</li>
+        </ol>
+        <p>The first pass is ordinary tree DP. The second pass is what &ldquo;rerooting&rdquo; means: you reuse a neighbor&rsquo;s answer to get yours in O(1), so visiting all nodes is O(n) total.</p>
+
+        <div class="note">
+            <strong>The mental model:</strong> Pass 1 answers &ldquo;everything below me.&rdquo; Pass 2 hands each node the missing piece &mdash; &ldquo;everything <em>above</em> me&rdquo; &mdash; which the parent already knows, adjusted by one step. Down-contribution (pass 1) + up-contribution (pass 2) = the full answer for every node. Many rerooting problems (sum of distances, longest path from each node, counting via subtree + complement) follow this exact two-pass template; only the combine rule changes.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppRr')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaRr')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyRr')">Python</button>
+            </div>
+            <div id="cppRr" class="code-content active">
+<pre>
+<span class="comment">// general tree as adjacency list; sum of distances for every node</span>
+vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; adj;
+vector&lt;<span class="keyword">int</span>&gt; cnt, ans;
+<span class="keyword">int</span> n;
+
+<span class="keyword">void</span> postorder(<span class="keyword">int</span> u, <span class="keyword">int</span> parent) {
+    cnt[u] = <span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != parent) {
+        postorder(v, u);
+        cnt[u]  += cnt[v];
+        ans[<span class="number">0</span>] += <span class="number">0</span>;                 <span class="comment">// (ans[root] built below)</span>
+        ans[u] += ans[v] + cnt[v];   <span class="comment">// +1 edge per node below v</span>
+    }
+}
+
+<span class="keyword">void</span> preorder(<span class="keyword">int</span> u, <span class="keyword">int</span> parent) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != parent) {
+        ans[v] = ans[u] + n - <span class="number">2</span> * cnt[v];   <span class="comment">// reroot move</span>
+        preorder(v, u);
+    }
+}
+
+vector&lt;<span class="keyword">int</span>&gt; sumOfDistances(<span class="keyword">int</span> N) {
+    n = N; cnt.assign(n, <span class="number">0</span>); ans.assign(n, <span class="number">0</span>);
+    postorder(<span class="number">0</span>, -<span class="number">1</span>);   <span class="comment">// ans[0] = total distance from root</span>
+    preorder(<span class="number">0</span>, -<span class="number">1</span>);    <span class="comment">// push answers to every node</span>
+    <span class="keyword">return</span> ans;
+}
+</pre>
+            </div>
+            <div id="javaRr" class="code-content">
+<pre>
+<span class="comment">// general tree as adjacency list; sum of distances for every node</span>
+<span class="type">List</span>&lt;<span class="type">Integer</span>&gt;[] adj;
+<span class="keyword">int</span>[] cnt, ans;
+<span class="keyword">int</span> n;
+
+<span class="keyword">void</span> postorder(<span class="keyword">int</span> u, <span class="keyword">int</span> parent) {
+    cnt[u] = <span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != parent) {
+        postorder(v, u);
+        cnt[u] += cnt[v];
+        ans[u] += ans[v] + cnt[v];   <span class="comment">// +1 edge per node below v</span>
+    }
+}
+
+<span class="keyword">void</span> preorder(<span class="keyword">int</span> u, <span class="keyword">int</span> parent) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != parent) {
+        ans[v] = ans[u] + n - <span class="number">2</span> * cnt[v];   <span class="comment">// reroot move</span>
+        preorder(v, u);
+    }
+}
+
+<span class="keyword">int</span>[] sumOfDistances(<span class="keyword">int</span> N) {
+    n = N; cnt = <span class="keyword">new</span> <span class="keyword">int</span>[n]; ans = <span class="keyword">new</span> <span class="keyword">int</span>[n];
+    postorder(<span class="number">0</span>, -<span class="number">1</span>);   <span class="comment">// ans[0] = total distance from root</span>
+    preorder(<span class="number">0</span>, -<span class="number">1</span>);    <span class="comment">// push answers to every node</span>
+    <span class="keyword">return</span> ans;
+}
+</pre>
+            </div>
+            <div id="pyRr" class="code-content">
+<pre>
+<span class="keyword">def</span> sum_of_distances(n, adj):
+    cnt = [<span class="number">0</span>] * n
+    ans = [<span class="number">0</span>] * n
+
+    <span class="keyword">def</span> postorder(u, parent):
+        cnt[u] = <span class="number">1</span>
+        <span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:
+            <span class="keyword">if</span> v != parent:
+                postorder(v, u)
+                cnt[u] += cnt[v]
+                ans[u] += ans[v] + cnt[v]   <span class="comment"># +1 edge per node below</span>
+
+    <span class="keyword">def</span> preorder(u, parent):
+        <span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:
+            <span class="keyword">if</span> v != parent:
+                ans[v] = ans[u] + n - <span class="number">2</span> * cnt[v]  <span class="comment"># reroot move</span>
+                preorder(v, u)
+
+    postorder(<span class="number">0</span>, -<span class="number">1</span>)   <span class="comment"># ans[0] = total distance from root</span>
+    preorder(<span class="number">0</span>, -<span class="number">1</span>)    <span class="comment"># push answers to every node</span>
+    <span class="keyword">return</span> ans
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Watch out:</strong> rerooting works on a <em>general</em> tree (adjacency list, no fixed parent pointers), so always pass the parent to avoid walking back up an edge. The reroot formula assumes the contribution combines cleanly when you move the root by one edge &mdash; true for distance sums and subtree sizes, but double-check the algebra for your specific quantity before trusting the one-liner.
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Problem</th><th>Technique</th><th>Time</th><th>Space</th></tr>
+            <tr><td>House Robber III</td><td>postorder DP, 2-tuple summary</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Binary Tree Cameras</td><td>greedy postorder, 3 states</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Children-sum check</td><td>postorder DP</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Children-sum convert</td><td>top-down + bottom-up DP</td><td>O(n)</td><td>O(h)</td></tr>
+            <tr><td>Sum of distances (every node)</td><td>rerooting (2 passes)</td><td>O(n)</td><td>O(n)</td></tr>
+        </table>
+        <p>Every algorithm here visits each node O(1) times with an O(1) combine, so all are O(n). <code>h</code> is the tree height (recursion stack), O(log n) balanced and O(n) skewed. Rerooting stores per-node arrays, hence O(n) space.</p>
+
+        <div class="note">
+            <strong>The patterns to remember:</strong>
+            <ul>
+                <li><strong>Design the summary first.</strong> Decide the smallest O(1) report a node must hand its parent (one number, a tuple, or a state code), then the postorder combine almost writes itself.</li>
+                <li><strong>One value per relevant state.</strong> When a parent&rsquo;s legal choices depend on what a child did, return one value per state &mdash; <code>{rob, skip}</code> for House Robber, three states for cameras.</li>
+                <li><strong>Reroot to go from one-node to every-node.</strong> If you can answer for the root with a postorder pass and express a child&rsquo;s answer as a small adjustment of the parent&rsquo;s, a second push-down pass gives all n answers in O(n) &mdash; no per-node restart.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Fixed sample tree for House Robber III (7 nodes) ----
+        //            3 (a)
+        //          /     \
+        //       4 (b)    5 (c)
+        //       /  \     /   \
+        //    1(d) 3(e) 2(g)  1(f)
+        const nodes = {
+            'a': { val: 3, left: 'b', right: 'c' },
+            'b': { val: 4, left: 'd', right: 'e' },
+            'c': { val: 5, left: 'g', right: 'f' },
+            'd': { val: 1, left: null, right: null },
+            'e': { val: 3, left: null, right: null },
+            'g': { val: 2, left: null, right: null },
+            'f': { val: 1, left: null, right: null }
+        };
+        const ROOT = 'a';
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        // Renderer (adapted from spec helper). opts: active (pulse), highlight (Set green),
+        // visited (Set, dim-fill indigo), labels (id -> string drawn under node).
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const labels = opts.labels || {};
+            const R = 20, vGap = 78, hGap = 56;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 56;
+
+            let edges = '', circles = '', texts = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#cbd5e1', tcol = '#0f172a', sw = 2.5;
+                if (visited.has(id)) { fill = '#eef2ff'; stroke = '#6366f1'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; sw = 3.5; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+                if (labels[id]) {
+                    circles += `<text x="${p.x}" y="${p.y + R + 16}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600" fill="#7c3aed">${labels[id]}</text>`;
+                }
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles + texts;
+            return pos;
+        }
+
+        const svg = document.getElementById('robSvg');
+        const stat = document.getElementById('robStatus');
+        function setStat(t) { stat.innerHTML = t; }
+
+        // postorder list of node ids (children before parent)
+        function postorderIds() {
+            const out = [];
+            (function walk(id) {
+                if (id == null) return;
+                walk(nodes[id].left);
+                walk(nodes[id].right);
+                out.push(id);
+            })(ROOT);
+            return out;
+        }
+
+        function resetRob() {
+            if (busy) return;
+            drawTree(svg, nodes, ROOT, {});
+            setStat('Press &ldquo;Compute &#9654;&rdquo; to run the postorder DP.');
+        }
+
+        async function runRob() {
+            if (busy) return;
+            busy = true;
+            document.getElementById('robBtn').disabled = true;
+
+            const dp = {};           // id -> {rob, skip}
+            const visited = new Set();
+            const labels = {};
+            const order = postorderIds();
+
+            const childRob  = id => id == null ? 0 : dp[id].rob;
+            const childSkip = id => id == null ? 0 : dp[id].skip;
+
+            for (const id of order) {
+                // pulse the active node
+                drawTree(svg, nodes, ROOT, { active: id, visited, labels });
+                const L = nodes[id].left, Rg = nodes[id].right;
+                const robHere  = nodes[id].val + childSkip(L) + childSkip(Rg);
+                const skipHere = Math.max(childRob(L), childSkip(L)) + Math.max(childRob(Rg), childSkip(Rg));
+                setStat(`Visiting node <b>${nodes[id].val}</b>: rob = val + kids' skip = ${nodes[id].val} + ${childSkip(L)} + ${childSkip(Rg)} = <b>${robHere}</b>; skip = best(kids) = <b>${skipHere}</b>.`);
+                await sleep(950);
+
+                dp[id] = { rob: robHere, skip: skipHere };
+                labels[id] = `{r:${robHere}, s:${skipHere}}`;
+                visited.add(id);
+                drawTree(svg, nodes, ROOT, { visited, labels });
+                await sleep(650);
+            }
+
+            // reconstruct which nodes are robbed in the optimal plan (top-down)
+            const robbedSet = new Set();
+            (function pick(id, parentRobbed) {
+                if (id == null) return;
+                let takeIt;
+                if (parentRobbed) {
+                    takeIt = false;                       // can't rob adjacent to a robbed parent
+                } else {
+                    takeIt = dp[id].rob >= dp[id].skip;   // free to choose the better option
+                }
+                if (takeIt) robbedSet.add(id);
+                pick(nodes[id].left,  takeIt);
+                pick(nodes[id].right, takeIt);
+            })(ROOT, false);
+
+            const total = Math.max(dp[ROOT].rob, dp[ROOT].skip);
+            drawTree(svg, nodes, ROOT, { highlight: robbedSet, labels });
+            const robbedVals = [...robbedSet].map(x => nodes[x].val).sort((a, b) => b - a).join(' + ');
+            setStat(`Done. Optimal plan robs the <b style="color:#16a34a">green</b> houses: ${robbedVals} = <b style="color:#16a34a">${total}</b>. (root reports {rob:${dp[ROOT].rob}, skip:${dp[ROOT].skip}})`);
+
+            document.getElementById('robBtn').disabled = false;
+            busy = false;
+        }
+
+        resetRob();
+    </script>
+</body>
+</html>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>More Tree Operations - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Binary Trees</a>
+        <h1>More Tree Operations</h1>
+        <p>This page collects a few tree operations that reward a little cleverness. Some let you do <strong>better than the obvious O(n)</strong> by exploiting structure; others turn a tree into a tiny calculator or wire up shortcuts between nodes. Each one is still, at heart, a recursion that visits nodes and stitches answers together &mdash; we just pick smarter about <em>which</em> nodes we bother visiting.</p>
+
+        <p>All examples assume a standard node definition:</p>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp0')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java0')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python0')">Python</button>
+            </div>
+            <div id="cpp0" class="code-content active">
+<pre>
+<span class="keyword">struct</span> TreeNode {
+    <span class="keyword">int</span> val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(<span class="keyword">int</span> x) : val(x), left(<span class="keyword">nullptr</span>), right(<span class="keyword">nullptr</span>) {}
+};
+</pre>
+            </div>
+            <div id="java0" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span> {
+    <span class="keyword">int</span> val;
+    TreeNode left, right;
+    TreeNode(<span class="keyword">int</span> x) { val = x; }
+}
+</pre>
+            </div>
+            <div id="python0" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">TreeNode</span>:
+    <span class="keyword">def</span> __init__(self, val=<span class="number">0</span>, left=<span class="keyword">None</span>, right=<span class="keyword">None</span>):
+        self.val = val
+        self.left = left
+        self.right = right
+</pre>
+            </div>
+        </div>
+
+        <h2>1. Count Nodes in a Complete Binary Tree &mdash; O(log&sup2; n)</h2>
+        <p>Imagine you have a perfectly packed auditorium where every row fills up completely before the next one begins, and the last row fills strictly from the left. That's a <strong>complete</strong> binary tree. You could count heads one by one (O(n)), but because the packing is so regular, you can shortcut huge chunks: any time a section is <em>full</em>, you already know its head count from a formula &mdash; no need to walk it.</p>
+
+        <p>The key fact: a <strong>perfect</strong> subtree of height <code>h</code> has exactly <code>2^(h+1) - 1</code> nodes (counting the root row as height 0 gives a row count of <code>h+1</code>). So at each node we measure two cheap things:</p>
+        <ul>
+            <li>The <strong>left-spine height</strong> &mdash; walk left children until you hit null, counting steps.</li>
+            <li>The <strong>right-spine height</strong> &mdash; walk right children until you hit null, counting steps.</li>
+        </ul>
+        <p>If the two spine heights are <strong>equal</strong>, the subtree is perfect: return <code>2^h - 1</code> (where <code>h</code> is the number of levels) instantly, no recursion. If they <strong>differ</strong>, the bottom row is only partially filled, so we recurse into both children &mdash; but only one side will ever be the "ragged" one, so the recursion has depth O(log n), and each level does an O(log n) spine measurement. That multiplies out to <strong>O(log&sup2; n)</strong>.</p>
+
+        <div class="visual">
+<pre>
+At each node, measure left spine vs right spine:
+
+            1
+          /   \
+        2       3
+       / \     / \
+      4   5   6   7      left spine of root = 3 levels
+     / \                 right spine of root = 3 levels?
+    8   9                 NO -> ragged bottom row -> recurse
+
+    For node 2: left spine (2,4,8)=3, right spine (2,5)=2  -> recurse
+    For node 3: left spine (3,6)=2, right spine (3,7)=2    -> PERFECT!
+                so subtree(3) = 2^2 - 1 = 3 nodes, skipped entirely.
+</pre>
+        </div>
+
+        <p><strong>Contrast with the naive count.</strong> The obvious recursion &mdash; <code>1 + count(left) + count(right)</code> &mdash; touches every node, so it is O(n). For a complete tree of a million nodes that's a million visits; the O(log&sup2; n) method does roughly 20 &times; 20 = 400. The savings come entirely from recognizing perfect subtrees by their matching spines and never descending into them.</p>
+
+        <div class="playground">
+            <div class="pg-title">🌲 Count a complete tree in O(log&sup2; n)</div>
+            <div class="pg-sub">Press <strong>Count ▶</strong> to step through. At each node we light up the <span style="color:#16a34a;font-weight:700">left spine</span> and <span style="color:#7c3aed;font-weight:700">right spine</span> being measured. If they match, the subtree is perfect and we add <code>2^h - 1</code> nodes with no further recursion (watch the savings tally). Otherwise we recurse into the children. <strong>Reset</strong> to replay.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">A complete tree of 12 nodes. Press Count ▶ to begin the O(log&sup2; n) walk.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="btnStep" onclick="nextStep()">Count ▶</button>
+                <button class="btn btn-ghost" onclick="resetPg()">↺ Reset</button>
+            </div>
+        </div>
+
+        <p>The widget tracks two numbers: <em>nodes counted by formula</em> (perfect subtrees we skipped into with a single arithmetic step) and <em>nodes we had to recurse through</em>. On a tree this small the difference is modest, but the same logic on a tree of height 20 turns ~1,000,000 visits into a few hundred.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre>
+<span class="keyword">int</span> leftHeight(TreeNode* n) {
+    <span class="keyword">int</span> h = <span class="number">0</span>;
+    <span class="keyword">while</span> (n) { h++; n = n-&gt;left; }   <span class="comment">// walk down left spine</span>
+    <span class="keyword">return</span> h;
+}
+<span class="keyword">int</span> rightHeight(TreeNode* n) {
+    <span class="keyword">int</span> h = <span class="number">0</span>;
+    <span class="keyword">while</span> (n) { h++; n = n-&gt;right; }  <span class="comment">// walk down right spine</span>
+    <span class="keyword">return</span> h;
+}
+
+<span class="keyword">int</span> countNodes(TreeNode* root) {
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> lh = leftHeight(root), rh = rightHeight(root);
+    <span class="keyword">if</span> (lh == rh) <span class="keyword">return</span> (<span class="number">1</span> &lt;&lt; lh) - <span class="number">1</span>;        <span class="comment">// perfect: 2^lh - 1</span>
+    <span class="keyword">return</span> <span class="number">1</span> + countNodes(root-&gt;left)
+             + countNodes(root-&gt;right);          <span class="comment">// ragged: recurse</span>
+}
+</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre>
+<span class="keyword">int</span> leftHeight(TreeNode n) {
+    <span class="keyword">int</span> h = <span class="number">0</span>;
+    <span class="keyword">while</span> (n != <span class="keyword">null</span>) { h++; n = n.left; }   <span class="comment">// left spine</span>
+    <span class="keyword">return</span> h;
+}
+<span class="keyword">int</span> rightHeight(TreeNode n) {
+    <span class="keyword">int</span> h = <span class="number">0</span>;
+    <span class="keyword">while</span> (n != <span class="keyword">null</span>) { h++; n = n.right; }  <span class="comment">// right spine</span>
+    <span class="keyword">return</span> h;
+}
+
+<span class="keyword">int</span> countNodes(TreeNode root) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">int</span> lh = leftHeight(root), rh = rightHeight(root);
+    <span class="keyword">if</span> (lh == rh) <span class="keyword">return</span> (<span class="number">1</span> &lt;&lt; lh) - <span class="number">1</span>;        <span class="comment">// perfect: 2^lh - 1</span>
+    <span class="keyword">return</span> <span class="number">1</span> + countNodes(root.left)
+             + countNodes(root.right);            <span class="comment">// ragged: recurse</span>
+}
+</pre>
+            </div>
+            <div id="python1" class="code-content">
+<pre>
+<span class="keyword">def</span> leftHeight(n):
+    h = <span class="number">0</span>
+    <span class="keyword">while</span> n:                <span class="comment"># walk down left spine</span>
+        h += <span class="number">1</span>; n = n.left
+    <span class="keyword">return</span> h
+
+<span class="keyword">def</span> rightHeight(n):
+    h = <span class="number">0</span>
+    <span class="keyword">while</span> n:                <span class="comment"># walk down right spine</span>
+        h += <span class="number">1</span>; n = n.right
+    <span class="keyword">return</span> h
+
+<span class="keyword">def</span> countNodes(root):
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> <span class="number">0</span>
+    lh, rh = leftHeight(root), rightHeight(root)
+    <span class="keyword">if</span> lh == rh:
+        <span class="keyword">return</span> (<span class="number">1</span> &lt;&lt; lh) - <span class="number">1</span>           <span class="comment"># perfect: 2^lh - 1</span>
+    <span class="keyword">return</span> <span class="number">1</span> + countNodes(root.left) + countNodes(root.right)
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why O(log&sup2; n)?</strong>
+            <ul>
+                <li>The recursion only descends along the single "ragged" path from root to the last leaf &mdash; that's <strong>O(log n)</strong> levels deep.</li>
+                <li>At each of those levels we measure a spine, costing <strong>O(log n)</strong>.</li>
+                <li>Every node we <em>don't</em> descend into is part of a perfect subtree, counted by the <code>2^h - 1</code> formula in O(1). Multiplying the two log factors gives O(log&sup2; n).</li>
+            </ul>
+        </div>
+
+        <div class="warn">
+            <strong>Only valid for complete trees.</strong> The formula shortcut relies on the completeness guarantee (rows fill top-to-bottom, left-to-right). On an arbitrary binary tree, matching spine heights do <em>not</em> imply a perfect subtree, so you must fall back to the plain O(n) count.
+        </div>
+
+        <h2>2. Expression Trees &mdash; Build and Evaluate</h2>
+        <p>An <strong>expression tree</strong> turns arithmetic into a tree you can compute by walking. The rule is simple: <strong>operators</strong> (<code>+ - * /</code>) sit at the internal nodes, and <strong>operands</strong> (the numbers) are the leaves. To get the answer you evaluate <em>bottom-up</em> &mdash; a leaf evaluates to its own number, and an operator node evaluates by combining the already-computed values of its two children.</p>
+
+        <div class="visual">
+<pre>
+Infix:    (3 + 4) * 5
+Postfix:  3 4 + 5 *
+
+            (*)            evaluate bottom-up:
+           /   \             (+) -> 3 + 4 = 7
+         (+)    5            (*) -> 7 * 5 = 35
+         / \
+        3   4              result = 35
+</pre>
+        </div>
+
+        <h3>Building from postfix</h3>
+        <p>Postfix (Reverse Polish) is the easiest to build from because it needs no precedence rules &mdash; just a stack. Scan left to right: push a leaf node for each operand; when you hit an operator, pop the top two nodes as its right and left children, then push the new operator node back. The last node left on the stack is the root.</p>
+
+        <h3>Evaluating</h3>
+        <p>Evaluation is a textbook <strong>postorder</strong> recursion: compute the left child's value, compute the right child's value, then apply this node's operator. Leaves (no children) just return their number.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre>
+<span class="comment">// Node holds a token: an operator char or a number string.</span>
+<span class="keyword">struct</span> ExprNode {
+    std::string tok;
+    ExprNode *left = <span class="keyword">nullptr</span>, *right = <span class="keyword">nullptr</span>;
+    ExprNode(std::string t) : tok(t) {}
+};
+
+<span class="keyword">bool</span> isOp(<span class="keyword">const</span> std::string&amp; t) {
+    <span class="keyword">return</span> t == <span class="string">"+"</span> || t == <span class="string">"-"</span> || t == <span class="string">"*"</span> || t == <span class="string">"/"</span>;
+}
+
+<span class="comment">// Build from postfix tokens using a stack.</span>
+ExprNode* buildFromPostfix(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; toks) {
+    std::vector&lt;ExprNode*&gt; st;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; t : toks) {
+        ExprNode* n = <span class="keyword">new</span> ExprNode(t);
+        <span class="keyword">if</span> (isOp(t)) {
+            n-&gt;right = st.back(); st.pop_back();  <span class="comment">// right popped first</span>
+            n-&gt;left  = st.back(); st.pop_back();
+        }
+        st.push_back(n);
+    }
+    <span class="keyword">return</span> st.back();
+}
+
+<span class="comment">// Evaluate bottom-up (postorder).</span>
+<span class="keyword">double</span> evaluate(ExprNode* n) {
+    <span class="keyword">if</span> (!n-&gt;left &amp;&amp; !n-&gt;right) <span class="keyword">return</span> std::stod(n-&gt;tok);  <span class="comment">// leaf = number</span>
+    <span class="keyword">double</span> a = evaluate(n-&gt;left), b = evaluate(n-&gt;right);
+    <span class="keyword">if</span> (n-&gt;tok == <span class="string">"+"</span>) <span class="keyword">return</span> a + b;
+    <span class="keyword">if</span> (n-&gt;tok == <span class="string">"-"</span>) <span class="keyword">return</span> a - b;
+    <span class="keyword">if</span> (n-&gt;tok == <span class="string">"*"</span>) <span class="keyword">return</span> a * b;
+    <span class="keyword">return</span> a / b;
+}
+</pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre>
+<span class="comment">// Node holds a token: an operator char or a number string.</span>
+<span class="keyword">class</span> <span class="type">ExprNode</span> {
+    String tok;
+    ExprNode left, right;
+    ExprNode(String t) { tok = t; }
+}
+
+<span class="keyword">boolean</span> isOp(String t) {
+    <span class="keyword">return</span> t.equals(<span class="string">"+"</span>) || t.equals(<span class="string">"-"</span>)
+        || t.equals(<span class="string">"*"</span>) || t.equals(<span class="string">"/"</span>);
+}
+
+<span class="comment">// Build from postfix tokens using a stack.</span>
+ExprNode buildFromPostfix(String[] toks) {
+    Deque&lt;ExprNode&gt; st = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+    <span class="keyword">for</span> (String t : toks) {
+        ExprNode n = <span class="keyword">new</span> ExprNode(t);
+        <span class="keyword">if</span> (isOp(t)) {
+            n.right = st.pop();   <span class="comment">// right popped first</span>
+            n.left  = st.pop();
+        }
+        st.push(n);
+    }
+    <span class="keyword">return</span> st.pop();
+}
+
+<span class="comment">// Evaluate bottom-up (postorder).</span>
+<span class="keyword">double</span> evaluate(ExprNode n) {
+    <span class="keyword">if</span> (n.left == <span class="keyword">null</span> &amp;&amp; n.right == <span class="keyword">null</span>)
+        <span class="keyword">return</span> Double.parseDouble(n.tok);   <span class="comment">// leaf = number</span>
+    <span class="keyword">double</span> a = evaluate(n.left), b = evaluate(n.right);
+    <span class="keyword">switch</span> (n.tok) {
+        <span class="keyword">case</span> <span class="string">"+"</span>: <span class="keyword">return</span> a + b;
+        <span class="keyword">case</span> <span class="string">"-"</span>: <span class="keyword">return</span> a - b;
+        <span class="keyword">case</span> <span class="string">"*"</span>: <span class="keyword">return</span> a * b;
+        <span class="keyword">default</span>: <span class="keyword">return</span> a / b;
+    }
+}
+</pre>
+            </div>
+            <div id="python2" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">ExprNode</span>:
+    <span class="keyword">def</span> __init__(self, tok):
+        self.tok = tok
+        self.left = self.right = <span class="keyword">None</span>
+
+OPS = {<span class="string">"+"</span>, <span class="string">"-"</span>, <span class="string">"*"</span>, <span class="string">"/"</span>}
+
+<span class="comment"># Build from postfix tokens using a stack.</span>
+<span class="keyword">def</span> build_from_postfix(toks):
+    st = []
+    <span class="keyword">for</span> t <span class="keyword">in</span> toks:
+        n = ExprNode(t)
+        <span class="keyword">if</span> t <span class="keyword">in</span> OPS:
+            n.right = st.pop()   <span class="comment"># right popped first</span>
+            n.left  = st.pop()
+        st.append(n)
+    <span class="keyword">return</span> st[-<span class="number">1</span>]
+
+<span class="comment"># Evaluate bottom-up (postorder).</span>
+<span class="keyword">def</span> evaluate(n):
+    <span class="keyword">if</span> <span class="keyword">not</span> n.left <span class="keyword">and</span> <span class="keyword">not</span> n.right:
+        <span class="keyword">return</span> float(n.tok)          <span class="comment"># leaf = number</span>
+    a, b = evaluate(n.left), evaluate(n.right)
+    <span class="keyword">if</span> n.tok == <span class="string">"+"</span>: <span class="keyword">return</span> a + b
+    <span class="keyword">if</span> n.tok == <span class="string">"-"</span>: <span class="keyword">return</span> a - b
+    <span class="keyword">if</span> n.tok == <span class="string">"*"</span>: <span class="keyword">return</span> a * b
+    <span class="keyword">return</span> a / b
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Prefix builds the same way, scanned in reverse.</strong> To build from <em>prefix</em> (Polish) notation, scan the tokens right-to-left and, on an operator, pop the <strong>left</strong> child first then the right. The evaluation step is identical &mdash; the tree shape is what carries the precedence, so once it's built the notation it came from no longer matters.
+        </div>
+        <p>This is the expression-tree evaluation promised in the basics page. Both building and evaluating are <strong>O(n)</strong> in the number of tokens, since each token is touched a constant number of times.</p>
+
+        <h2>3. Populate Next-Right Pointers</h2>
+        <p>Picture each level of the tree as a row of people, and you want every person to know who is standing immediately to their right in the same row (and the rightmost person knows there's no one &mdash; <code>null</code>). That's the <strong>next-right pointer</strong> problem: connect each node to its neighbor on the same level using an extra <code>next</code> field.</p>
+
+        <div class="visual">
+<pre>
+        1 -> null
+       / \
+      2 -> 3 -> null
+     / \   / \
+    4 ->5->6->7 -> null
+
+  Each node's "next" points to the node on its right
+  in the same level; last node in a level points to null.
+</pre>
+        </div>
+
+        <p>The elegant trick: once a level is fully linked, you can traverse <em>that</em> level left-to-right using the <code>next</code> pointers you just set, and use it to wire up the level below &mdash; like using a finished row as scaffolding to build the next. For each node on the current level you connect its own two children, then bridge to the next node's children. This needs <strong>O(1) extra space</strong> (no queue), because the established level acts as the "queue" for the next.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp3')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java3')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python3')">Python</button>
+            </div>
+            <div id="cpp3" class="code-content active">
+<pre>
+<span class="comment">// Node has an extra `next` pointer, default nullptr.</span>
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> val;
+    Node *left = <span class="keyword">nullptr</span>, *right = <span class="keyword">nullptr</span>, *next = <span class="keyword">nullptr</span>;
+};
+
+<span class="comment">// Works for any binary tree, O(1) extra space.</span>
+Node* connect(Node* root) {
+    Node* leftmost = root;
+    <span class="keyword">while</span> (leftmost) {
+        Node* curr = leftmost;       <span class="comment">// walk the current level via next</span>
+        Node* dummy = <span class="keyword">new</span> Node();   <span class="comment">// head of the level below</span>
+        Node* tail = dummy;
+        <span class="keyword">while</span> (curr) {
+            <span class="keyword">if</span> (curr-&gt;left)  { tail-&gt;next = curr-&gt;left;  tail = tail-&gt;next; }
+            <span class="keyword">if</span> (curr-&gt;right) { tail-&gt;next = curr-&gt;right; tail = tail-&gt;next; }
+            curr = curr-&gt;next;
+        }
+        leftmost = dummy-&gt;next;       <span class="comment">// descend to next level</span>
+        <span class="keyword">delete</span> dummy;
+    }
+    <span class="keyword">return</span> root;
+}
+</pre>
+            </div>
+            <div id="java3" class="code-content">
+<pre>
+<span class="comment">// Node has an extra `next` pointer, default null.</span>
+<span class="keyword">class</span> <span class="type">Node</span> {
+    <span class="keyword">int</span> val;
+    Node left, right, next;
+}
+
+<span class="comment">// Works for any binary tree, O(1) extra space.</span>
+Node connect(Node root) {
+    Node leftmost = root;
+    <span class="keyword">while</span> (leftmost != <span class="keyword">null</span>) {
+        Node curr = leftmost;        <span class="comment">// walk current level via next</span>
+        Node dummy = <span class="keyword">new</span> Node();    <span class="comment">// head of the level below</span>
+        Node tail = dummy;
+        <span class="keyword">while</span> (curr != <span class="keyword">null</span>) {
+            <span class="keyword">if</span> (curr.left  != <span class="keyword">null</span>) { tail.next = curr.left;  tail = tail.next; }
+            <span class="keyword">if</span> (curr.right != <span class="keyword">null</span>) { tail.next = curr.right; tail = tail.next; }
+            curr = curr.next;
+        }
+        leftmost = dummy.next;        <span class="comment">// descend to next level</span>
+    }
+    <span class="keyword">return</span> root;
+}
+</pre>
+            </div>
+            <div id="python3" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, val=<span class="number">0</span>):
+        self.val = val
+        self.left = self.right = self.next = <span class="keyword">None</span>
+
+<span class="comment"># Works for any binary tree, O(1) extra space.</span>
+<span class="keyword">def</span> connect(root):
+    leftmost = root
+    <span class="keyword">while</span> leftmost:
+        curr = leftmost              <span class="comment"># walk current level via next</span>
+        dummy = Node()               <span class="comment"># head of the level below</span>
+        tail = dummy
+        <span class="keyword">while</span> curr:
+            <span class="keyword">if</span> curr.left:
+                tail.next = curr.left;  tail = tail.next
+            <span class="keyword">if</span> curr.right:
+                tail.next = curr.right; tail = tail.next
+            curr = curr.next
+        leftmost = dummy.next         <span class="comment"># descend to next level</span>
+    <span class="keyword">return</span> root
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>The simpler BFS alternative:</strong> a plain level-order traversal with a queue connects each node to the one dequeued after it (within the same level). That's just as correct and easier to remember, but it uses <strong>O(width)</strong> extra space for the queue. The scaffolding method above is the prized O(1)-space version interviewers like to see.
+        </div>
+
+        <p>This is distinct from mirroring a tree (covered as <em>Invert / Mirror</em> in <a href="tree-operations.html">Structural Operations</a>) &mdash; here we're adding sideways links, not rearranging children.</p>
+
+        <h2>4. Bonus: Sum and Maximum of All Nodes</h2>
+        <p>The friendliest recursion on the page: to total every value, a node's answer is simply <em>its own value plus the totals of its two subtrees</em>. Swap <code>+</code> for <code>max</code> and the same skeleton finds the largest value instead. Both are plain O(n) postorder walks &mdash; a gentle palate cleanser after the trickier ones above.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp4')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java4')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'python4')">Python</button>
+            </div>
+            <div id="cpp4" class="code-content active">
+<pre>
+<span class="keyword">int</span> sumNodes(TreeNode* root) {
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">return</span> root-&gt;val + sumNodes(root-&gt;left) + sumNodes(root-&gt;right);
+}
+
+<span class="keyword">int</span> maxNode(TreeNode* root) {
+    <span class="keyword">if</span> (!root) <span class="keyword">return</span> INT_MIN;
+    <span class="keyword">return</span> std::max({root-&gt;val, maxNode(root-&gt;left), maxNode(root-&gt;right)});
+}
+</pre>
+            </div>
+            <div id="java4" class="code-content">
+<pre>
+<span class="keyword">int</span> sumNodes(TreeNode root) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;
+    <span class="keyword">return</span> root.val + sumNodes(root.left) + sumNodes(root.right);
+}
+
+<span class="keyword">int</span> maxNode(TreeNode root) {
+    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> Integer.MIN_VALUE;
+    <span class="keyword">return</span> Math.max(root.val,
+        Math.max(maxNode(root.left), maxNode(root.right)));
+}
+</pre>
+            </div>
+            <div id="python4" class="code-content">
+<pre>
+<span class="keyword">def</span> sum_nodes(root):
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> <span class="number">0</span>
+    <span class="keyword">return</span> root.val + sum_nodes(root.left) + sum_nodes(root.right)
+
+<span class="keyword">def</span> max_node(root):
+    <span class="keyword">if</span> <span class="keyword">not</span> root:
+        <span class="keyword">return</span> float(<span class="string">"-inf"</span>)
+    <span class="keyword">return</span> max(root.val, max_node(root.left), max_node(root.right))
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Space (aux)</th></tr>
+            <tr><td>Count nodes (complete tree)</td><td>O(log&sup2; n)</td><td>O(log n) stack</td></tr>
+            <tr><td>Count nodes (naive)</td><td>O(n)</td><td>O(h) stack</td></tr>
+            <tr><td>Build expression tree</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Evaluate expression tree</td><td>O(n)</td><td>O(h) stack</td></tr>
+            <tr><td>Next-right pointers (scaffolding)</td><td>O(n)</td><td>O(1)</td></tr>
+            <tr><td>Next-right pointers (BFS)</td><td>O(n)</td><td>O(width)</td></tr>
+            <tr><td>Sum / Maximum of nodes</td><td>O(n)</td><td>O(h) stack</td></tr>
+        </table>
+        <p>Here <code>n</code> is the number of nodes and <code>h</code> is the tree height (O(log n) when balanced, O(n) when skewed).</p>
+
+        <div class="note">
+            <strong>The takeaways:</strong>
+            <ul>
+                <li><strong>Structure buys speed.</strong> The complete-tree count beats O(n) only because completeness lets matching spine heights certify a perfect subtree &mdash; recognize the guarantee, then exploit it.</li>
+                <li><strong>Trees can compute.</strong> An expression tree makes operator precedence structural; a postorder walk turns it into a calculator.</li>
+                <li><strong>A finished level is free scaffolding.</strong> Next-right pointers let one level build the next with no extra queue, the classic route to O(1) space.</li>
+                <li>When in doubt, reach for the plain node-once recursion &mdash; sum and max show the baseline pattern the cleverer tricks are optimizing away from.</li>
+            </ul>
+        </div>
+
+        <p style="text-align:center;color:#94a3b8;font-size:0.85em;margin-top:48px;">Binary Trees Visualized | C++, Java &amp; Python | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Reusable SVG tree renderer ----
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const spineGreen = opts.spineGreen || new Set();
+            const spinePurple = opts.spinePurple || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const green = (spineGreen.has(id) && spineGreen.has(c));
+                        const purple = (spinePurple.has(id) && spinePurple.has(c));
+                        const hot = highlight.has(id) && highlight.has(c);
+                        let col = '#cbd5e1', sw = 2;
+                        if (green) { col = '#16a34a'; sw = 3.5; }
+                        else if (purple) { col = '#7c3aed'; sw = 3.5; }
+                        else if (hot) { col = '#16a34a'; sw = 3; }
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${col}" stroke-width="${sw}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (spineGreen.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (spinePurple.has(id)) { fill = '#f3e8ff'; stroke = '#7c3aed'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                const sw = (id === active) ? 3.5 : 2.5;
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // ---- A fixed COMPLETE tree of 12 nodes (height 3, last row partly filled) ----
+        //                 1
+        //            /         \
+        //          2             3
+        //        /   \         /   \
+        //       4     5       6     7
+        //      / \   / \     /
+        //     8   9 10  11  12
+        function makeTree() {
+            return {
+                n1:  { val: 1,  left: 'n2',  right: 'n3' },
+                n2:  { val: 2,  left: 'n4',  right: 'n5' },
+                n3:  { val: 3,  left: 'n6',  right: 'n7' },
+                n4:  { val: 4,  left: 'n8',  right: 'n9' },
+                n5:  { val: 5,  left: 'n10', right: 'n11' },
+                n6:  { val: 6,  left: 'n12', right: null },
+                n7:  { val: 7,  left: null,  right: null },
+                n8:  { val: 8,  left: null,  right: null },
+                n9:  { val: 9,  left: null,  right: null },
+                n10: { val: 10, left: null,  right: null },
+                n11: { val: 11, left: null,  right: null },
+                n12: { val: 12, left: null,  right: null }
+            };
+        }
+        const tree = makeTree();
+        const svg = document.getElementById('treeSvg');
+        const status = t => { document.getElementById('status').innerHTML = t; };
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        // Spine height helpers (count of levels along a spine).
+        function leftHeight(id) { let h = 0; while (id) { h++; id = tree[id].left; } return h; }
+        function rightHeight(id) { let h = 0; while (id) { h++; id = tree[id].right; } return h; }
+        function spineIds(id, side) { const out = []; while (id) { out.push(id); id = tree[id][side]; } return out; }
+
+        // Pre-compute the step sequence: a list of {id, lh, rh, perfect}.
+        // Mirrors the O(log^2 n) recursion order (visit node, decide, recurse if ragged).
+        function buildSteps() {
+            const steps = [];
+            (function rec(id) {
+                if (!id) return;
+                const lh = leftHeight(id), rh = rightHeight(id);
+                const perfect = (lh === rh);
+                steps.push({ id, lh, rh, perfect });
+                if (!perfect) { rec(tree[id].left); rec(tree[id].right); }
+            })('n1');
+            return steps;
+        }
+
+        let steps = [], stepIdx = 0;
+        let formulaCount = 0, recursedCount = 0, total = 0;
+
+        function resetPg() {
+            steps = buildSteps();
+            stepIdx = 0;
+            formulaCount = 0; recursedCount = 0; total = 0;
+            document.getElementById('btnStep').disabled = false;
+            document.getElementById('btnStep').textContent = 'Count ▶';
+            drawTree(svg, tree, 'n1', {});
+            status('A complete tree of 12 nodes. Press <strong>Count ▶</strong> to begin the O(log&sup2; n) walk.');
+        }
+
+        function nextStep() {
+            if (stepIdx >= steps.length) {
+                status(`<strong>Done.</strong> Total = ${total} nodes. ` +
+                       `${formulaCount} were counted instantly by the 2^h − 1 formula (perfect subtrees, never walked); ` +
+                       `only ${recursedCount} nodes sat on the ragged path we recursed through. Press Reset to replay.`);
+                document.getElementById('btnStep').textContent = 'Done ✓';
+                document.getElementById('btnStep').disabled = true;
+                return;
+            }
+            const s = steps[stepIdx];
+            stepIdx++;
+            const greens = spineIds(s.id, 'left');
+            const purples = spineIds(s.id, 'right');
+            drawTree(svg, tree, 'n1', {
+                active: s.id,
+                spineGreen: new Set(greens),
+                spinePurple: new Set(purples)
+            });
+            if (s.perfect) {
+                const cnt = (1 << s.lh) - 1;
+                formulaCount += cnt;
+                total += cnt;
+                status(`Node <strong>${tree[s.id].val}</strong>: left spine = ${s.lh}, right spine = ${s.rh} — ` +
+                       `<strong>equal</strong>, so this subtree is <strong>perfect</strong>. ` +
+                       `Add 2^${s.lh} − 1 = <strong>${cnt}</strong> nodes by formula — no recursion. ` +
+                       `(running total ${total})`);
+            } else {
+                recursedCount += 1;
+                total += 1;
+                status(`Node <strong>${tree[s.id].val}</strong>: left spine = ${s.lh}, right spine = ${s.rh} — ` +
+                       `<strong>differ</strong>, so the bottom row is ragged. Count this node (1) and ` +
+                       `<strong>recurse</strong> into its children. (running total ${total})`);
+            }
+        }
+
+        resetPg();
+    </script>
+</body>
+</html>

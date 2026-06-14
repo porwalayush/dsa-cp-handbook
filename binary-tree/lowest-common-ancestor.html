@@ -41,6 +41,24 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls label { font-size: 0.8em; color: #64748b; font-weight: 600; }
+        .pg-controls select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; background: white; cursor: pointer; }
+        .pg-controls select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,10 +66,36 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Lowest Common Ancestor (LCA)</h1>
-        <p>The <strong>Lowest Common Ancestor</strong> of two nodes <code>p</code> and <code>q</code> in a rooted tree is the <strong>deepest</strong> node that has both <code>p</code> and <code>q</code> as descendants. By convention a node is considered a descendant of itself, so if <code>p</code> is an ancestor of <code>q</code>, then <code>p</code> itself is the LCA.</p>
+        <p>Picture a company org chart. Two employees, <code>p</code> and <code>q</code>, want to find the <strong>closest manager they both report to</strong> &mdash; not the CEO at the very top if they share a closer boss, but the lowest manager whose team still contains both of them. That manager is the <strong>Lowest Common Ancestor</strong>.</p>
+        <p>Here is the other way to picture it: trace the path from the root down to <code>p</code>, and the path from the root down to <code>q</code>. The two paths start out identical (they share the top of the chain) and then <strong>split apart</strong>. The very last node they share before diverging is the LCA.</p>
+        <p>Formally: the LCA of two nodes <code>p</code> and <code>q</code> in a rooted tree is the <strong>deepest</strong> node that has both <code>p</code> and <code>q</code> as descendants. By convention a node counts as a descendant of itself, so if <code>p</code> is an ancestor of <code>q</code>, then <code>p</code> itself is the LCA (a manager is the LCA of themselves and anyone on their team).</p>
+
+        <h2>See It: Two Paths That Meet</h2>
+        <p>Pick any two nodes and press <strong>Find LCA</strong>. The widget lights the root&rarr;A path in one color and the root&rarr;B path in another, then pulses the deepest node both paths pass through &mdash; the spot where they first diverge. That node is the answer.</p>
+
+        <div class="playground">
+            <div class="pg-title">&#127916; LCA Path Finder</div>
+            <div class="pg-sub">Two root-to-node paths share a common prefix, then split. The last shared node is the Lowest Common Ancestor.</div>
+            <svg id="lcaSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="lcaStatus">Pick node A and node B, then press &ldquo;Find LCA&rdquo;.</div>
+            <div class="legend">
+                <span><span class="dot" style="background:#3b82f6"></span>path to A</span>
+                <span><span class="dot" style="background:#ec4899"></span>path to B</span>
+                <span><span class="dot" style="background:#ede9fe;border:2px solid #7c3aed"></span>shared so far</span>
+                <span><span class="dot" style="background:#ecfdf5;border:2px solid #16a34a"></span>the LCA</span>
+            </div>
+            <div class="pg-controls">
+                <label>A:</label>
+                <select id="pickA"></select>
+                <label>B:</label>
+                <select id="pickB"></select>
+                <button class="btn btn-primary" id="lcaBtn" onclick="runLCA()">Find LCA</button>
+                <button class="btn btn-ghost" onclick="resetLCA()">&#8634; Reset</button>
+            </div>
+        </div>
 
         <h2>Definition &amp; Example</h2>
-        <p>Consider the tree below. The LCA of nodes <strong>4</strong> and <strong>5</strong> is <strong>2</strong>, because <code>2</code> is the deepest node whose subtree contains both. The LCA of <strong>4</strong> and <strong>6</strong> is the root <strong>1</strong>.</p>
+        <p>Consider the tree below. The LCA of nodes <strong>4</strong> and <strong>5</strong> is <strong>2</strong>, because <code>2</code> is the deepest node whose subtree contains both. The LCA of <strong>4</strong> and <strong>6</strong> is the root <strong>1</strong> &mdash; their paths share only the very top.</p>
 
         <div class="visual">
 <pre>
@@ -542,6 +586,184 @@ LOG = <span class="number">20</span>
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // ---- Fixed sample tree (9 nodes) ----
+        //            1
+        //          /   \
+        //         2     3
+        //        / \     \
+        //       4   5     6
+        //          / \
+        //         7   8
+        //            /
+        //           9
+        const nodes = {
+            '1': { val: 1, left: '2', right: '3' },
+            '2': { val: 2, left: '4', right: '5' },
+            '3': { val: 3, left: null, right: '6' },
+            '4': { val: 4, left: null, right: null },
+            '5': { val: 5, left: '7', right: '8' },
+            '6': { val: 6, left: null, right: null },
+            '7': { val: 7, left: null, right: null },
+            '8': { val: 8, left: '9', right: null },
+            '9': { val: 9, left: null, right: null }
+        };
+        const ROOT = '1';
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        // Extended renderer: opts.pathA / opts.pathB are arrays of ids drawn as colored routes,
+        // opts.shared is a Set pulsed indigo, opts.lca is the green answer node.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const pathA = opts.pathA || [];
+            const pathB = opts.pathB || [];
+            const shared = opts.shared || new Set();
+            const lca = opts.lca;
+            const setA = new Set(pathA), setB = new Set(pathB);
+            const R = 20, vGap = 70, hGap = 50;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+
+            // edge color: green if both endpoints on a path leg
+            function edgeColor(p, c) {
+                const onA = setA.has(p) && setA.has(c);
+                const onB = setB.has(p) && setB.has(c);
+                if (onA && onB) return { col: '#7c3aed', wd: 4 };   // shared prefix edge
+                if (onA) return { col: '#3b82f6', wd: 4 };
+                if (onB) return { col: '#ec4899', wd: 4 };
+                return { col: '#cbd5e1', wd: 2 };
+            }
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const e = edgeColor(id, c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${e.col}" stroke-width="${e.wd}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#cbd5e1', tcol = '#0f172a', sw = 2.5;
+                const onA = setA.has(id), onB = setB.has(id);
+                if (onA && onB) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                else if (onA) { fill = '#eff6ff'; stroke = '#3b82f6'; }
+                else if (onB) { fill = '#fdf2f8'; stroke = '#ec4899'; }
+                if (shared.has(id)) { fill = '#ede9fe'; stroke = '#7c3aed'; sw = 3.5; }
+                if (id === lca) { fill = '#ecfdf5'; stroke = '#16a34a'; sw = 4; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // root-to-target path as array of ids
+        function pathTo(target) {
+            const out = [];
+            (function dfs(id) {
+                if (id == null) return false;
+                out.push(id);
+                if (id === target) return true;
+                if (dfs(nodes[id].left) || dfs(nodes[id].right)) return true;
+                out.pop();
+                return false;
+            })(ROOT);
+            return out;
+        }
+
+        const svg = document.getElementById('lcaSvg');
+        const stat = document.getElementById('lcaStatus');
+        function setStat(t) { stat.innerHTML = t; }
+
+        function fillPickers() {
+            const a = document.getElementById('pickA'), b = document.getElementById('pickB');
+            Object.keys(nodes).forEach(id => {
+                a.insertAdjacentHTML('beforeend', `<option value="${id}">node ${nodes[id].val}</option>`);
+                b.insertAdjacentHTML('beforeend', `<option value="${id}">node ${nodes[id].val}</option>`);
+            });
+            a.value = '4'; b.value = '9';
+        }
+
+        function resetLCA() {
+            if (busy) return;
+            drawTree(svg, nodes, ROOT, {});
+            setStat('Pick node A and node B, then press &ldquo;Find LCA&rdquo;.');
+        }
+
+        async function runLCA() {
+            if (busy) return;
+            busy = true;
+            document.getElementById('lcaBtn').disabled = true;
+            const a = document.getElementById('pickA').value;
+            const b = document.getElementById('pickB').value;
+            const va = nodes[a].val, vb = nodes[b].val;
+            const pa = pathTo(a), pb = pathTo(b);
+
+            // 1. draw path to A, growing
+            setStat(`Tracing the path from the root down to <b style="color:#3b82f6">node ${va}</b>&hellip;`);
+            for (let i = 1; i <= pa.length; i++) {
+                drawTree(svg, nodes, ROOT, { pathA: pa.slice(0, i) });
+                await sleep(420);
+            }
+            await sleep(250);
+            // 2. draw path to B, growing (keep A)
+            setStat(`Now tracing the path from the root down to <b style="color:#ec4899">node ${vb}</b>&hellip;`);
+            for (let i = 1; i <= pb.length; i++) {
+                drawTree(svg, nodes, ROOT, { pathA: pa, pathB: pb.slice(0, i) });
+                await sleep(420);
+            }
+            await sleep(300);
+
+            // 3. find deepest shared node (LCA) by walking both paths together
+            let lca = ROOT, k = 0;
+            const shared = new Set();
+            while (k < pa.length && k < pb.length && pa[k] === pb[k]) {
+                lca = pa[k]; shared.add(pa[k]); k++;
+            }
+            setStat(`Both paths share the same prefix (purple). Walking down together until they split&hellip;`);
+            drawTree(svg, nodes, ROOT, { pathA: pa, pathB: pb, shared });
+            await sleep(800);
+
+            // 4. pulse the LCA
+            for (let p = 0; p < 3; p++) {
+                drawTree(svg, nodes, ROOT, { pathA: pa, pathB: pb, lca });
+                await sleep(320);
+                drawTree(svg, nodes, ROOT, { pathA: pa, pathB: pb, shared });
+                await sleep(220);
+            }
+            drawTree(svg, nodes, ROOT, { pathA: pa, pathB: pb, lca });
+            const vl = nodes[lca].val;
+            if (a === b) {
+                setStat(`A and B are the same node, so <b style="color:#16a34a">LCA(${va}, ${vb}) = node ${vl}</b> &mdash; a node is its own ancestor.`);
+            } else if (lca === a || lca === b) {
+                setStat(`Node ${vl} sits on the other's path, so it is an ancestor of the other. <b style="color:#16a34a">LCA(${va}, ${vb}) = node ${vl}</b>.`);
+            } else {
+                setStat(`The paths split right below node ${vl}. The last node they shared is the answer: <b style="color:#16a34a">LCA(${va}, ${vb}) = node ${vl}</b>.`);
+            }
+            document.getElementById('lcaBtn').disabled = false;
+            busy = false;
+        }
+
+        fillPickers();
+        resetLCA();
     </script>
 </body>
 </html>

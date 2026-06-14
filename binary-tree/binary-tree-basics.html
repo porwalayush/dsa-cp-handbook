@@ -41,6 +41,23 @@
         th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
         th { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tr:hover { background: #f8fafc; }
+
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: 0.75em; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; color: #64748b; }
+        .dot { width: 10px; height: 10px; border-radius: 3px; }
         @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
     </style>
 </head>
@@ -48,8 +65,9 @@
     <div class="container">
         <a href="index.html" class="back-link">&larr; Back to Index</a>
         <h1>Binary Trees: Structure &amp; Fundamentals</h1>
-        <p>A <strong>binary tree</strong> is a hierarchical data structure in which every node has <strong>at most two children</strong>, conventionally called the <strong>left</strong> and <strong>right</strong> child. Unlike a general tree, the two children are distinguished by position: a left child is never interchangeable with a right child, even when one of them is absent.</p>
-        <p>Binary trees are everywhere in computing. They underpin <strong>binary search trees</strong> and balanced variants (AVL, red-black) used in maps and sets, <strong>heaps</strong> used in priority queues, <strong>expression trees</strong> in compilers and calculators, <strong>Huffman trees</strong> in compression, and <strong>tries</strong> conceptually generalize the same branching idea. Mastering their vocabulary and shape is the foundation for nearly every tree algorithm.</p>
+        <p>Think of a <strong>family tree</strong> or a company's <strong>org chart</strong>. One person sits at the top. Below them are the people they're directly connected to, and below those are more people, branching out as you go down. A <strong>binary tree</strong> is the same idea with one simple rule: each box (we call it a <strong>node</strong>) can point to <strong>at most two boxes below it</strong> &mdash; one on the <strong>left</strong> and one on the <strong>right</strong>.</p>
+        <p>That "left vs. right" matters. Even if a node has only one child, we still keep track of whether it's the left or the right one &mdash; they are not interchangeable. This is the only thing that separates a binary tree from a general "anything goes" tree.</p>
+        <p>Once you can picture that shape, you've got the foundation for a huge slice of computer science. Binary trees power <strong>binary search trees</strong> and their balanced cousins (AVL, red-black) used in maps and sets, <strong>heaps</strong> behind priority queues, <strong>expression trees</strong> in calculators and compilers, <strong>Huffman trees</strong> in file compression, and more. Learn the vocabulary and the shapes here, and the rest of the tree algorithms become much easier to follow.</p>
 
         <h2>Node Structure</h2>
         <p>A binary tree is built from nodes. Each node holds a <strong>value</strong> and two pointers/references: <code>left</code> and <code>right</code>, each pointing to a child node or being null/empty when the child is absent. The tree itself is identified by a reference to its <strong>root</strong> node.</p>
@@ -126,23 +144,34 @@ root.right = TreeNode(<span class="number">3</span>)
         </div>
 
         <h2>Terminology</h2>
-        <p>Tree vocabulary is best learned against a concrete picture. Consider the tree below; we'll reference its nodes throughout.</p>
+        <p>Tree words are easiest to learn against a picture, so let's borrow the family-tree analogy one more time. Before the formal table, here are the words in plain English:</p>
+        <ul>
+            <li>The person at the very top is the <strong>root</strong> &mdash; the one node with nobody above it.</li>
+            <li>A node directly above another is its <strong>parent</strong>; the ones directly below are its <strong>children</strong>. Two children of the same parent are <strong>siblings</strong>.</li>
+            <li>A node with no children &mdash; the "bottom" of a branch &mdash; is a <strong>leaf</strong>. Everything else (a node with at least one child) is an <strong>internal node</strong>.</li>
+            <li><strong>Depth</strong> = how far <em>down</em> a node sits from the root (root is depth 0). <strong>Height</strong> = how far <em>up</em> a node is from its deepest leaf. The tree's height is just the depth of its deepest node.</li>
+            <li>A node's <strong>ancestors</strong> are everyone on the path back up to the root; its <strong>subtree</strong> is the node itself plus everyone hanging below it.</li>
+        </ul>
 
-        <div class="visual">
-<pre>
-                ( 1 )          &lt;- root (level 0, depth 0)
-               /     \
-            ( 2 )   ( 3 )      &lt;- level 1
-            /   \       \
-        ( 4 ) ( 5 )   ( 6 )    &lt;- level 2
-              /
-          ( 7 )                &lt;- level 3
+        <p>Use the buttons below to light up each of these ideas on a real tree. Watch which nodes turn green as you click.</p>
 
-Edges: 1-2, 1-3, 2-4, 2-5, 3-6, 5-7
-Leaves: 4, 7, 6        Internal nodes: 1, 2, 3, 5
-Path 1 -&gt; 2 -&gt; 5 -&gt; 7  has length 3 (3 edges)
-Height of tree = 3     Depth of node 7 = 3
-</pre>
+        <div class="playground">
+            <div class="pg-title">🌳 Tree Vocabulary, Lit Up</div>
+            <div class="pg-sub">Click a button to highlight that concept on the sample tree. We use <strong>node 5</strong> as our "example node" for ancestors and subtree.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-status" id="status">Press a button to highlight a concept.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" onclick="showRoot()">Show root</button>
+                <button class="btn btn-primary" onclick="showLeaves()">Show leaves</button>
+                <button class="btn btn-primary" onclick="showAncestors()">Node 5's ancestors</button>
+                <button class="btn btn-primary" onclick="showSubtree()">Node 5's subtree</button>
+                <button class="btn btn-primary" onclick="showHeight()">Show height path</button>
+                <button class="btn btn-ghost" onclick="clearHl()">↺ Clear</button>
+            </div>
+            <div class="legend">
+                <span><span class="dot" style="background:#86efac"></span>highlighted</span>
+                <span><span class="dot" style="background:#c4b5fd"></span>example node (5)</span>
+            </div>
         </div>
 
         <table>
@@ -408,6 +437,106 @@ Tree:                 Array (0-indexed):
             btn.classList.add('active');
             document.getElementById(id).classList.add('active');
         }
+
+        // Renders tree into svgEl. layout via inorder x-index. Returns positions map.
+        function drawTree(svgEl, nodes, rootId, opts = {}) {
+            const highlight = opts.highlight || new Set();
+            const active = opts.active;
+            const visited = opts.visited || new Set();
+            const dimmed = opts.dimmed || new Set();
+            const R = 20, vGap = 70, hGap = 46;
+            let order = [], depthOf = {};
+            (function walk(id, d) {
+                if (id == null) return;
+                depthOf[id] = d;
+                walk(nodes[id].left, d + 1);
+                order.push(id);
+                walk(nodes[id].right, d + 1);
+            })(rootId, 0);
+            const pos = {};
+            order.forEach((id, i) => { pos[id] = { x: i * hGap + hGap, y: depthOf[id] * vGap + 40 }; });
+            const maxX = order.length * hGap + hGap;
+            const maxDepth = Math.max(0, ...Object.values(depthOf));
+            const w = maxX, h = (maxDepth + 1) * vGap + 40;
+            let edges = '', circles = '';
+            for (const id in nodes) {
+                if (!(id in pos)) continue;
+                ['left', 'right'].forEach(side => {
+                    const c = nodes[id][side];
+                    if (c != null && pos[c]) {
+                        const hot = highlight.has(id) && highlight.has(c);
+                        edges += `<line x1="${pos[id].x}" y1="${pos[id].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="${hot ? '#16a34a' : '#cbd5e1'}" stroke-width="${hot ? 3 : 2}"/>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                let fill = '#ffffff', stroke = '#6366f1', tcol = '#0f172a';
+                if (dimmed.has(id)) { stroke = '#e2e8f0'; tcol = '#cbd5e1'; }
+                if (visited.has(id)) { fill = '#eef2ff'; }
+                if (highlight.has(id)) { fill = '#ecfdf5'; stroke = '#16a34a'; }
+                if (id === active) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${id === active ? 3.5 : 2.5}"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}">${nodes[id].val}</text>`;
+            }
+            svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+            svgEl.setAttribute('width', '100%');
+            svgEl.style.maxHeight = h + 'px';
+            svgEl.innerHTML = edges + circles;
+            return pos;
+        }
+
+        // Sample tree (ids === values here for simplicity):
+        //        1
+        //       / \
+        //      2   3
+        //     / \    \
+        //    4   5    6
+        //       /
+        //      7
+        const TREE = {
+            '1': { val: 1, left: '2', right: '3' },
+            '2': { val: 2, left: '4', right: '5' },
+            '3': { val: 3, left: null, right: '6' },
+            '4': { val: 4, left: null, right: null },
+            '5': { val: 5, left: '7', right: null },
+            '6': { val: 6, left: null, right: null },
+            '7': { val: 7, left: null, right: null }
+        };
+        const ROOT = '1';
+        const svg = document.getElementById('treeSvg');
+        function setStatus(t) { document.getElementById('status').innerHTML = t; }
+
+        function render(highlight, active) {
+            drawTree(svg, TREE, ROOT, { highlight: highlight || new Set(), active: active });
+        }
+
+        function clearHl() {
+            render(new Set(), null);
+            setStatus('Press a button to highlight a concept.');
+        }
+        function showRoot() {
+            render(new Set(['1']), null);
+            setStatus('The <b>root</b> is node <b>1</b> &mdash; the only node with no parent. Every other node hangs below it.');
+        }
+        function showLeaves() {
+            render(new Set(['4', '7', '6']), null);
+            setStatus('<b>Leaves</b> are nodes with no children: <b>4, 7, 6</b>. They sit at the ends of the branches.');
+        }
+        function showAncestors() {
+            render(new Set(['1', '2']), '5');
+            setStatus('<b>Ancestors</b> of node <b>5</b> are everyone on the path up to the root: <b>2</b> then <b>1</b>. (Node 5 itself is shown in purple.)');
+        }
+        function showSubtree() {
+            render(new Set(['5', '7']), '5');
+            setStatus("Node <b>5</b>'s <b>subtree</b> is node 5 plus everything below it: just <b>5 and 7</b> here. A subtree is a whole little tree of its own.");
+        }
+        function showHeight() {
+            render(new Set(['1', '2', '5', '7']), null);
+            setStatus('The tree’s <b>height</b> is the longest path from the root down to a leaf: <b>1 &rarr; 2 &rarr; 5 &rarr; 7</b> = <b>3 edges</b>. So the height is 3.');
+        }
+
+        clearHl();
     </script>
 </body>
 </html>
