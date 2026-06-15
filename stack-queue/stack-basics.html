@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack Basics - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eff6ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #2563eb; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #2563eb; }
+        .code-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #2563eb; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* Stack visual */
+        .stack-area { display: flex; align-items: flex-end; justify-content: center; gap: 18px; min-height: 220px; padding: 10px 0; }
+        .stack-col { display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; min-height: 200px; justify-content: flex-end; }
+        .stack-base { width: 140px; height: 8px; background: #cbd5e1; border-radius: 4px; margin-top: 2px; }
+        .plate {
+            width: 130px; height: 38px; border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 1em;
+            font-family: 'JetBrains Mono', monospace;
+            animation: popin 0.3s ease;
+        }
+        .plate.flash { animation: flash 0.6s ease; }
+        @keyframes popin { from { transform: scale(0.6) translateY(-12px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes flash {
+            0%, 100% { box-shadow: 0 4px 12px rgba(37,99,235,0.25); transform: scale(1); }
+            50% { box-shadow: 0 0 0 4px #fbbf24, 0 6px 18px rgba(251,191,36,0.5); transform: scale(1.06); }
+        }
+        .top-marker { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; min-height: 200px; }
+        .top-label { font-size: 0.78em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #2563eb; white-space: nowrap; }
+        .empty-msg { color: #94a3b8; font-weight: 600; font-size: 0.9em; padding: 20px; border: 2px dashed #cbd5e1; border-radius: 12px; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #2563eb; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Stacks &amp; Queues</a>
+        <h1>Stacks: The Basics</h1>
+        <p>Picture a <strong>pile of plates</strong> in a cafeteria. You wash a plate and set it on top of the pile. The next person grabs a plate — and they take the one on top, the one you <em>just</em> put there. The plate at the very bottom might sit there all day.</p>
+        <p>That's a <strong>stack</strong>. You only ever touch the <strong>top</strong>. The <em>last</em> thing you put on is the <em>first</em> thing you take off. Computer scientists gave this a name: <strong>LIFO</strong> — <strong>Last In, First Out</strong>.</p>
+        <p>A pile of books works the same way. So does a stack of pancakes, or the spring-loaded plate dispenser at a buffet. If you've ever pressed <strong>Undo</strong>, you've used a stack — it undoes the most recent thing first.</p>
+
+        <h2>The Four Core Operations</h2>
+        <p>A stack is deliberately tiny. There are really only four things you can do with it — and almost all of them touch only the top, which is exactly why they're so fast (<code>O(1)</code>, constant time).</p>
+        <ul>
+            <li><strong>push(x)</strong> — put a new item <em>on top</em> of the stack. (Set a plate down.)</li>
+            <li><strong>pop()</strong> — remove and return the <em>top</em> item. (Take the top plate.)</li>
+            <li><strong>peek()</strong> / <strong>top()</strong> — look at the top item <em>without</em> removing it. (Glance at the top plate; don't pick it up.)</li>
+            <li><strong>isEmpty()</strong> — ask "is there anything here at all?" before you reach in.</li>
+        </ul>
+        <p>Notice what's <em>missing</em>: you can't peek at the middle, you can't pull a plate from the bottom, you can't jump to "item #3." That restriction is the feature — it keeps every operation instant and the mental model dead simple.</p>
+
+        <h2>Try It: A Live Stack</h2>
+        <p>Push a few values and watch them pile up. The newest plate always lands on <strong>top</strong> — and that's the only one <code>pop</code> and <code>peek</code> can reach.</p>
+
+        <div class="playground">
+            <div class="pg-title">🥞 Stack Playground</div>
+            <div class="pg-sub">Push a value to add a plate on top. Pop removes the top. Peek flashes the top without removing it.</div>
+            <div class="stack-area">
+                <div class="top-marker" id="topMarker"></div>
+                <div>
+                    <div class="stack-col" id="stackCol"></div>
+                    <div class="stack-base"></div>
+                </div>
+            </div>
+            <div class="pg-status" id="status">Stack starts with [5, 7, 3]. The top is 3.</div>
+            <div class="pg-controls">
+                <input type="number" id="valInput" placeholder="value" value="9">
+                <button class="btn btn-primary" onclick="doPush()">⬆ Push</button>
+                <button class="btn btn-danger" id="popBtn" onclick="doPop()">⬇ Pop</button>
+                <button class="btn btn-ghost" id="peekBtn" onclick="doPeek()">👁 Peek</button>
+                <button class="btn btn-ghost" onclick="doReset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>Using a Stack in Code</h2>
+        <p>You almost never build a stack by hand — every language ships one in its standard library. Here's how to declare one and run the four operations in each language.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppStack')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaStack')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyStack')">Python</button>
+            </div>
+            <div id="cppStack" class="code-content active">
+<pre>
+<span class="comment">// C++ ships std::stack</span>
+<span class="preproc">#include</span> <span class="string">&lt;stack&gt;</span>
+
+std::stack&lt;<span class="keyword">int</span>&gt; s;
+
+s.push(<span class="number">5</span>);          <span class="comment">// stack: [5]</span>
+s.push(<span class="number">7</span>);          <span class="comment">// stack: [5, 7]</span>
+s.push(<span class="number">3</span>);          <span class="comment">// stack: [5, 7, 3]  top = 3</span>
+
+<span class="keyword">int</span> t = s.top();    <span class="comment">// peek -> 3 (not removed)</span>
+s.pop();             <span class="comment">// remove top (3). NOTE: pop() returns void</span>
+
+<span class="keyword">if</span> (!s.empty()) {    <span class="comment">// always check before touching the top</span>
+    <span class="keyword">int</span> x = s.top();  <span class="comment">// 7</span>
+}
+</pre>
+            </div>
+            <div id="javaStack" class="code-content">
+<pre>
+<span class="comment">// Java: prefer Deque (ArrayDeque) as a stack — faster than legacy Stack</span>
+<span class="type">Deque</span>&lt;<span class="type">Integer</span>&gt; s = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();
+
+s.push(<span class="number">5</span>);            <span class="comment">// stack: [5]</span>
+s.push(<span class="number">7</span>);            <span class="comment">// stack: [5, 7]</span>
+s.push(<span class="number">3</span>);            <span class="comment">// stack: [5, 7, 3]  top = 3</span>
+
+<span class="keyword">int</span> t = s.peek();     <span class="comment">// peek -> 3 (not removed)</span>
+<span class="keyword">int</span> x = s.pop();      <span class="comment">// removes AND returns 3</span>
+
+<span class="keyword">if</span> (!s.isEmpty()) {    <span class="comment">// guard before reading</span>
+    <span class="keyword">int</span> y = s.peek();   <span class="comment">// 7</span>
+}
+</pre>
+            </div>
+            <div id="pyStack" class="code-content">
+<pre>
+<span class="comment"># Python: a plain list IS a stack — no import needed</span>
+s = []
+
+s.append(<span class="number">5</span>)        <span class="comment"># push  -> [5]</span>
+s.append(<span class="number">7</span>)        <span class="comment"># push  -> [5, 7]</span>
+s.append(<span class="number">3</span>)        <span class="comment"># push  -> [5, 7, 3]  top = 3</span>
+
+top = s[-<span class="number">1</span>]        <span class="comment"># peek  -> 3 (not removed)</span>
+x = s.pop()        <span class="comment"># pop   -> removes AND returns 3</span>
+
+<span class="keyword">if</span> s:              <span class="comment"># an empty list is falsy — this is your isEmpty check</span>
+    y = s[-<span class="number">1</span>]      <span class="comment"># 7</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Tip:</strong> in Python you don't need a special class — a regular <code>list</code> already behaves like a stack. Use <code>.append(x)</code> to push and <code>.pop()</code> to remove the top. (Avoid <code>list.pop(0)</code> for stack work — that pops the <em>front</em> and is O(n).)
+        </div>
+
+        <div class="warn">
+            <strong>The #1 mistake: touching an empty stack.</strong> Calling <code>pop</code> or <code>peek</code> when the stack is empty is the classic bug. In C++, <code>s.top()</code> or <code>s.pop()</code> on an empty stack is <strong>undefined behavior</strong> (it may crash or silently corrupt data). In Java it throws <code>NoSuchElementException</code>; in Python <code>[].pop()</code> raises <code>IndexError</code>. <strong>Always check <code>isEmpty()</code> first.</strong>
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <p>The whole point of a stack is speed. Every core operation is constant time because it only ever touches the top — there's no shifting, no searching, no walking through items.</p>
+
+        <table>
+            <tr><th>Operation</th><th>Time Complexity</th></tr>
+            <tr><td>push (add to top)</td><td>O(1)</td></tr>
+            <tr><td>pop (remove top)</td><td>O(1)</td></tr>
+            <tr><td>peek / top (read top)</td><td>O(1)</td></tr>
+            <tr><td>isEmpty</td><td>O(1)</td></tr>
+            <tr><td>search (find a value)</td><td>O(n)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">Search is O(n) because a stack gives you no shortcut to the middle — you'd have to pop items off one by one to look through them.</p>
+
+        <h2>Where Stacks Show Up in the Real World</h2>
+        <p>Once you know the LIFO shape, you start seeing stacks everywhere. Whenever a problem cares about the <em>most recent</em> thing first, a stack is usually the answer.</p>
+
+        <div class="compare">
+            <div>
+                <h3>Everyday software</h3>
+                <ul>
+                    <li><strong>Undo / Redo</strong> — each action pushed on; undo pops the latest.</li>
+                    <li><strong>Browser back button</strong> — pages you visited, popped newest-first.</li>
+                    <li><strong>Function call stack</strong> — each call pushed; returning pops it off.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Classic algorithms</h3>
+                <ul>
+                    <li><strong>Balanced-bracket checking</strong> — push openers, pop to match closers.</li>
+                    <li><strong>Expression evaluation</strong> — postfix math and infix-to-postfix conversion.</li>
+                    <li><strong>Depth-first search (DFS)</strong> — the recursion <em>is</em> a stack.</li>
+                </ul>
+            </div>
+        </div>
+
+        <p>The <strong>function call stack</strong> is worth a second look: every time your program calls a function, it <em>pushes</em> a frame (the local variables, the return address). When the function returns, that frame is <em>popped</em>. That's literally why a runaway recursion causes a "stack overflow" — you pushed more frames than there was room for.</p>
+
+        <div class="note">
+            <strong>Pattern to remember:</strong> if a problem mentions <em>"most recent,"</em> <em>"matching pairs,"</em> <em>"undo,"</em> or <em>"reverse order,"</em> reach for a stack first. The match is almost always there.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Stacks &amp; Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Stack playground ----
+        let stack = [5, 7, 3];
+
+        function setStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+
+        function render() {
+            const col = document.getElementById('stackCol');
+            const marker = document.getElementById('topMarker');
+            col.innerHTML = '';
+            marker.innerHTML = '';
+
+            const popBtn = document.getElementById('popBtn');
+            const peekBtn = document.getElementById('peekBtn');
+            const empty = stack.length === 0;
+            popBtn.disabled = empty;
+            peekBtn.disabled = empty;
+
+            if (empty) {
+                const e = document.createElement('div');
+                e.className = 'empty-msg';
+                e.textContent = 'Stack is empty';
+                col.appendChild(e);
+                return;
+            }
+
+            // stack[last] is the top. column uses column-reverse, so the
+            // first child renders at the bottom -> render bottom-to-top.
+            stack.forEach((v) => {
+                const plate = document.createElement('div');
+                plate.className = 'plate';
+                plate.textContent = v;
+                col.appendChild(plate);
+            });
+
+            // top marker aligns with the topmost plate (the last index)
+            const label = document.createElement('div');
+            label.className = 'top-label';
+            label.textContent = '← TOP (' + stack[stack.length - 1] + ')';
+            marker.appendChild(label);
+        }
+
+        function readVal() {
+            const raw = document.getElementById('valInput').value;
+            const v = parseInt(raw, 10);
+            return isNaN(v) ? Math.floor(Math.random() * 90 + 1) : v;
+        }
+
+        function doPush() {
+            const v = readVal();
+            stack.push(v);
+            render();
+            setStatus('Pushed ' + v + '. Top is now ' + v + '.');
+        }
+
+        function doPop() {
+            if (stack.length === 0) {
+                setStatus('Stack is empty — can’t pop! Always check isEmpty() first.');
+                return;
+            }
+            const v = stack.pop();
+            render();
+            if (stack.length === 0) {
+                setStatus('Popped ' + v + '. The stack is now empty.');
+            } else {
+                setStatus('Popped ' + v + '. Top is now ' + stack[stack.length - 1] + '.');
+            }
+        }
+
+        function doPeek() {
+            if (stack.length === 0) {
+                setStatus('Stack is empty — nothing to peek at! Check isEmpty() first.');
+                return;
+            }
+            const top = stack[stack.length - 1];
+            // the topmost plate is the LAST child of the column
+            const col = document.getElementById('stackCol');
+            const topPlate = col.lastElementChild;
+            if (topPlate) {
+                topPlate.classList.remove('flash');
+                void topPlate.offsetWidth; // restart animation
+                topPlate.classList.add('flash');
+            }
+            setStatus('Peeked. Top is ' + top + ' — looked at it, left it in place.');
+        }
+
+        function doReset() {
+            stack = [5, 7, 3];
+            render();
+            setStatus('Reset. Stack is back to [5, 7, 3]. The top is 3.');
+        }
+
+        render();
+    </script>
+</body>
+</html>

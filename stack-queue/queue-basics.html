@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Basics - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eff6ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #2563eb; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #2563eb; }
+        .code-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #2563eb; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* Horizontal queue visualizer */
+        .q-canvas { display: flex; align-items: center; gap: 0; min-height: 90px; padding: 10px 0; overflow-x: auto; }
+        .q-end { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #94a3b8; font-weight: 700; font-size: 0.85em; flex-shrink: 0; }
+        .q-end .q-end-arrow { font-size: 1.4em; color: #2563eb; }
+        .q-end-label { font-size: 0.62em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; }
+        .q-box-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+        .q-box {
+            min-width: 52px; height: 52px; margin: 0 5px; border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 1.05em; font-family: 'JetBrains Mono', monospace;
+            transition: transform 0.3s ease, opacity 0.3s ease; animation: qslide 0.35s ease;
+        }
+        .q-box.peek { outline: 3px solid #f59e0b; outline-offset: 2px; box-shadow: 0 4px 16px rgba(245,158,11,0.4); }
+        .q-tag { font-size: 0.6em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; margin-top: 5px; height: 12px; }
+        .q-empty { color: #94a3b8; font-weight: 700; font-size: 0.9em; padding: 16px 20px; border: 2px dashed #cbd5e1; border-radius: 10px; margin: 0 8px; }
+        @keyframes qslide { from { transform: translateX(20px) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+
+        /* Circular buffer ring */
+        .ring-wrap { display: flex; justify-content: center; padding: 10px 0; }
+        .ring-cell { transition: all 0.2s ease; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; align-items: center; }
+        .pg-controls input {
+            width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+        .footer { text-align: center; padding: 32px 20px; color: #94a3b8; font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+        .footer span { color: #2563eb; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Stacks &amp; Queues</a>
+        <h1>Queues: The Basics</h1>
+        <p>Picture the <strong>line at a ticket counter</strong>. You walk up, take your place at the back, and wait. The person who arrived first gets served first; the person who just showed up waits the longest. Nobody cuts. That's a <strong>queue</strong> — a fair, orderly line where service follows arrival.</p>
+        <p>The rule has a name: <strong>FIFO — First In, First Out</strong>. The first item to enter is the first to leave. That's the exact opposite of a <strong>stack</strong>, which is LIFO (Last In, First Out) — like a pile of plates where you always grab the top one you just put down. A queue is a line; a stack is a pile.</p>
+
+        <h2>The Two Ends That Matter</h2>
+        <p>A queue has two ends, and keeping them straight is the whole game:</p>
+        <ul>
+            <li>The <strong>rear</strong> (or back) — where new items <em>join</em> the line.</li>
+            <li>The <strong>front</strong> — where items <em>leave</em> the line.</li>
+        </ul>
+        <p>Add at the rear, remove from the front. Just like real people in a real line.</p>
+
+        <h2>Core Operations</h2>
+        <p>Everything a queue does boils down to four moves — and each one is <strong>O(1)</strong>, meaning it takes the same tiny amount of time no matter how long the line is:</p>
+        <ul>
+            <li><strong>enqueue(x)</strong> — add <code>x</code> to the <strong>back</strong> of the line.</li>
+            <li><strong>dequeue()</strong> — remove and return the item at the <strong>front</strong>.</li>
+            <li><strong>front()</strong> / <strong>peek()</strong> — look at the front item without removing it.</li>
+            <li><strong>isEmpty()</strong> — is the line empty?</li>
+        </ul>
+
+        <div class="playground">
+            <div class="pg-title">🎮 Queue Visualizer</div>
+            <div class="pg-sub">Items join at the <strong>REAR</strong> (right) and leave from the <strong>FRONT</strong> (left). Enqueue, dequeue, and peek to watch FIFO in action.</div>
+            <div class="q-canvas" id="qCanvas"></div>
+            <div class="pg-status" id="qStatus">A queue with three items, waiting in line. Front is on the left.</div>
+            <div class="pg-controls">
+                <input type="number" id="qInput" placeholder="value" value="9">
+                <button class="btn btn-primary" onclick="enqueue()">+ Enqueue (rear)</button>
+                <button class="btn btn-danger" onclick="dequeue()">&minus; Dequeue (front)</button>
+                <button class="btn btn-ghost" onclick="peekFront()">👁 Peek Front</button>
+                <button class="btn btn-ghost" onclick="resetQueue()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>Queue Operations in Code</h2>
+        <p>Every language ships a ready-made queue. Here's enqueue, dequeue, and front in each:</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppOps')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaOps')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyOps')">Python</button>
+            </div>
+            <div id="cppOps" class="code-content active">
+<pre>
+<span class="comment">// std::queue wraps a deque under the hood</span>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+
+std::queue&lt;<span class="keyword">int</span>&gt; q;
+
+q.push(<span class="number">5</span>);            <span class="comment">// enqueue at the rear</span>
+q.push(<span class="number">7</span>);
+q.push(<span class="number">3</span>);            <span class="comment">// queue: front [5, 7, 3] rear</span>
+
+<span class="keyword">int</span> f = q.front();   <span class="comment">// peek front -> 5  (does NOT remove)</span>
+q.pop();             <span class="comment">// dequeue the front -> removes 5</span>
+
+<span class="keyword">bool</span> empty = q.empty();
+</pre>
+            </div>
+            <div id="javaOps" class="code-content">
+<pre>
+<span class="comment">// Queue is an interface; back it with a LinkedList or ArrayDeque</span>
+<span class="type">Queue</span>&lt;<span class="type">Integer</span>&gt; q = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();
+
+q.offer(<span class="number">5</span>);          <span class="comment">// enqueue at the rear (offer or add)</span>
+q.offer(<span class="number">7</span>);
+q.offer(<span class="number">3</span>);          <span class="comment">// queue: front [5, 7, 3] rear</span>
+
+<span class="type">int</span> f = q.peek();    <span class="comment">// peek front -> 5  (does NOT remove)</span>
+<span class="type">int</span> x = q.poll();    <span class="comment">// dequeue the front -> returns and removes 5</span>
+
+<span class="keyword">boolean</span> empty = q.isEmpty();
+</pre>
+            </div>
+            <div id="pyOps" class="code-content">
+<pre>
+<span class="comment"># collections.deque gives O(1) at BOTH ends</span>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+q = deque()
+
+q.append(<span class="number">5</span>)         <span class="comment"># enqueue at the rear</span>
+q.append(<span class="number">7</span>)
+q.append(<span class="number">3</span>)         <span class="comment"># queue: front [5, 7, 3] rear</span>
+
+f = q[<span class="number">0</span>]            <span class="comment"># peek front -> 5  (does NOT remove)</span>
+x = q.popleft()    <span class="comment"># dequeue the front -> returns and removes 5</span>
+
+empty = <span class="keyword">not</span> q
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            In Python, always use <code>collections.deque</code> for a queue — <strong>not</strong> a plain <code>list</code>. <code>list.pop(0)</code> looks innocent but is O(n): it shifts every remaining element down one slot. <code>deque.popleft()</code> is O(1).
+        </div>
+
+        <div class="warn">
+            <strong>Dequeueing an empty queue</strong> is a classic crash. In C++ calling <code>pop()</code>/<code>front()</code> on an empty queue is undefined behavior; in Java <code>poll()</code> returns <code>null</code> but <code>remove()</code> throws. Always check <code>isEmpty()</code> first.
+        </div>
+
+        <h2>Why a Naive Array Queue Is Slow</h2>
+        <p>Here's the trap. You might reach for a plain array: <code>enqueue</code> just appends to the end (fast), and <code>dequeue</code> removes index 0. Easy, right?</p>
+        <p>Not quite. Removing the <strong>front</strong> of an array means every other element has to <strong>shift one slot to the left</strong> to fill the gap. For a queue of <em>n</em> items, that's <em>n</em> moves on every single dequeue — <strong>O(n)</strong>. Do that in a loop and your "simple" queue is quietly quadratic.</p>
+
+        <div class="compare">
+            <div>
+                <h3>Naive array dequeue</h3>
+                <ul>
+                    <li>Remove <code>arr[0]</code>.</li>
+                    <li>Shift <em>all</em> remaining items left by one.</li>
+                    <li>Cost: <strong>O(n)</strong> per dequeue. 😟</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Circular buffer dequeue</h3>
+                <ul>
+                    <li>Just move the <code>front</code> pointer forward.</li>
+                    <li>Nothing shifts; the slot is reused later.</li>
+                    <li>Cost: <strong>O(1)</strong> per dequeue. 🎉</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>The Fix: a Circular Buffer</h2>
+        <p>Instead of physically moving elements, we keep them put and move two <strong>pointers</strong> instead:</p>
+        <ul>
+            <li><code>front</code> — the index of the item to dequeue next.</li>
+            <li><code>rear</code> — the index where the next enqueue goes.</li>
+        </ul>
+        <p>When a pointer runs off the end of the fixed-size array, it <strong>wraps back around to index 0</strong> — as if the array's last slot were glued to its first, forming a ring. The wrap is just one line of arithmetic: <code>index = (index + 1) % capacity</code>. The modulo (<code>%</code>) does the wrapping for free.</p>
+        <p>Because we only ever bump pointers, both enqueue and dequeue stay <strong>O(1)</strong> — no shifting, ever.</p>
+
+        <div class="playground">
+            <div class="pg-title">🔄 Circular Buffer (Ring)</div>
+            <div class="pg-sub">A fixed array of 6 slots bent into a ring. Watch <strong>front</strong> (blue) and <strong>rear</strong> (amber) wrap around with <code>% 6</code>. Filled slots are solid; empty slots are hollow.</div>
+            <div class="ring-wrap"><svg id="ringSvg" width="280" height="280" viewBox="0 0 280 280"></svg></div>
+            <div class="pg-status" id="ringStatus">Empty ring. front = 0, rear = 0.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" onclick="ringEnqueue()">+ Enqueue</button>
+                <button class="btn btn-danger" onclick="ringDequeue()">&minus; Dequeue</button>
+                <button class="btn btn-ghost" onclick="ringReset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppRing')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaRing')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyRing')">Python</button>
+            </div>
+            <div id="cppRing" class="code-content active">
+<pre>
+<span class="keyword">struct</span> CircularQueue {
+    std::vector&lt;<span class="keyword">int</span>&gt; buf;
+    <span class="keyword">int</span> front = <span class="number">0</span>, count = <span class="number">0</span>, cap;
+    CircularQueue(<span class="keyword">int</span> c) : buf(c), cap(c) {}
+
+    <span class="keyword">bool</span> enqueue(<span class="keyword">int</span> x) {
+        <span class="keyword">if</span> (count == cap) <span class="keyword">return</span> <span class="keyword">false</span>;   <span class="comment">// full</span>
+        <span class="keyword">int</span> rear = (front + count) % cap;  <span class="comment">// wrap!</span>
+        buf[rear] = x;
+        count++;
+        <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+    <span class="keyword">int</span> dequeue() {
+        <span class="keyword">int</span> x = buf[front];
+        front = (front + <span class="number">1</span>) % cap;       <span class="comment">// wrap!</span>
+        count--;
+        <span class="keyword">return</span> x;
+    }
+};
+</pre>
+            </div>
+            <div id="javaRing" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">CircularQueue</span> {
+    <span class="keyword">int</span>[] buf;
+    <span class="keyword">int</span> front = <span class="number">0</span>, count = <span class="number">0</span>, cap;
+    <span class="type">CircularQueue</span>(<span class="keyword">int</span> c) { buf = <span class="keyword">new</span> <span class="keyword">int</span>[c]; cap = c; }
+
+    <span class="keyword">boolean</span> enqueue(<span class="keyword">int</span> x) {
+        <span class="keyword">if</span> (count == cap) <span class="keyword">return</span> <span class="keyword">false</span>;   <span class="comment">// full</span>
+        <span class="keyword">int</span> rear = (front + count) % cap;  <span class="comment">// wrap!</span>
+        buf[rear] = x;
+        count++;
+        <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+    <span class="keyword">int</span> dequeue() {
+        <span class="keyword">int</span> x = buf[front];
+        front = (front + <span class="number">1</span>) % cap;       <span class="comment">// wrap!</span>
+        count--;
+        <span class="keyword">return</span> x;
+    }
+}
+</pre>
+            </div>
+            <div id="pyRing" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">CircularQueue</span>:
+    <span class="keyword">def</span> __init__(self, cap):
+        self.buf = [<span class="number">0</span>] * cap
+        self.front = <span class="number">0</span>
+        self.count = <span class="number">0</span>
+        self.cap = cap
+
+    <span class="keyword">def</span> enqueue(self, x):
+        <span class="keyword">if</span> self.count == self.cap:
+            <span class="keyword">return</span> <span class="keyword">False</span>            <span class="comment"># full</span>
+        rear = (self.front + self.count) % self.cap   <span class="comment"># wrap!</span>
+        self.buf[rear] = x
+        self.count += <span class="number">1</span>
+        <span class="keyword">return</span> <span class="keyword">True</span>
+
+    <span class="keyword">def</span> dequeue(self):
+        x = self.buf[self.front]
+        self.front = (self.front + <span class="number">1</span>) % self.cap   <span class="comment"># wrap!</span>
+        self.count -= <span class="number">1</span>
+        <span class="keyword">return</span> x
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity Summary</h2>
+        <table>
+            <tr><th>Operation</th><th>Time</th><th>Notes</th></tr>
+            <tr><td>enqueue</td><td>O(1)</td><td>add at the rear</td></tr>
+            <tr><td>dequeue</td><td>O(1)</td><td>remove at the front (deque / circular buffer)</td></tr>
+            <tr><td>front / peek</td><td>O(1)</td><td>look, don't remove</td></tr>
+            <tr><td>isEmpty</td><td>O(1)</td><td>check count or pointers</td></tr>
+            <tr><td>dequeue (naive array)</td><td>O(n)</td><td>⚠️ shifts every element — avoid this</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>Rule of thumb:</strong> never dequeue from the front of a raw array in a loop. Use your language's <code>deque</code>/<code>queue</code>, or a circular buffer if you need a fixed-capacity ring. Both give you O(1) at both ends.
+        </div>
+
+        <h2>Where Queues Show Up</h2>
+        <p>Once you see FIFO, you'll spot queues everywhere "first come, first served" is the right behavior:</p>
+        <ul>
+            <li><strong>Task / job scheduling</strong> — the OS run queue hands the CPU to processes in arrival order.</li>
+            <li><strong>Printer queue</strong> — documents print in the order they were submitted.</li>
+            <li><strong>BFS traversal</strong> — breadth-first search uses a queue to explore a graph level by level.</li>
+            <li><strong>Message buffers</strong> — Kafka, SQS, and friends queue messages between producers and consumers.</li>
+            <li><strong>Request handling</strong> — web servers queue incoming requests until a worker is free.</li>
+        </ul>
+
+        <div class="note">
+            <strong>Quick recap:</strong> a queue is a line. Add at the rear, remove from the front, first in is first out. Use a <code>deque</code> or circular buffer so every operation stays O(1) — and never <code>pop(0)</code> a list.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Stacks &amp; Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Linear queue playground ----
+        let queue = [5, 7, 3];
+        let peekIndex = -1;
+
+        function setStatus(msg) { document.getElementById('qStatus').textContent = msg; }
+
+        function render() {
+            const canvas = document.getElementById('qCanvas');
+            canvas.innerHTML = '';
+
+            // FRONT end marker (left)
+            const frontEnd = document.createElement('div');
+            frontEnd.className = 'q-end';
+            frontEnd.innerHTML = '<span class="q-end-arrow">&larr;</span><span class="q-end-label">Front<br>(out)</span>';
+            canvas.appendChild(frontEnd);
+
+            if (queue.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'q-empty';
+                empty.textContent = 'empty queue';
+                canvas.appendChild(empty);
+            } else {
+                queue.forEach((v, i) => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'q-box-wrap';
+                    const box = document.createElement('div');
+                    box.className = 'q-box' + (i === peekIndex ? ' peek' : '');
+                    box.textContent = v;
+                    wrap.appendChild(box);
+                    const tag = document.createElement('div');
+                    tag.className = 'q-tag';
+                    if (i === 0 && queue.length === 1) tag.innerHTML = 'front&middot;rear';
+                    else if (i === 0) tag.textContent = 'front';
+                    else if (i === queue.length - 1) tag.textContent = 'rear';
+                    wrap.appendChild(tag);
+                    canvas.appendChild(wrap);
+                });
+            }
+
+            // REAR end marker (right)
+            const rearEnd = document.createElement('div');
+            rearEnd.className = 'q-end';
+            rearEnd.innerHTML = '<span class="q-end-arrow">&larr;</span><span class="q-end-label">Rear<br>(in)</span>';
+            canvas.appendChild(rearEnd);
+        }
+
+        function readVal() {
+            const v = parseInt(document.getElementById('qInput').value);
+            return isNaN(v) ? Math.floor(Math.random() * 90 + 1) : v;
+        }
+
+        function enqueue() {
+            peekIndex = -1;
+            const v = readVal();
+            queue.push(v);
+            render();
+            setStatus('Enqueued ' + v + ' at the rear. The line is now ' + queue.length + ' long.');
+        }
+
+        function dequeue() {
+            peekIndex = -1;
+            if (queue.length === 0) {
+                render();
+                setStatus('Queue is empty! Nothing to dequeue. (Always check isEmpty first.)');
+                return;
+            }
+            const v = queue.shift();
+            render();
+            if (queue.length === 0) setStatus('Dequeued ' + v + ' from the front. Queue is now empty!');
+            else setStatus('Dequeued ' + v + ' from the front. ' + queue[0] + ' is now at the front.');
+        }
+
+        function peekFront() {
+            if (queue.length === 0) {
+                peekIndex = -1;
+                render();
+                setStatus('Queue is empty! There is no front to peek at.');
+                return;
+            }
+            peekIndex = 0;
+            render();
+            setStatus('Peeking the front: ' + queue[0] + ' (it stays in the queue — peek does not remove).');
+        }
+
+        function resetQueue() {
+            queue = [5, 7, 3];
+            peekIndex = -1;
+            render();
+            setStatus('Reset. A queue with three items, waiting in line. Front is on the left.');
+        }
+        render();
+
+        // ---- Circular buffer ring visualizer ----
+        const RING_CAP = 6;
+        let ring = { buf: new Array(RING_CAP).fill(null), front: 0, count: 0, next: 1 };
+
+        function ringRearIndex() { return (ring.front + ring.count) % RING_CAP; }
+
+        function drawRing() {
+            const svg = document.getElementById('ringSvg');
+            const cx = 140, cy = 140, radius = 92, R = 26;
+            let out = '';
+            const rear = ringRearIndex();
+            for (let i = 0; i < RING_CAP; i++) {
+                const ang = (i / RING_CAP) * 2 * Math.PI - Math.PI / 2;
+                const x = cx + radius * Math.cos(ang);
+                const y = cy + radius * Math.sin(ang);
+                const filled = ring.buf[i] !== null;
+                let fill = filled ? '#2563eb' : '#ffffff';
+                let stroke = '#cbd5e1';
+                let tcol = filled ? '#ffffff' : '#94a3b8';
+                if (ring.count > 0 && i === ring.front) { stroke = '#2563eb'; }
+                if (ring.count > 0 && i === rear) { stroke = '#f59e0b'; }
+                out += '<circle class="ring-cell" cx="' + x + '" cy="' + y + '" r="' + R + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="3"/>';
+                out += '<text x="' + x + '" y="' + (y + 5) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="' + tcol + '">' + (filled ? ring.buf[i] : '·') + '</text>';
+                out += '<text x="' + x + '" y="' + (y - R - 6) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8">' + i + '</text>';
+                // pointer labels
+                let labels = [];
+                if (ring.count > 0 && i === ring.front) labels.push('front');
+                if (ring.count > 0 && i === rear && ring.count < RING_CAP) labels.push('rear');
+                if (labels.length) {
+                    const lx = cx + (radius + 34) * Math.cos(ang);
+                    const ly = cy + (radius + 34) * Math.sin(ang);
+                    const col = labels[0] === 'front' && labels.length === 1 ? '#2563eb' : (labels.includes('front') ? '#2563eb' : '#f59e0b');
+                    out += '<text x="' + lx + '" y="' + (ly + 4) + '" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="' + col + '">' + labels.join('/') + '</text>';
+                }
+            }
+            svg.innerHTML = out;
+        }
+
+        function ringStatus(msg) { document.getElementById('ringStatus').textContent = msg; }
+
+        function ringEnqueue() {
+            if (ring.count === RING_CAP) {
+                ringStatus('Ring is full (count = ' + RING_CAP + '). Enqueue rejected — no free slot.');
+                return;
+            }
+            const rear = ringRearIndex();
+            const v = ring.next;
+            ring.buf[rear] = v;
+            ring.count++;
+            ring.next = ring.next % 99 + 1;
+            drawRing();
+            const newRear = ringRearIndex();
+            ringStatus('Enqueued ' + v + ' at slot ' + rear + '. rear = (front + count) % ' + RING_CAP + ' = ' + newRear + ', count = ' + ring.count + '.');
+        }
+
+        function ringDequeue() {
+            if (ring.count === 0) {
+                ringStatus('Ring is empty! Nothing to dequeue.');
+                return;
+            }
+            const oldFront = ring.front;
+            const v = ring.buf[oldFront];
+            ring.buf[oldFront] = null;
+            ring.front = (ring.front + 1) % RING_CAP;
+            ring.count--;
+            drawRing();
+            ringStatus('Dequeued ' + v + ' from slot ' + oldFront + '. front = (front + 1) % ' + RING_CAP + ' = ' + ring.front + ', count = ' + ring.count + '.');
+        }
+
+        function ringReset() {
+            ring = { buf: new Array(RING_CAP).fill(null), front: 0, count: 0, next: 1 };
+            drawRing();
+            ringStatus('Empty ring. front = 0, rear = 0.');
+        }
+        drawRing();
+    </script>
+</body>
+</html>

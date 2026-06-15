@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deque & Sliding Window Maximum - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eff6ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #2563eb; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #2563eb; }
+        .code-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls label { font-size: 0.82em; color: #64748b; font-weight: 600; }
+        .pg-controls input { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input.k-in { width: 56px; }
+        .pg-controls input.arr-in { width: 230px; flex: 1; min-width: 160px; }
+        .pg-controls input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+
+        /* Sliding window viz */
+        .sw-wrap { position: relative; padding: 26px 4px 10px; overflow-x: auto; }
+        .sw-row { display: flex; gap: 8px; position: relative; }
+        .sw-cell { width: 46px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .sw-box { width: 46px; height: 46px; border-radius: 10px; border: 2px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #0f172a; transition: all 0.2s ease; }
+        .sw-box.in-window { border-color: #93c5fd; background: #eff6ff; }
+        .sw-box.current { border-color: #7c3aed; background: #ede9fe; color: #6d28d9; animation: pulse 1s ease infinite; }
+        .sw-idx { font-size: 0.66em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.35); } 50% { box-shadow: 0 0 0 6px rgba(124,58,237,0); } }
+
+        .deque-wrap { margin-top: 22px; }
+        .deque-lbl { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 8px; }
+        .deque-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 56px; }
+        .deque-end { font-size: 0.64em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; padding: 2px 6px; }
+        .dq-item { display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 10px; border: 2px solid #2563eb; background: white; padding: 6px 12px; box-shadow: 0 2px 8px rgba(37,99,235,0.12); animation: pop 0.25s ease; }
+        .dq-item.front { border-color: #16a34a; background: #ecfdf5; box-shadow: 0 2px 8px rgba(22,163,74,0.18); }
+        .dq-val { font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #0f172a; font-size: 0.95em; }
+        .dq-meta { font-size: 0.6em; color: #64748b; font-family: 'JetBrains Mono', monospace; }
+        .dq-item.front .dq-meta { color: #16a34a; }
+        .dq-empty { color: #94a3b8; font-size: 0.82em; font-style: italic; }
+        @keyframes pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .results-wrap { margin-top: 22px; }
+        .results-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 40px; }
+        .res-box { width: 40px; height: 40px; border-radius: 8px; border: 2px solid #16a34a; background: #ecfdf5; color: #15803d; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: 'JetBrains Mono', monospace; animation: pop 0.25s ease; }
+
+        .footer { text-align: center; padding: 32px 20px; color: #94a3b8; font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc; margin-top: 40px; }
+        .footer span { color: #2563eb; }
+
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .pg-controls input.arr-in { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Stacks &amp; Queues</a>
+        <h1>Deque &amp; Sliding Window Maximum</h1>
+        <p>Picture a line of people — but a strange one, where someone can join or leave from <strong>either end</strong>. New arrivals can slip in at the front <em>or</em> the back, and you can wave goodbye to whoever is at the front <em>or</em> the back. That two-sided line is a <strong>deque</strong> (pronounced "deck", short for <strong>d</strong>ouble-<strong>e</strong>nded <strong>que</strong>ue).</p>
+        <p>A deque is the swiss-army knife of linear containers. Use only the back and it behaves like a stack. Add at the back, remove from the front, and it's a plain queue. Because it generalizes both, it's the perfect tool for problems where you need to drop things from <em>both</em> sides — like our star problem below.</p>
+
+        <h2>The Six Operations</h2>
+        <p>Every operation on a deque is <strong>O(1)</strong> — constant time, no matter how many elements are inside:</p>
+        <ul>
+            <li><code>pushFront(x)</code> — add <code>x</code> to the front.</li>
+            <li><code>pushBack(x)</code> — add <code>x</code> to the back.</li>
+            <li><code>popFront()</code> — remove and return the front element.</li>
+            <li><code>popBack()</code> — remove and return the back element.</li>
+            <li><code>peekFront()</code> — look at the front without removing it.</li>
+            <li><code>peekBack()</code> — look at the back without removing it.</li>
+        </ul>
+
+        <p>Every language ships a ready-made deque. Here's the basic usage in all three:</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDq')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDq')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDq')">Python</button>
+            </div>
+            <div id="cppDq" class="code-content active">
+<pre>
+<span class="comment">// std::deque supports both ends in O(1)</span>
+<span class="preproc">#include</span> <span class="string">&lt;deque&gt;</span>
+std::deque&lt;<span class="keyword">int</span>&gt; dq;
+
+dq.push_back(<span class="number">10</span>);     <span class="comment">// back:  [10]</span>
+dq.push_front(<span class="number">5</span>);     <span class="comment">// front: [5, 10]</span>
+
+<span class="keyword">int</span> f = dq.front();    <span class="comment">// peek front -> 5</span>
+<span class="keyword">int</span> b = dq.back();     <span class="comment">// peek back  -> 10</span>
+
+dq.pop_front();        <span class="comment">// removes 5  -> [10]</span>
+dq.pop_back();         <span class="comment">// removes 10 -> []</span>
+
+<span class="keyword">bool</span> empty = dq.empty();
+</pre>
+            </div>
+            <div id="javaDq" class="code-content">
+<pre>
+<span class="comment">// ArrayDeque is the go-to deque in Java</span>
+<span class="keyword">import</span> java.util.ArrayDeque;
+ArrayDeque&lt;<span class="type">Integer</span>&gt; dq = <span class="keyword">new</span> ArrayDeque&lt;&gt;();
+
+dq.addLast(<span class="number">10</span>);     <span class="comment">// back:  [10]</span>
+dq.addFirst(<span class="number">5</span>);     <span class="comment">// front: [5, 10]</span>
+
+<span class="keyword">int</span> f = dq.peekFirst();  <span class="comment">// peek front -> 5</span>
+<span class="keyword">int</span> b = dq.peekLast();   <span class="comment">// peek back  -> 10</span>
+
+dq.pollFirst();          <span class="comment">// removes 5  -> [10]</span>
+dq.pollLast();           <span class="comment">// removes 10 -> []</span>
+
+<span class="keyword">boolean</span> empty = dq.isEmpty();
+</pre>
+            </div>
+            <div id="pyDq" class="code-content">
+<pre>
+<span class="comment"># collections.deque is a doubly linked list</span>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+dq = deque()
+
+dq.append(<span class="number">10</span>)         <span class="comment"># back:  [10]</span>
+dq.appendleft(<span class="number">5</span>)      <span class="comment"># front: [5, 10]</span>
+
+f = dq[<span class="number">0</span>]            <span class="comment"># peek front -> 5</span>
+b = dq[-<span class="number">1</span>]           <span class="comment"># peek back  -> 10</span>
+
+dq.popleft()           <span class="comment"># removes 5  -> [10]</span>
+dq.pop()               <span class="comment"># removes 10 -> []</span>
+
+empty = <span class="keyword">not</span> dq
+</pre>
+            </div>
+        </div>
+
+        <h2>The Star Application: Sliding Window Maximum</h2>
+        <p>Here's the problem that makes the deque shine. You're given an array and a window of fixed size <code>k</code>. The window slides one step at a time from left to right, and at each position you must report the <strong>maximum</strong> inside it.</p>
+        <p>The lazy approach: at every window, scan all <code>k</code> elements for the max. That's O(n·k) — fine for tiny inputs, painful for big ones. The deque gets us all the way down to <strong>O(n)</strong>, where each element is added and removed at most once.</p>
+
+        <h3>The Intuition</h3>
+        <p>We keep a <strong>monotonic decreasing deque of indices</strong>. The trick is captured in one sentence: <em>the front of the deque always holds the index of the current window's maximum.</em></p>
+        <p>To keep that promise as a new element arrives at position <code>i</code>, we do three things:</p>
+        <ol>
+            <li><strong>Clean the back.</strong> While the element at the back of the deque is <em>smaller</em> than the new value, pop it. Why? A smaller, older element can never be the max again while this bigger, newer one is around — it's permanently overshadowed. Then push <code>i</code> at the back.</li>
+            <li><strong>Expire the front.</strong> If the front index has slid out of the window (its index is <code>&lt;= i - k</code>), pop it from the front. It's too old to count anymore.</li>
+            <li><strong>Record the answer.</strong> Once the window has fully formed (<code>i &gt;= k - 1</code>), the value at the front index is the maximum of the current window.</li>
+        </ol>
+        <p>Because elements only ever leave when they're too small or too old, the deque stays sorted (largest at the front, decreasing toward the back) for free.</p>
+
+        <h3>Worked Example</h3>
+        <p>Take <code>[1, 3, -1, -3, 5, 3, 6, 7]</code> with <code>k = 3</code>. Walking the window across the array gives the maxima <code>[3, 3, 5, 5, 6, 7]</code> — one per full window. Step through it yourself in the playground below to see exactly how the deque empties and refills.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎬 Sliding Window Maximum — Step Through</div>
+            <div class="pg-sub">Watch the monotonic deque (of indices) track the max of every window. The <strong style="color:#7c3aed">violet</strong> box is the element being processed; the <strong style="color:#2563eb">blue</strong> span is the current window; the <strong style="color:#16a34a">green</strong> deque item is the front (the answer). Press <strong>Next Step ▶</strong> for one unit of work at a time.</div>
+
+            <div class="sw-wrap">
+                <div class="sw-row" id="swRow"></div>
+            </div>
+
+            <div class="deque-wrap">
+                <div class="deque-lbl">Monotonic Deque (showing index : value)</div>
+                <div class="deque-row" id="dqRow"></div>
+            </div>
+
+            <div class="results-wrap">
+                <div class="deque-lbl">Window Maxima So Far</div>
+                <div class="results-row" id="resRow"></div>
+            </div>
+
+            <div class="pg-status" id="swStatus">Press “Next Step ▶” to begin. We'll process index 0 first.</div>
+
+            <div class="pg-controls">
+                <label for="kIn">k =</label>
+                <input type="number" id="kIn" class="k-in" value="3" min="1">
+                <input type="text" id="arrIn" class="arr-in" value="1, 3, -1, -3, 5, 3, 6, 7">
+                <button class="btn btn-ghost" onclick="applySW()">Apply</button>
+                <button class="btn btn-primary" id="stepBtn" onclick="stepSW()">Next Step ▶</button>
+                <button class="btn btn-ghost" onclick="resetSW()">↺ Reset</button>
+            </div>
+        </div>
+
+        <p>Here's the full algorithm in all three languages, using a deque of <strong>indices</strong>:</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppSW')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaSW')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pySW')">Python</button>
+            </div>
+            <div id="cppSW" class="code-content active">
+<pre>
+<span class="comment">// Sliding window maximum — deque of indices, O(n)</span>
+std::vector&lt;<span class="keyword">int</span>&gt; maxSlidingWindow(std::vector&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> k) {
+    std::deque&lt;<span class="keyword">int</span>&gt; dq;            <span class="comment">// holds indices, values decreasing</span>
+    std::vector&lt;<span class="keyword">int</span>&gt; res;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="keyword">int</span>)nums.size(); ++i) {
+        <span class="comment">// 1. clean the back: drop smaller, overshadowed values</span>
+        <span class="keyword">while</span> (!dq.empty() &amp;&amp; nums[dq.back()] &lt; nums[i])
+            dq.pop_back();
+        dq.push_back(i);
+        <span class="comment">// 2. expire the front if it slid out of the window</span>
+        <span class="keyword">if</span> (dq.front() &lt;= i - k)
+            dq.pop_front();
+        <span class="comment">// 3. record once the window has fully formed</span>
+        <span class="keyword">if</span> (i &gt;= k - <span class="number">1</span>)
+            res.push_back(nums[dq.front()]);
+    }
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="javaSW" class="code-content">
+<pre>
+<span class="comment">// Sliding window maximum — ArrayDeque of indices, O(n)</span>
+<span class="keyword">public</span> <span class="keyword">int</span>[] maxSlidingWindow(<span class="keyword">int</span>[] nums, <span class="keyword">int</span> k) {
+    ArrayDeque&lt;<span class="type">Integer</span>&gt; dq = <span class="keyword">new</span> ArrayDeque&lt;&gt;(); <span class="comment">// indices, values decreasing</span>
+    <span class="keyword">int</span>[] res = <span class="keyword">new</span> <span class="keyword">int</span>[nums.length - k + <span class="number">1</span>];
+    <span class="keyword">int</span> r = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nums.length; i++) {
+        <span class="comment">// 1. clean the back: drop smaller, overshadowed values</span>
+        <span class="keyword">while</span> (!dq.isEmpty() &amp;&amp; nums[dq.peekLast()] &lt; nums[i])
+            dq.pollLast();
+        dq.addLast(i);
+        <span class="comment">// 2. expire the front if it slid out of the window</span>
+        <span class="keyword">if</span> (dq.peekFirst() &lt;= i - k)
+            dq.pollFirst();
+        <span class="comment">// 3. record once the window has fully formed</span>
+        <span class="keyword">if</span> (i &gt;= k - <span class="number">1</span>)
+            res[r++] = nums[dq.peekFirst()];
+    }
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="pySW" class="code-content">
+<pre>
+<span class="comment"># Sliding window maximum — deque of indices, O(n)</span>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="keyword">def</span> <span class="type">maxSlidingWindow</span>(nums, k):
+    dq = deque()          <span class="comment"># holds indices, values decreasing</span>
+    res = []
+    <span class="keyword">for</span> i, v <span class="keyword">in</span> enumerate(nums):
+        <span class="comment"># 1. clean the back: drop smaller, overshadowed values</span>
+        <span class="keyword">while</span> dq <span class="keyword">and</span> nums[dq[-<span class="number">1</span>]] &lt; v:
+            dq.pop()
+        dq.append(i)
+        <span class="comment"># 2. expire the front if it slid out of the window</span>
+        <span class="keyword">if</span> dq[<span class="number">0</span>] &lt;= i - k:
+            dq.popleft()
+        <span class="comment"># 3. record once the window has fully formed</span>
+        <span class="keyword">if</span> i &gt;= k - <span class="number">1</span>:
+            res.append(nums[dq[<span class="number">0</span>]])
+    <span class="keyword">return</span> res
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity</h2>
+        <table>
+            <tr><th>Approach</th><th>Time</th><th>Space</th><th>Notes</th></tr>
+            <tr><td>Brute force (rescan each window)</td><td>O(n·k)</td><td>O(1)</td><td>Re-scans <code>k</code> elements per step</td></tr>
+            <tr><td>Monotonic deque</td><td>O(n)</td><td>O(k)</td><td>Each index pushed &amp; popped once</td></tr>
+            <tr><td>Any single deque operation</td><td>O(1)</td><td>—</td><td>pushFront/Back, popFront/Back, peek</td></tr>
+        </table>
+        <p>Why O(n) and not O(n·k)? Each index enters the deque exactly once and leaves at most once. Even though a single step might pop several elements off the back, those pops are "paid for" by the earlier pushes — across the whole run the total work is bounded by 2n. The deque never holds more than <code>k</code> indices, so space is O(k).</p>
+
+        <div class="note">
+            <strong>Why store indices, not values?</strong> The deque needs two pieces of information about its front: <em>what the value is</em> (to report the max) and <em>when it entered</em> (to know if it has expired). If you stored only values you could read the max, but you'd have no way to tell that the front element slid out of the window. Storing the index gives you both — <code>nums[front]</code> recovers the value, and <code>front &lt;= i - k</code> checks expiry.
+        </div>
+
+        <div class="warn">
+            <strong>Three bugs that bite everyone:</strong>
+            <ul>
+                <li><strong>Comparing values but expiring by index.</strong> The back-cleaning step compares <em>values</em> (<code>nums[dq.back()] &lt; nums[i]</code>), but the front-expiry step compares <em>indices</em> (<code>dq.front() &lt;= i - k</code>). Mixing these up — e.g. expiring by value — is a classic mistake.</li>
+                <li><strong><code>&gt;</code> vs <code>&gt;=</code> on duplicates.</strong> Using <code>nums[back] &lt; nums[i]</code> (strict) keeps equal values in the deque, which is correct and safe. If you pop on <code>&lt;=</code> you discard duplicates that may still be valid maxima of later windows.</li>
+                <li><strong>Recording too early.</strong> Only push to the result once <code>i &gt;= k - 1</code> — that's when the first full window exists. Recording before the window has formed produces a spurious leading answer.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Stacks &amp; Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Sliding Window Maximum step-through playground ----
+        // Explicit state machine. Each "Next Step" performs ONE atomic unit of work:
+        //   phase 'back'    : pop one smaller element off the back (if any),
+        //   phase 'push'    : push current index i at the back,
+        //   phase 'expire'  : pop the front if it slid out of the window (if needed),
+        //   phase 'record'  : record the answer if window has formed, then advance i.
+        let arr = [1, 3, -1, -3, 5, 3, 6, 7];
+        let k = 3;
+        let i = 0;
+        let dq = [];          // indices
+        let results = [];
+        let phase = 'back';   // 'back' | 'push' | 'expire' | 'record' | 'done'
+        let busy = false;
+
+        function parseArr(s) {
+            return s.split(',')
+                    .map(x => x.trim())
+                    .filter(x => x.length)
+                    .map(x => parseInt(x, 10))
+                    .filter(x => !isNaN(x));
+        }
+
+        function render(msg) {
+            // array row
+            const row = document.getElementById('swRow');
+            row.innerHTML = '';
+            const lo = i - k + 1; // window start (only meaningful once formed)
+            arr.forEach((v, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'sw-cell';
+                const box = document.createElement('div');
+                box.className = 'sw-box';
+                if (idx <= i && idx > i - k && i < arr.length) box.classList.add('in-window');
+                if (idx === i && i < arr.length && phase !== 'done') box.classList.add('current');
+                box.textContent = v;
+                const ix = document.createElement('div');
+                ix.className = 'sw-idx';
+                ix.textContent = idx;
+                cell.appendChild(box);
+                cell.appendChild(ix);
+                row.appendChild(cell);
+            });
+
+            // deque row
+            const dr = document.getElementById('dqRow');
+            dr.innerHTML = '';
+            const front = document.createElement('span');
+            front.className = 'deque-end';
+            front.textContent = 'front ▸';
+            dr.appendChild(front);
+            if (dq.length === 0) {
+                const e = document.createElement('span');
+                e.className = 'dq-empty';
+                e.textContent = '(empty)';
+                dr.appendChild(e);
+            } else {
+                dq.forEach((idx, pos) => {
+                    const it = document.createElement('div');
+                    it.className = 'dq-item' + (pos === 0 ? ' front' : '');
+                    it.innerHTML = '<div class="dq-val">' + arr[idx] + '</div><div class="dq-meta">idx ' + idx + '</div>';
+                    dr.appendChild(it);
+                });
+            }
+            const back = document.createElement('span');
+            back.className = 'deque-end';
+            back.textContent = '◂ back';
+            dr.appendChild(back);
+
+            // results row
+            const rr = document.getElementById('resRow');
+            rr.innerHTML = '';
+            if (results.length === 0) {
+                const e = document.createElement('span');
+                e.className = 'dq-empty';
+                e.textContent = '(none yet)';
+                rr.appendChild(e);
+            } else {
+                results.forEach(v => {
+                    const b = document.createElement('div');
+                    b.className = 'res-box';
+                    b.textContent = v;
+                    rr.appendChild(b);
+                });
+            }
+
+            if (msg) document.getElementById('swStatus').textContent = msg;
+            document.getElementById('stepBtn').disabled = (phase === 'done');
+        }
+
+        function stepSW() {
+            if (busy || phase === 'done') return;
+
+            if (i >= arr.length) {
+                phase = 'done';
+                render('Done. All windows processed. Maxima: [' + results.join(', ') + '].');
+                return;
+            }
+
+            const v = arr[i];
+
+            if (phase === 'back') {
+                // pop ONE smaller element off the back, if present
+                if (dq.length && arr[dq[dq.length - 1]] < v) {
+                    const popped = dq.pop();
+                    render('i=' + i + ', value ' + v + '. Pop index ' + popped + ' (value ' + arr[popped] +
+                           ') from the BACK — it is smaller, so it can never be the max again.');
+                    return; // stay in 'back' phase to pop more next step
+                }
+                phase = 'push';
+                // fall through to push immediately for a tighter narration
+            }
+
+            if (phase === 'push') {
+                dq.push(i);
+                phase = 'expire';
+                render('i=' + i + ', value ' + v + '. Back is clean. Push index ' + i + ' at the BACK.');
+                return;
+            }
+
+            if (phase === 'expire') {
+                phase = 'record';
+                if (dq.length && dq[0] <= i - k) {
+                    const exp = dq.shift();
+                    render('Front index ' + exp + ' is ▸ i-k (' + (i - k) + '), so it slid out of the window. Pop it from the FRONT.');
+                    return;
+                }
+                render('Front index ' + dq[0] + ' is still inside the window — nothing to expire.');
+                return;
+            }
+
+            if (phase === 'record') {
+                if (i >= k - 1) {
+                    const maxVal = arr[dq[0]];
+                    results.push(maxVal);
+                    const lo = i - k + 1;
+                    i++;
+                    phase = (i >= arr.length) ? 'done' : 'back';
+                    render('Window [' + lo + '..' + (lo + k - 1) + '] is full. Max = ' + maxVal +
+                           '. ' +
+                           (phase === 'done' ? 'All done!' : 'Advance to i=' + i + '.'));
+                    return;
+                }
+                // window not yet formed
+                i++;
+                phase = (i >= arr.length) ? 'done' : 'back';
+                render('Window not full yet (need i ▸ ' + (k - 1) + '). No answer recorded. Advance to i=' + i + '.');
+                return;
+            }
+        }
+
+        function applySW() {
+            const newArr = parseArr(document.getElementById('arrIn').value);
+            let newK = parseInt(document.getElementById('kIn').value, 10);
+            if (!newArr.length) { render('Please enter at least one number.'); return; }
+            if (isNaN(newK) || newK < 1) newK = 1;
+            if (newK > newArr.length) newK = newArr.length;
+            arr = newArr;
+            k = newK;
+            document.getElementById('kIn').value = k;
+            i = 0; dq = []; results = []; phase = 'back'; busy = false;
+            render('Loaded ' + arr.length + ' values with k=' + k + '. Press “Next Step ▶” to begin processing index 0.');
+        }
+
+        function resetSW() {
+            i = 0; dq = []; results = []; phase = 'back'; busy = false;
+            render('Reset. Press “Next Step ▶” to begin. We’ll process index 0 first.');
+        }
+
+        render('Press “Next Step ▶” to begin. We’ll process index 0 first.');
+    </script>
+</body>
+</html>

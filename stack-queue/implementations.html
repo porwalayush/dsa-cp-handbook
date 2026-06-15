@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Stacks & Queues From Scratch - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eff6ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #2563eb; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #2563eb; }
+        .code-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input { width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .pg-controls input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+
+        /* Two-stack visual */
+        .twostack-wrap { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; padding: 10px 0 4px; }
+        .stack-col { display: flex; flex-direction: column; align-items: center; }
+        .stack-label { font-size: 0.7em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 10px; }
+        .stack-pile {
+            display: flex; flex-direction: column-reverse; gap: 6px; align-items: center;
+            min-height: 200px; justify-content: flex-start;
+            border-bottom: 3px solid #cbd5e1; padding: 8px 14px 0; min-width: 96px;
+        }
+        .sbox {
+            width: 64px; height: 34px; border-radius: 8px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.28);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 0.9em;
+            font-family: 'JetBrains Mono', monospace;
+            animation: pop 0.3s ease;
+        }
+        .stack-bottom-label { font-size: 0.62em; color: #94a3b8; margin-top: 6px; font-weight: 600; }
+        .pile-empty { color: #cbd5e1; font-size: 0.78em; font-weight: 600; align-self: center; margin-top: 80px; }
+        @keyframes pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .sbox.moving { background: linear-gradient(135deg, #7c3aed, #8b5cf6); box-shadow: 0 4px 14px rgba(124,58,237,0.4); }
+
+        .footer { text-align: center; padding: 32px 20px; color: #94a3b8; font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc; margin-top: 40px; }
+        .footer span { color: #2563eb; }
+
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .twostack-wrap { gap: 28px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Stacks &amp; Queues</a>
+        <h1>Building Stacks &amp; Queues From Scratch</h1>
+        <p>Here's a favorite interview move: <em>"You have a stack. Build me a queue."</em> Or the reverse. Or: <em>"Build a queue with no linked list — just a plain fixed array."</em> These questions feel like riddles, but each one has a tidy trick once you see the picture.</p>
+        <p>The whole game is about <strong>order</strong>. A stack hands back the <strong>last</strong> thing you put in (LIFO — last in, first out). A queue hands back the <strong>first</strong> thing you put in (FIFO — first in, first out). When someone asks you to build one out of the other, you're really being asked: <em>how do I flip the order around?</em> Let's build all three classics, slowly.</p>
+
+        <h2>1. Queue Using Two Stacks</h2>
+        <p>Picture your desk. You have an <strong>inbox tray</strong> where new mail lands on top of the pile, and an <strong>outbox tray</strong> you actually read from. Both trays are stacks — you only ever touch the top.</p>
+        <p>New mail? Drop it on the <strong>inbox</strong>. Want to read the oldest letter? Here's the magic: if your outbox is empty, you grab the whole inbox pile and flip it over into the outbox — one letter at a time, top to top. The letter that was buried at the bottom of the inbox (the <em>oldest</em>) is now sitting right on top of the outbox. That flip <strong>reverses the order</strong>, turning LIFO into FIFO.</p>
+        <p>So we keep two stacks:</p>
+        <ul>
+            <li><strong>in</strong> — everything you <code>enqueue</code> gets pushed here. Always O(1).</li>
+            <li><strong>out</strong> — you <code>dequeue</code> by popping from here. If it's empty, pour all of <code>in</code> into it first (this is the reversing flip), then pop.</li>
+        </ul>
+
+        <div class="playground">
+            <div class="pg-title">🎮 Queue From Two Stacks</div>
+            <div class="pg-sub">Enqueue pushes onto the <strong>In</strong> stack. Dequeue pops from <strong>Out</strong> — but when Out is empty, watch every box pour over from In, reversing the pile so the <em>oldest</em> item surfaces on top.</div>
+            <div class="twostack-wrap">
+                <div class="stack-col">
+                    <div class="stack-label">In Stack (push here)</div>
+                    <div class="stack-pile" id="inPile"></div>
+                    <div class="stack-bottom-label">bottom = oldest</div>
+                </div>
+                <div class="stack-col">
+                    <div class="stack-label">Out Stack (pop here)</div>
+                    <div class="stack-pile" id="outPile"></div>
+                    <div class="stack-bottom-label">top = next to leave</div>
+                </div>
+            </div>
+            <div class="pg-status" id="tsStatus">Queue is ready. In holds [5, 7] (5 was enqueued first). Try a Dequeue and watch the transfer.</div>
+            <div class="pg-controls">
+                <input type="number" id="tsInput" placeholder="value" value="4">
+                <button class="btn btn-primary" id="tsEnq" onclick="tsEnqueue()">Enqueue</button>
+                <button class="btn btn-primary" id="tsDeq" onclick="tsDequeue()">Dequeue</button>
+                <button class="btn btn-ghost" onclick="tsReset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <p>The clever part is the cost. A single <code>dequeue</code> that triggers a transfer looks expensive — it moves every element. But each element is moved from <code>in</code> to <code>out</code> <strong>exactly once</strong> in its whole life, and is popped <strong>once</strong>. Spread that cost over all the operations and each one averages out to constant time. That's what <strong>amortized O(1)</strong> means.</p>
+
+        <div class="note">
+            <strong>Amortized intuition:</strong> don't judge a single operation in isolation — judge the average over a long run. One dequeue might shove 100 items across, but those 100 items will never be moved again. It's like paying a yearly bill once: pricey that day, cheap per day across the year.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppTwoStack')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaTwoStack')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyTwoStack')">Python</button>
+            </div>
+            <div id="cppTwoStack" class="code-content active">
+<pre>
+<span class="keyword">class</span> MyQueue {
+    std::stack&lt;<span class="keyword">int</span>&gt; in, out;
+<span class="keyword">public</span>:
+    <span class="comment">// Always cheap: just drop onto the in-stack.</span>
+    <span class="keyword">void</span> enqueue(<span class="keyword">int</span> x) { in.push(x); }
+
+    <span class="keyword">int</span> dequeue() {
+        <span class="keyword">if</span> (out.empty()) {            <span class="comment">// out is dry — pour in over</span>
+            <span class="keyword">while</span> (!in.empty()) {       <span class="comment">// this reverses the order</span>
+                out.push(in.top());
+                in.pop();
+            }
+        }
+        <span class="keyword">int</span> front = out.top();
+        out.pop();
+        <span class="keyword">return</span> front;
+    }
+};
+</pre>
+            </div>
+            <div id="javaTwoStack" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">MyQueue</span> {
+    <span class="type">Deque</span>&lt;<span class="type">Integer</span>&gt; in = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();
+    <span class="type">Deque</span>&lt;<span class="type">Integer</span>&gt; out = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();
+
+    <span class="comment">// Always cheap: just drop onto the in-stack.</span>
+    <span class="keyword">void</span> enqueue(<span class="keyword">int</span> x) { in.push(x); }
+
+    <span class="keyword">int</span> dequeue() {
+        <span class="keyword">if</span> (out.isEmpty()) {          <span class="comment">// out is dry — pour in over</span>
+            <span class="keyword">while</span> (!in.isEmpty()) {     <span class="comment">// this reverses the order</span>
+                out.push(in.pop());
+            }
+        }
+        <span class="keyword">return</span> out.pop();
+    }
+}
+</pre>
+            </div>
+            <div id="pyTwoStack" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">MyQueue</span>:
+    <span class="keyword">def</span> __init__(self):
+        self._in = []     <span class="comment"># push/pop from the end</span>
+        self._out = []
+
+    <span class="keyword">def</span> enqueue(self, x):
+        self._in.append(x)            <span class="comment"># always cheap</span>
+
+    <span class="keyword">def</span> dequeue(self):
+        <span class="keyword">if</span> <span class="keyword">not</span> self._out:               <span class="comment"># out is dry — pour in over</span>
+            <span class="keyword">while</span> self._in:            <span class="comment"># this reverses the order</span>
+                self._out.append(self._in.pop())
+        <span class="keyword">return</span> self._out.pop()
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Stack Using Two Queues</h2>
+        <p>Now flip the riddle. You only have queues — FIFO lines where new people join the back and you can only serve the front. But you need a <strong>stack</strong>, where the <em>newest</em> item must come out first. How do you make the back-of-the-line newcomer jump to the front?</p>
+        <p>The trick: every time you push, you immediately <strong>rotate the line</strong> so the new arrival ends up at the very front. Enqueue the new value, then take every <em>older</em> element from the front and send it to the back. After this shuffle, the most recent element is first in line — and a normal FIFO dequeue now behaves exactly like a stack pop.</p>
+        <p>You can do this with just <strong>one</strong> queue, which is the cleanest version. On push, enqueue <code>x</code>, then move the previous <code>size - 1</code> elements (everything that was there before <code>x</code>) to the back, one rotation at a time.</p>
+
+        <div class="note">
+            <strong>Where's the cost?</strong> This is a <em>push-heavy</em> design. The rotation touches every existing element, so <code>push</code> is O(n). But <code>pop</code> and <code>top</code> are then a plain O(1) dequeue. (There's also a pop-heavy variant that flips which operation pays — pick based on which one you call more.)
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppTwoQ')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaTwoQ')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyTwoQ')">Python</button>
+            </div>
+            <div id="cppTwoQ" class="code-content active">
+<pre>
+<span class="comment">// Single-queue rotate trick: newest always rotated to the front.</span>
+<span class="keyword">class</span> MyStack {
+    std::queue&lt;<span class="keyword">int</span>&gt; q;
+<span class="keyword">public</span>:
+    <span class="keyword">void</span> push(<span class="keyword">int</span> x) {
+        q.push(x);                       <span class="comment">// new element joins the back</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="keyword">int</span>)q.size() - <span class="number">1</span>; i++) {
+            q.push(q.front());           <span class="comment">// move older items behind it</span>
+            q.pop();
+        }
+    }
+    <span class="keyword">int</span> pop()  { <span class="keyword">int</span> v = q.front(); q.pop(); <span class="keyword">return</span> v; }
+    <span class="keyword">int</span> top()  { <span class="keyword">return</span> q.front(); }
+    <span class="keyword">bool</span> empty() { <span class="keyword">return</span> q.empty(); }
+};
+</pre>
+            </div>
+            <div id="javaTwoQ" class="code-content">
+<pre>
+<span class="comment">// Single-queue rotate trick: newest always rotated to the front.</span>
+<span class="keyword">class</span> <span class="type">MyStack</span> {
+    <span class="type">Queue</span>&lt;<span class="type">Integer</span>&gt; q = <span class="keyword">new</span> <span class="type">LinkedList</span>&lt;&gt;();
+
+    <span class="keyword">void</span> push(<span class="keyword">int</span> x) {
+        q.add(x);                        <span class="comment">// new element joins the back</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; q.size() - <span class="number">1</span>; i++) {
+            q.add(q.remove());           <span class="comment">// move older items behind it</span>
+        }
+    }
+    <span class="keyword">int</span> pop()  { <span class="keyword">return</span> q.remove(); }
+    <span class="keyword">int</span> top()  { <span class="keyword">return</span> q.peek(); }
+    <span class="keyword">boolean</span> empty() { <span class="keyword">return</span> q.isEmpty(); }
+}
+</pre>
+            </div>
+            <div id="pyTwoQ" class="code-content">
+<pre>
+<span class="keyword">from</span> collections <span class="keyword">import</span> deque
+
+<span class="comment"># Single-queue rotate trick: newest always rotated to the front.</span>
+<span class="keyword">class</span> <span class="type">MyStack</span>:
+    <span class="keyword">def</span> __init__(self):
+        self.q = deque()
+
+    <span class="keyword">def</span> push(self, x):
+        self.q.append(x)                 <span class="comment"># new element joins the back</span>
+        <span class="keyword">for</span> _ <span class="keyword">in</span> range(len(self.q) - <span class="number">1</span>):
+            self.q.append(self.q.popleft())  <span class="comment"># rotate older items behind</span>
+
+    <span class="keyword">def</span> pop(self):  <span class="keyword">return</span> self.q.popleft()
+    <span class="keyword">def</span> top(self):  <span class="keyword">return</span> self.q[<span class="number">0</span>]
+    <span class="keyword">def</span> empty(self): <span class="keyword">return</span> <span class="keyword">not</span> self.q
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Circular Array Queue</h2>
+        <p>What if you're handed nothing but a plain fixed-size array — no linked list, no growing? A naive queue would dequeue from the front and shift every other element left, which is O(n) per dequeue. Wasteful.</p>
+        <p>Instead, think of the array as a <strong>ring</strong>. Two pointers chase each other around it: <code>front</code> marks where the next item leaves, and <code>rear</code> marks where the next item enters. When a pointer runs off the end of the array, it <strong>wraps back to index 0</strong> using the modulo operator (<code>% capacity</code>). Nothing ever shifts — the pointers just circle, reusing the freed slots behind them.</p>
+        <p>Enqueue writes at <code>rear</code>, then advances <code>rear</code> with wraparound. Dequeue reads at <code>front</code>, then advances <code>front</code> the same way. We also track <code>size</code> so we always know how many items are really in the ring.</p>
+
+        <div class="warn">
+            <strong>The off-by-one trap — full vs. empty:</strong> in a ring, <code>front == rear</code> happens both when the queue is <em>completely empty</em> and when it's <em>completely full</em> — the pointers land on the same slot either way. You cannot tell those two apart from the pointers alone. The cleanest fix is to track a separate <code>size</code> counter (full when <code>size == capacity</code>, empty when <code>size == 0</code>). The alternative — leaving one slot permanently empty — works too, but the <code>size</code> approach is harder to get wrong.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppCirc')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaCirc')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyCirc')">Python</button>
+            </div>
+            <div id="cppCirc" class="code-content active">
+<pre>
+<span class="keyword">class</span> CircularQueue {
+    std::vector&lt;<span class="keyword">int</span>&gt; buf;
+    <span class="keyword">int</span> front = <span class="number">0</span>, size = <span class="number">0</span>, cap;
+<span class="keyword">public</span>:
+    CircularQueue(<span class="keyword">int</span> capacity) : buf(capacity), cap(capacity) {}
+
+    <span class="keyword">bool</span> enqueue(<span class="keyword">int</span> x) {
+        <span class="keyword">if</span> (size == cap) <span class="keyword">return</span> <span class="keyword">false</span>;     <span class="comment">// ring is full</span>
+        <span class="keyword">int</span> rear = (front + size) % cap;  <span class="comment">// wrap around</span>
+        buf[rear] = x;
+        size++;
+        <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+
+    <span class="keyword">int</span> dequeue() {
+        <span class="keyword">if</span> (size == <span class="number">0</span>) <span class="keyword">return</span> -<span class="number">1</span>;        <span class="comment">// ring is empty</span>
+        <span class="keyword">int</span> v = buf[front];
+        front = (front + <span class="number">1</span>) % cap;        <span class="comment">// advance, wrapping</span>
+        size--;
+        <span class="keyword">return</span> v;
+    }
+};
+</pre>
+            </div>
+            <div id="javaCirc" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">CircularQueue</span> {
+    <span class="keyword">private</span> <span class="keyword">int</span>[] buf;
+    <span class="keyword">private</span> <span class="keyword">int</span> front = <span class="number">0</span>, size = <span class="number">0</span>, cap;
+
+    <span class="type">CircularQueue</span>(<span class="keyword">int</span> capacity) {
+        buf = <span class="keyword">new</span> <span class="keyword">int</span>[capacity];
+        cap = capacity;
+    }
+
+    <span class="keyword">boolean</span> enqueue(<span class="keyword">int</span> x) {
+        <span class="keyword">if</span> (size == cap) <span class="keyword">return</span> <span class="keyword">false</span>;     <span class="comment">// ring is full</span>
+        <span class="keyword">int</span> rear = (front + size) % cap;  <span class="comment">// wrap around</span>
+        buf[rear] = x;
+        size++;
+        <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+
+    <span class="keyword">int</span> dequeue() {
+        <span class="keyword">if</span> (size == <span class="number">0</span>) <span class="keyword">return</span> -<span class="number">1</span>;        <span class="comment">// ring is empty</span>
+        <span class="keyword">int</span> v = buf[front];
+        front = (front + <span class="number">1</span>) % cap;        <span class="comment">// advance, wrapping</span>
+        size--;
+        <span class="keyword">return</span> v;
+    }
+}
+</pre>
+            </div>
+            <div id="pyCirc" class="code-content">
+<pre>
+<span class="keyword">class</span> <span class="type">CircularQueue</span>:
+    <span class="keyword">def</span> __init__(self, capacity):
+        self.buf = [<span class="number">0</span>] * capacity
+        self.front = <span class="number">0</span>
+        self.size = <span class="number">0</span>
+        self.cap = capacity
+
+    <span class="keyword">def</span> enqueue(self, x):
+        <span class="keyword">if</span> self.size == self.cap:
+            <span class="keyword">return</span> <span class="keyword">False</span>                 <span class="comment"># ring is full</span>
+        rear = (self.front + self.size) % self.cap  <span class="comment"># wrap</span>
+        self.buf[rear] = x
+        self.size += <span class="number">1</span>
+        <span class="keyword">return</span> <span class="keyword">True</span>
+
+    <span class="keyword">def</span> dequeue(self):
+        <span class="keyword">if</span> self.size == <span class="number">0</span>:
+            <span class="keyword">return</span> -<span class="number">1</span>                    <span class="comment"># ring is empty</span>
+        v = self.buf[self.front]
+        self.front = (self.front + <span class="number">1</span>) % self.cap   <span class="comment"># advance</span>
+        self.size -= <span class="number">1</span>
+        <span class="keyword">return</span> v
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <p>Three constructions, three different cost profiles. Notice how each one pushes the cost onto a different operation — there's no free lunch, just trade-offs you choose on purpose.</p>
+        <table>
+            <tr><th>Construction</th><th>Operation</th><th>Time</th></tr>
+            <tr><td>Queue from two stacks</td><td>enqueue</td><td>O(1)</td></tr>
+            <tr><td>Queue from two stacks</td><td>dequeue</td><td>Amortized O(1)</td></tr>
+            <tr><td>Stack from two queues</td><td>push</td><td>O(n)</td></tr>
+            <tr><td>Stack from two queues</td><td>pop / top</td><td>O(1)</td></tr>
+            <tr><td>Circular array queue</td><td>enqueue</td><td>O(1)</td></tr>
+            <tr><td>Circular array queue</td><td>dequeue</td><td>O(1)</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>How to pick in an interview:</strong> if you can use any structure, the circular array queue gives true O(1) on both ends with zero wasted shifting — it's what real ring buffers use. The two-stacks and two-queues builds are about <em>proving you understand order reversal</em>, so be ready to explain the LIFO ↔ FIFO flip out loud, not just code it.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Stacks &amp; Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Queue From Two Stacks playground ----
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let inStack, outStack, busy;
+        const INITIAL = [5, 7]; // index 0 = bottom (enqueued first)
+
+        function tsReset() {
+            inStack = INITIAL.slice();
+            outStack = [];
+            busy = false;
+            setStatus('Queue is ready. In holds [5, 7] (5 was enqueued first). Try a Dequeue and watch the transfer.');
+            render();
+        }
+
+        function setStatus(msg) { document.getElementById('tsStatus').textContent = msg; }
+        function setBusy(b) {
+            busy = b;
+            document.getElementById('tsEnq').disabled = b;
+            document.getElementById('tsDeq').disabled = b;
+        }
+
+        function pileHtml(arr) {
+            // arr index 0 = bottom of pile; column-reverse makes last item visually on top
+            if (arr.length === 0) return '<div class="pile-empty">empty</div>';
+            return arr.map(v => `<div class="sbox">${v}</div>`).join('');
+        }
+
+        function render() {
+            document.getElementById('inPile').innerHTML = pileHtml(inStack);
+            document.getElementById('outPile').innerHTML = pileHtml(outStack);
+        }
+
+        async function tsEnqueue() {
+            if (busy) return;
+            const raw = parseInt(document.getElementById('tsInput').value);
+            const v = isNaN(raw) ? Math.floor(Math.random() * 90 + 1) : raw;
+            inStack.push(v);
+            render();
+            setStatus(`Enqueued ${v} onto In. (Pushing is always O(1) — no reordering needed.)`);
+        }
+
+        async function tsDequeue() {
+            if (busy) return;
+            if (inStack.length === 0 && outStack.length === 0) {
+                setStatus('Queue is empty — nothing to dequeue.');
+                return;
+            }
+            setBusy(true);
+            if (outStack.length === 0) {
+                const moved = inStack.length;
+                setStatus(`Out was empty — pouring ${moved} item${moved === 1 ? '' : 's'} from In to Out, reversing the order...`);
+                await sleep(450);
+                // pour: pop top of In, push onto Out, one at a time, animating
+                while (inStack.length > 0) {
+                    const x = inStack.pop();
+                    outStack.push(x);
+                    render();
+                    // highlight the just-moved box (top of Out)
+                    const outBoxes = document.querySelectorAll('#outPile .sbox');
+                    if (outBoxes.length) outBoxes[outBoxes.length - 1].classList.add('moving');
+                    await sleep(420);
+                }
+                setStatus(`Transferred ${moved} item${moved === 1 ? '' : 's'} from In to Out — the oldest is now on top. Now popping it.`);
+                await sleep(450);
+            }
+            const front = outStack.pop();
+            render();
+            setStatus(`Dequeued ${front}.`);
+            setBusy(false);
+        }
+
+        tsReset();
+    </script>
+</body>
+</html>

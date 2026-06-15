@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Stack Problems &amp; Design - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #2563eb; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eff6ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #2563eb; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #2563eb; }
+        .code-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #2563eb; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* Dual-stack visual (Min Stack) */
+        .stacks-wrap { display: flex; gap: 40px; justify-content: center; align-items: flex-end; min-height: 240px; padding: 10px 0; flex-wrap: wrap; }
+        .stack-unit { display: flex; flex-direction: column; align-items: center; }
+        .stack-name { font-size: 0.78em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #2563eb; margin-bottom: 10px; }
+        .stack-col { display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; min-height: 190px; justify-content: flex-end; }
+        .stack-base { width: 130px; height: 8px; background: #cbd5e1; border-radius: 4px; margin-top: 2px; }
+        .plate {
+            width: 120px; height: 38px; border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 1em;
+            font-family: 'JetBrains Mono', monospace;
+            animation: popin 0.3s ease;
+        }
+        .plate.min-plate { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .plate.flash { animation: flash 0.6s ease; }
+        @keyframes popin { from { transform: scale(0.6) translateY(-12px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes flash {
+            0%, 100% { box-shadow: 0 4px 12px rgba(37,99,235,0.25); transform: scale(1); }
+            50% { box-shadow: 0 0 0 4px #fbbf24, 0 6px 18px rgba(251,191,36,0.5); transform: scale(1.06); }
+        }
+        .empty-msg { color: #94a3b8; font-weight: 600; font-size: 0.85em; padding: 16px; border: 2px dashed #cbd5e1; border-radius: 12px; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #2563eb; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .stacks-wrap { gap: 24px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Stacks &amp; Queues</a>
+        <h1>Classic Stack Problems &amp; Design</h1>
+        <p>Once the <strong>push / pop / top</strong> rhythm feels natural, the fun part begins: using a stack to <em>solve real problems</em>. The trick is almost never the stack itself — it's spotting that a problem secretly has stack-shaped logic hiding inside it.</p>
+        <p>The signature clue is simple. Whenever you find yourself thinking <em>"I need to remember things, deal with the most recent one first, and sometimes undo it"</em> — that's a stack. This page walks through four classics that show off that pattern, plus the most famous <strong>design</strong> problem of them all.</p>
+
+        <h2>1. Min Stack — the classic design problem</h2>
+        <p>Here's the puzzle. Build a stack that supports the usual <code>push</code>, <code>pop</code>, and <code>top</code>, <em>plus</em> a fourth operation: <code>getMin()</code>, which returns the smallest value currently in the stack. The catch — <strong>all four must run in O(1)</strong>.</p>
+        <p>The naive idea is to scan the whole stack whenever someone asks for the minimum. But scanning is O(n), and we promised O(1). We need a way to <em>already know</em> the answer before the question is asked.</p>
+        <p>The insight: keep a <strong>second stack</strong> running alongside the main one — a "min stack" that remembers, at every level, what the minimum was <em>at that point</em>. When you push a value <code>x</code>, you push <code>min(x, currentMin)</code> onto the min stack. So the <em>top</em> of the min stack is always the current minimum of everything below it. Asking for the min is just reading that top: O(1).</p>
+        <p>And because both stacks grow and shrink in lockstep, when you pop the main stack you simply pop the min stack too. The history rewinds itself automatically — the new min-stack top is whatever the minimum was <em>before</em> you pushed.</p>
+
+        <div class="note">
+            <strong>The design insight worth keeping:</strong> when you need an <em>aggregate</em> (a min, a max, a running sum) answered instantly on a stack, keep a parallel stack of that aggregate. Each entry stores "what the answer was at this height." Reading it is O(1), and pop rewinds it for free. This idea generalizes far beyond min — it's the heart of many "design a data structure" interview questions.
+        </div>
+
+        <h2>Try It: Min Stack, Live</h2>
+        <p>Two stacks side by side. <strong>Push</strong> drops a value on the <em>Main Stack</em> and pushes <code>min(value, currentMin)</code> on the <em>Min Stack</em>. <strong>getMin</strong> just reads the top of the Min Stack. Watch how the Min Stack mirrors the main one — and how popping makes the minimum rewind.</p>
+
+        <div class="playground">
+            <div class="pg-title">🏔️ Min Stack Playground</div>
+            <div class="pg-sub">Main Stack holds the real values. Min Stack remembers the running minimum at each level — its top is always getMin().</div>
+            <div class="stacks-wrap">
+                <div class="stack-unit">
+                    <div class="stack-name">Main Stack</div>
+                    <div class="stack-col" id="mainCol"></div>
+                    <div class="stack-base"></div>
+                </div>
+                <div class="stack-unit">
+                    <div class="stack-name">Min Stack</div>
+                    <div class="stack-col" id="minCol"></div>
+                    <div class="stack-base"></div>
+                </div>
+            </div>
+            <div class="pg-status" id="status">Starts with [5, 2, 8]. Min Stack = [5, 2, 2]. Current min = 2.</div>
+            <div class="pg-controls">
+                <input type="number" id="valInput" placeholder="value" value="3">
+                <button class="btn btn-primary" id="pushBtn" onclick="doPush()">⬆ Push</button>
+                <button class="btn btn-danger" id="popBtn" onclick="doPop()">⬇ Pop</button>
+                <button class="btn btn-ghost" id="minBtn" onclick="doGetMin()">🏔️ getMin</button>
+                <button class="btn btn-ghost" onclick="doReset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>The bug everyone hits:</strong> when you <code>pop</code> the main stack, you <em>must</em> also pop the min stack — forget that, and the two drift out of sync and <code>getMin</code> lies. Watch out for <strong>duplicate minimums</strong> too: if you only store the min when it's strictly smaller (a popular space optimization), you must pop it only when the value being removed equals the current min, handling repeats carefully. The two-parallel-stacks approach shown here sidesteps that entirely by always pushing and always popping in lockstep.
+        </div>
+
+        <h3>Min Stack in code</h3>
+        <p>Each language stores the value alongside the running minimum — either as two stacks, or one stack of pairs. Both are O(1) per operation.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppMin')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaMin')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyMin')">Python</button>
+            </div>
+            <div id="cppMin" class="code-content active">
+<pre>
+<span class="comment">// Store a pair: (value, min-so-far). Top always knows the min.</span>
+<span class="preproc">#include</span> <span class="string">&lt;stack&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;algorithm&gt;</span>
+
+<span class="keyword">class</span> <span class="type">MinStack</span> {
+    std::stack&lt;std::pair&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt;&gt; st;  <span class="comment">// {value, minSoFar}</span>
+<span class="keyword">public</span>:
+    <span class="keyword">void</span> push(<span class="keyword">int</span> x) {
+        <span class="keyword">int</span> m = st.empty() ? x : std::min(x, st.top().second);
+        st.push({x, m});                  <span class="comment">// store value + running min</span>
+    }
+    <span class="keyword">void</span> pop()      { st.pop(); }         <span class="comment">// pops value AND its min together</span>
+    <span class="keyword">int</span>  top()      { <span class="keyword">return</span> st.top().first; }
+    <span class="keyword">int</span>  getMin()   { <span class="keyword">return</span> st.top().second; }  <span class="comment">// O(1) — just read the top</span>
+};
+</pre>
+            </div>
+            <div id="javaMin" class="code-content">
+<pre>
+<span class="comment">// Two parallel stacks: values, and the running minimum.</span>
+<span class="keyword">class</span> <span class="type">MinStack</span> {
+    <span class="keyword">private</span> <span class="type">Deque</span>&lt;<span class="type">Integer</span>&gt; data = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();
+    <span class="keyword">private</span> <span class="type">Deque</span>&lt;<span class="type">Integer</span>&gt; mins = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();
+
+    <span class="keyword">public</span> <span class="keyword">void</span> push(<span class="keyword">int</span> x) {
+        data.push(x);
+        <span class="keyword">int</span> m = mins.isEmpty() ? x : Math.min(x, mins.peek());
+        mins.push(m);                     <span class="comment">// mirror with the running min</span>
+    }
+    <span class="keyword">public</span> <span class="keyword">void</span> pop() {
+        data.pop();
+        mins.pop();                       <span class="comment">// MUST pop both — keep them in sync</span>
+    }
+    <span class="keyword">public</span> <span class="keyword">int</span> top()    { <span class="keyword">return</span> data.peek(); }
+    <span class="keyword">public</span> <span class="keyword">int</span> getMin() { <span class="keyword">return</span> mins.peek(); }   <span class="comment">// O(1)</span>
+}
+</pre>
+            </div>
+            <div id="pyMin" class="code-content">
+<pre>
+<span class="comment"># Two lists. mins[-1] is always the current minimum.</span>
+<span class="keyword">class</span> <span class="type">MinStack</span>:
+    <span class="keyword">def</span> <span class="type">__init__</span>(self):
+        self.data = []
+        self.mins = []
+
+    <span class="keyword">def</span> push(self, x):
+        self.data.append(x)
+        m = x <span class="keyword">if</span> <span class="keyword">not</span> self.mins <span class="keyword">else</span> min(x, self.mins[-<span class="number">1</span>])
+        self.mins.append(m)               <span class="comment"># mirror with running min</span>
+
+    <span class="keyword">def</span> pop(self):
+        self.data.pop()
+        self.mins.pop()                   <span class="comment"># pop BOTH — stay in lockstep</span>
+
+    <span class="keyword">def</span> top(self):
+        <span class="keyword">return</span> self.data[-<span class="number">1</span>]
+
+    <span class="keyword">def</span> getMin(self):
+        <span class="keyword">return</span> self.mins[-<span class="number">1</span>]            <span class="comment"># O(1)</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Trapping Rain Water (stack approach)</h2>
+        <p>Picture a row of vertical bars of different heights — like a city skyline. After a rainstorm, water pools in the dips between taller bars. The question: <strong>how much water gets trapped?</strong></p>
+        <p>The stack insight: walk left to right keeping a stack of bar <em>indices</em> whose heights are <em>decreasing</em>. As long as bars keep getting shorter, water has nothing to push against yet, so we just stack them up. The moment a <em>taller</em> bar appears, it acts like the right wall of a container — and whatever sits on the stack is the floor.</p>
+        <p>So when the new bar is taller than the stack top, we <strong>pop</strong> the top (that's the floor of a puddle), then look at the new stack top (the left wall). The trapped water above that popped floor is <code>width × boundedHeight</code>, where the height is bounded by the <em>shorter</em> of the two walls minus the floor. Keep popping while the new bar stays taller.</p>
+
+        <div class="note">
+            <strong>Heads up:</strong> there's a slicker <em>two-pointer</em> solution to this problem that runs in O(1) extra space. We show the stack method here because it's the one that teaches the "a taller bar closes a container" intuition — and that same intuition powers monotonic-stack problems like Largest Rectangle. Knowing both is ideal.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppRain')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaRain')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyRain')">Python</button>
+            </div>
+            <div id="cppRain" class="code-content active">
+<pre>
+<span class="keyword">int</span> trap(std::vector&lt;<span class="keyword">int</span>&gt;&amp; h) {
+    std::stack&lt;<span class="keyword">int</span>&gt; st;          <span class="comment">// stack of indices, decreasing heights</span>
+    <span class="keyword">int</span> water = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="keyword">int</span>)h.size(); ++i) {
+        <span class="keyword">while</span> (!st.empty() &amp;&amp; h[i] &gt; h[st.top()]) {
+            <span class="keyword">int</span> floor = st.top(); st.pop();   <span class="comment">// bottom of the puddle</span>
+            <span class="keyword">if</span> (st.empty()) <span class="keyword">break</span>;            <span class="comment">// no left wall -> no water</span>
+            <span class="keyword">int</span> left = st.top();              <span class="comment">// left wall index</span>
+            <span class="keyword">int</span> width = i - left - <span class="number">1</span>;
+            <span class="keyword">int</span> bounded = std::min(h[left], h[i]) - h[floor];
+            water += width * bounded;
+        }
+        st.push(i);
+    }
+    <span class="keyword">return</span> water;
+}
+</pre>
+            </div>
+            <div id="javaRain" class="code-content">
+<pre>
+<span class="keyword">int</span> trap(<span class="keyword">int</span>[] h) {
+    <span class="type">Deque</span>&lt;<span class="type">Integer</span>&gt; st = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();  <span class="comment">// indices, decreasing</span>
+    <span class="keyword">int</span> water = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; h.length; i++) {
+        <span class="keyword">while</span> (!st.isEmpty() &amp;&amp; h[i] &gt; h[st.peek()]) {
+            <span class="keyword">int</span> floor = st.pop();             <span class="comment">// puddle floor</span>
+            <span class="keyword">if</span> (st.isEmpty()) <span class="keyword">break</span>;          <span class="comment">// no left wall</span>
+            <span class="keyword">int</span> left = st.peek();
+            <span class="keyword">int</span> width = i - left - <span class="number">1</span>;
+            <span class="keyword">int</span> bounded = Math.min(h[left], h[i]) - h[floor];
+            water += width * bounded;
+        }
+        st.push(i);
+    }
+    <span class="keyword">return</span> water;
+}
+</pre>
+            </div>
+            <div id="pyRain" class="code-content">
+<pre>
+<span class="keyword">def</span> trap(h):
+    st = []                       <span class="comment"># indices with decreasing heights</span>
+    water = <span class="number">0</span>
+    <span class="keyword">for</span> i, hi <span class="keyword">in</span> enumerate(h):
+        <span class="keyword">while</span> st <span class="keyword">and</span> hi &gt; h[st[-<span class="number">1</span>]]:
+            floor = st.pop()      <span class="comment"># bottom of the puddle</span>
+            <span class="keyword">if</span> <span class="keyword">not</span> st:            <span class="comment"># no left wall -> no water held</span>
+                <span class="keyword">break</span>
+            left = st[-<span class="number">1</span>]
+            width = i - left - <span class="number">1</span>
+            bounded = min(h[left], hi) - h[floor]
+            water += width * bounded
+        st.append(i)
+    <span class="keyword">return</span> water
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Asteroid Collision</h2>
+        <p>Asteroids fly along a single row. Each is a number: the magnitude is its size, the <strong>sign is its direction</strong> — positive means moving <em>right</em>, negative means moving <em>left</em>. Same-direction asteroids never catch each other. But a right-mover followed by a left-mover are on a collision course. When they hit, the smaller one explodes; equal sizes destroy each other.</p>
+        <p>This is a perfect <strong>stack simulation</strong>. The stack holds the asteroids that have <em>survived so far</em>. A new right-moving asteroid never collides with anything to its left, so it just gets pushed. A new <em>left</em>-moving asteroid, though, may collide with right-movers sitting on top of the stack — so we resolve those collisions in a loop before deciding whether the newcomer survives.</p>
+        <p>The key guard: a collision only happens when the stack top is moving <em>right</em> (positive) and the new asteroid is moving <em>left</em> (negative). Any other combination — two left-movers, two right-movers, or a left-mover already past everything — means no collision.</p>
+
+        <div class="warn">
+            <strong>Only opposite-facing pairs collide.</strong> The single most common bug is comparing magnitudes without first checking directions. Two asteroids moving the same way, or a left-mover meeting a left-mover, never collide — they simply coexist. Always confirm <code>top &gt; 0 &amp;&amp; current &lt; 0</code> before you even think about who wins.
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppAst')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaAst')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyAst')">Python</button>
+            </div>
+            <div id="cppAst" class="code-content active">
+<pre>
+std::vector&lt;<span class="keyword">int</span>&gt; asteroidCollision(std::vector&lt;<span class="keyword">int</span>&gt;&amp; a) {
+    std::vector&lt;<span class="keyword">int</span>&gt; st;            <span class="comment">// survivors (use a vector as a stack)</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : a) {
+        <span class="keyword">bool</span> alive = <span class="keyword">true</span>;
+        <span class="keyword">while</span> (alive &amp;&amp; !st.empty() &amp;&amp; st.back() &gt; <span class="number">0</span> &amp;&amp; x &lt; <span class="number">0</span>) {
+            <span class="keyword">if</span> (st.back() &lt; -x)      st.pop_back();   <span class="comment">// top explodes, keep going</span>
+            <span class="keyword">else</span> <span class="keyword">if</span> (st.back() == -x) { st.pop_back(); alive = <span class="keyword">false</span>; } <span class="comment">// both die</span>
+            <span class="keyword">else</span>                     alive = <span class="keyword">false</span>;       <span class="comment">// newcomer explodes</span>
+        }
+        <span class="keyword">if</span> (alive) st.push_back(x);
+    }
+    <span class="keyword">return</span> st;
+}
+</pre>
+            </div>
+            <div id="javaAst" class="code-content">
+<pre>
+<span class="keyword">int</span>[] asteroidCollision(<span class="keyword">int</span>[] a) {
+    <span class="type">Deque</span>&lt;<span class="type">Integer</span>&gt; st = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();  <span class="comment">// survivors</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : a) {
+        <span class="keyword">boolean</span> alive = <span class="keyword">true</span>;
+        <span class="keyword">while</span> (alive &amp;&amp; !st.isEmpty() &amp;&amp; st.peek() &gt; <span class="number">0</span> &amp;&amp; x &lt; <span class="number">0</span>) {
+            <span class="keyword">if</span> (st.peek() &lt; -x)      st.pop();        <span class="comment">// top explodes</span>
+            <span class="keyword">else</span> <span class="keyword">if</span> (st.peek() == -x) { st.pop(); alive = <span class="keyword">false</span>; } <span class="comment">// both die</span>
+            <span class="keyword">else</span>                     alive = <span class="keyword">false</span>;     <span class="comment">// newcomer dies</span>
+        }
+        <span class="keyword">if</span> (alive) st.push(x);
+    }
+    <span class="comment">// ArrayDeque.push adds to the front — reverse to restore order</span>
+    <span class="keyword">int</span>[] out = <span class="keyword">new</span> <span class="keyword">int</span>[st.size()];
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = out.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) out[i] = st.pop();
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyAst" class="code-content">
+<pre>
+<span class="keyword">def</span> asteroidCollision(a):
+    st = []                       <span class="comment"># survivors</span>
+    <span class="keyword">for</span> x <span class="keyword">in</span> a:
+        alive = <span class="type">True</span>
+        <span class="keyword">while</span> alive <span class="keyword">and</span> st <span class="keyword">and</span> st[-<span class="number">1</span>] &gt; <span class="number">0</span> <span class="keyword">and</span> x &lt; <span class="number">0</span>:
+            <span class="keyword">if</span> st[-<span class="number">1</span>] &lt; -x:           <span class="comment"># top is smaller -> it explodes</span>
+                st.pop()
+            <span class="keyword">elif</span> st[-<span class="number">1</span>] == -x:        <span class="comment"># equal -> both explode</span>
+                st.pop()
+                alive = <span class="type">False</span>
+            <span class="keyword">else</span>:                     <span class="comment"># top wins -> newcomer explodes</span>
+                alive = <span class="type">False</span>
+        <span class="keyword">if</span> alive:
+            st.append(x)
+    <span class="keyword">return</span> st
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Simplify Path (Unix path)</h2>
+        <p>Given an absolute Unix-style path like <code>/a/./b/../../c/</code>, produce its canonical form. The rules are exactly the ones your terminal follows: <code>.</code> means "stay here" (ignore it), <code>..</code> means "go up one directory" (undo the last step), and empty pieces from double slashes are skipped.</p>
+        <p>"Undo the last step" is the giveaway — that's a stack. Split the path on <code>/</code>, then walk the pieces: push real directory names, <strong>pop</strong> on <code>..</code> (going up), and ignore <code>.</code> and empties. At the end, join the stack with slashes and you have the clean path.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppPath')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaPath')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyPath')">Python</button>
+            </div>
+            <div id="cppPath" class="code-content active">
+<pre>
+std::string simplifyPath(std::string path) {
+    std::vector&lt;std::string&gt; st;
+    std::stringstream ss(path);
+    std::string part;
+    <span class="keyword">while</span> (std::getline(ss, part, <span class="string">'/'</span>)) {
+        <span class="keyword">if</span> (part == <span class="string">""</span> || part == <span class="string">"."</span>) <span class="keyword">continue</span>;   <span class="comment">// skip empties and "."</span>
+        <span class="keyword">if</span> (part == <span class="string">".."</span>) { <span class="keyword">if</span> (!st.empty()) st.pop_back(); } <span class="comment">// go up</span>
+        <span class="keyword">else</span> st.push_back(part);                       <span class="comment">// a real dir name</span>
+    }
+    std::string out;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; d : st) out += <span class="string">"/"</span> + d;
+    <span class="keyword">return</span> out.empty() ? <span class="string">"/"</span> : out;
+}
+</pre>
+            </div>
+            <div id="javaPath" class="code-content">
+<pre>
+<span class="type">String</span> simplifyPath(<span class="type">String</span> path) {
+    <span class="type">Deque</span>&lt;<span class="type">String</span>&gt; st = <span class="keyword">new</span> <span class="type">ArrayDeque</span>&lt;&gt;();
+    <span class="keyword">for</span> (<span class="type">String</span> part : path.split(<span class="string">"/"</span>)) {
+        <span class="keyword">if</span> (part.isEmpty() || part.equals(<span class="string">"."</span>)) <span class="keyword">continue</span>;  <span class="comment">// skip</span>
+        <span class="keyword">if</span> (part.equals(<span class="string">".."</span>)) { <span class="keyword">if</span> (!st.isEmpty()) st.pop(); } <span class="comment">// up</span>
+        <span class="keyword">else</span> st.push(part);                            <span class="comment">// real dir</span>
+    }
+    <span class="type">StringBuilder</span> sb = <span class="keyword">new</span> <span class="type">StringBuilder</span>();
+    <span class="type">Iterator</span>&lt;<span class="type">String</span>&gt; it = st.descendingIterator();   <span class="comment">// bottom -&gt; top order</span>
+    <span class="keyword">while</span> (it.hasNext()) sb.append(<span class="string">"/"</span>).append(it.next());
+    <span class="keyword">return</span> sb.length() == <span class="number">0</span> ? <span class="string">"/"</span> : sb.toString();
+}
+</pre>
+            </div>
+            <div id="pyPath" class="code-content">
+<pre>
+<span class="keyword">def</span> simplifyPath(path):
+    st = []
+    <span class="keyword">for</span> part <span class="keyword">in</span> path.split(<span class="string">"/"</span>):
+        <span class="keyword">if</span> part == <span class="string">""</span> <span class="keyword">or</span> part == <span class="string">"."</span>:      <span class="comment"># skip empties and "."</span>
+            <span class="keyword">continue</span>
+        <span class="keyword">if</span> part == <span class="string">".."</span>:                    <span class="comment"># go up one directory</span>
+            <span class="keyword">if</span> st:
+                st.pop()
+        <span class="keyword">else</span>:
+            st.append(part)               <span class="comment"># a real directory name</span>
+    <span class="keyword">return</span> <span class="string">"/"</span> + <span class="string">"/"</span>.join(st)           <span class="comment"># "/" alone if stack is empty</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Two quick bonus classics, same flavor:</strong> <strong>Remove All Adjacent Duplicates</strong> — push each character, but if it matches the current top, pop instead; the leftover stack is your answer. And <strong>Backspace String Compare</strong> — treat <code>#</code> as a backspace: push real characters, pop on <code>#</code>, then compare the two resulting stacks. Both are just "push normally, pop to undo" — the same shape as Simplify Path.
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <p>Every problem here is linear in time — each element is pushed and popped at most once. The min-stack <em>operations</em> are individually constant time, which is the whole reason it's a famous design problem.</p>
+
+        <table>
+            <tr><th>Problem</th><th>Time</th><th>Space</th></tr>
+            <tr><td>Min Stack (push / pop / top / getMin)</td><td>O(1) each</td><td>O(n)</td></tr>
+            <tr><td>Trapping Rain Water (stack)</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Asteroid Collision</td><td>O(n)</td><td>O(n)</td></tr>
+            <tr><td>Simplify Path</td><td>O(n)</td><td>O(n)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">In each linear-time problem, "n" is the input size and every item enters and leaves the stack at most once — that amortizes the inner <code>while</code> loops down to O(n) overall.</p>
+
+        <h2>The Pattern Behind All of Them</h2>
+        <p>Step back and the four problems rhyme. Each keeps a stack of "things decided so far," and the newest arrival either gets pushed or triggers a cascade of pops that <em>resolve the past</em>.</p>
+
+        <div class="compare">
+            <div>
+                <h3>Design problems</h3>
+                <ul>
+                    <li><strong>Min Stack</strong> — a parallel aggregate stack answers min/max in O(1).</li>
+                    <li><strong>Max Stack, "stack with O(1) sum"</strong> — same parallel-stack trick.</li>
+                    <li>Insight: <em>store the answer at each height, pop to rewind.</em></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Simulation problems</h3>
+                <ul>
+                    <li><strong>Asteroid Collision</strong> — stack of survivors, resolve on contact.</li>
+                    <li><strong>Simplify Path</strong> — push dirs, pop on <code>..</code>.</li>
+                    <li>Insight: <em>the stack IS the running state; pop = undo.</em></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Pattern to remember:</strong> if a problem asks for an instant <em>aggregate</em> (min/max/sum) — design a parallel stack. If it asks you to <em>process a sequence where new items cancel, collide with, or undo recent ones</em> — simulate with a stack of survivors. Spot which of the two you're facing and the rest of the solution writes itself.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Stacks &amp; Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        // ---- Min Stack playground ----
+        // main: the real values.  mins: running minimum at each level.
+        // Invariant: mins[i] === Math.min(main[0..i]). So mins top === current min.
+        let main = [];
+        let mins = [];
+
+        function initState() {
+            main = [];
+            mins = [];
+            [5, 2, 8].forEach(v => {
+                main.push(v);
+                mins.push(mins.length === 0 ? v : Math.min(v, mins[mins.length - 1]));
+            });
+        }
+
+        function setStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+
+        function buildCol(col, arr, isMin) {
+            col.innerHTML = '';
+            if (arr.length === 0) {
+                const e = document.createElement('div');
+                e.className = 'empty-msg';
+                e.textContent = 'empty';
+                col.appendChild(e);
+                return;
+            }
+            arr.forEach(v => {
+                const plate = document.createElement('div');
+                plate.className = 'plate' + (isMin ? ' min-plate' : '');
+                plate.textContent = v;
+                col.appendChild(plate);
+            });
+        }
+
+        function render() {
+            buildCol(document.getElementById('mainCol'), main, false);
+            buildCol(document.getElementById('minCol'), mins, true);
+            const empty = main.length === 0;
+            document.getElementById('popBtn').disabled = empty || busy;
+            document.getElementById('minBtn').disabled = empty || busy;
+            document.getElementById('pushBtn').disabled = busy;
+        }
+
+        function readVal() {
+            const raw = document.getElementById('valInput').value;
+            const v = parseInt(raw, 10);
+            return isNaN(v) ? Math.floor(Math.random() * 90 + 1) : v;
+        }
+
+        async function doPush() {
+            if (busy) return;
+            busy = true; render();
+            const v = readVal();
+            const prevMin = mins.length === 0 ? null : mins[mins.length - 1];
+            const newMin = prevMin === null ? v : Math.min(v, prevMin);
+            main.push(v);
+            render();
+            await sleep(180);
+            mins.push(newMin);
+            render();
+            if (prevMin === null || v < prevMin) {
+                setStatus('Pushed ' + v + '. New min = ' + newMin + ' (pushed onto Min Stack).');
+            } else {
+                setStatus('Pushed ' + v + '. Min stays ' + newMin + ' — Min Stack mirrors it.');
+            }
+            busy = false; render();
+        }
+
+        async function doPop() {
+            if (busy) return;
+            if (main.length === 0) {
+                setStatus('Both stacks are empty — nothing to pop.');
+                return;
+            }
+            busy = true; render();
+            const v = main.pop();
+            mins.pop();                 // MUST pop both to stay in sync
+            render();
+            await sleep(120);
+            if (mins.length === 0) {
+                setStatus('Popped ' + v + '. Both stacks are now empty.');
+            } else {
+                setStatus('Popped ' + v + '. Min reverts to ' + mins[mins.length - 1] + ' (top of Min Stack).');
+            }
+            busy = false; render();
+        }
+
+        function doGetMin() {
+            if (busy) return;
+            if (mins.length === 0) {
+                setStatus('Stack is empty — no minimum to report.');
+                return;
+            }
+            const minVal = mins[mins.length - 1];
+            const col = document.getElementById('minCol');
+            const topPlate = col.lastElementChild;
+            if (topPlate) {
+                topPlate.classList.remove('flash');
+                void topPlate.offsetWidth; // restart animation
+                topPlate.classList.add('flash');
+            }
+            setStatus('getMin → ' + minVal + ' (O(1) — just read the top of the Min Stack).');
+        }
+
+        function doReset() {
+            if (busy) return;
+            initState();
+            render();
+            setStatus('Reset. Main = [5, 2, 8], Min Stack = [5, 2, 2]. Current min = 2.');
+        }
+
+        initState();
+        render();
+    </script>
+</body>
+</html>
