@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Heaps: Median of a Data Stream - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #7c3aed; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* Median readout */
+        .median-readout {
+            text-align: center; margin: 0 auto 18px; padding: 14px 20px;
+            background: linear-gradient(135deg, #ede9fe, #fae8ff);
+            border: 1px solid #ddd6fe; border-radius: 14px; max-width: 320px;
+        }
+        .median-readout .label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7c3aed; }
+        .median-readout .value { font-size: 2em; font-weight: 800; color: #6d28d9; font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+        /* Two-heaps visual */
+        .heaps-area { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+        .heap-box { border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; background: #fcfcfd; }
+        .heap-box .heap-name { font-size: 0.78em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .heap-box .heap-half { font-size: 0.74em; color: #94a3b8; margin-bottom: 12px; }
+        .heap-box.left .heap-name { color: #7c3aed; }
+        .heap-box.right .heap-name { color: #2563eb; }
+        .heap-cells { display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+        .heap-box.left .heap-cells { align-items: flex-end; }
+        .heap-box.right .heap-cells { align-items: flex-start; }
+        .cell {
+            width: 64px; height: 34px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.95em; font-family: 'JetBrains Mono', monospace;
+            background: white; border: 1.5px solid #e2e8f0; color: #475569;
+            animation: popin 0.3s ease;
+        }
+        .heap-box.left .cell.top {
+            background: linear-gradient(135deg, #7c3aed, #a855f7); color: white;
+            border-color: #7c3aed; box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+        }
+        .heap-box.right .cell.top {
+            background: linear-gradient(135deg, #2563eb, #3b82f6); color: white;
+            border-color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        .cell.flash { animation: flash 0.6s ease; }
+        .heap-empty { color: #cbd5e1; font-size: 0.82em; font-weight: 600; padding: 10px 0; }
+        @keyframes popin { from { transform: scale(0.6) translateY(-10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes flash {
+            0%, 100% { transform: scale(1); }
+            50% { box-shadow: 0 0 0 4px #fbbf24, 0 6px 18px rgba(251,191,36,0.5); transform: scale(1.08); }
+        }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Two Heaps: Median of a Data Stream</h1>
+        <p>Imagine numbers arriving one at a time — a live feed of sensor readings, stock ticks, response times. After <em>each</em> new number, someone asks: "What's the <strong>median</strong> of everything we've seen so far?"</p>
+        <p>The median is the middle value: half the numbers are below it, half above. The obvious approach — keep a list, sort it, grab the middle — costs <code>O(n log n)</code> <em>every single time</em> you're asked. On a fast stream, that's hopelessly slow.</p>
+        <p>There's a far better way, and it's one of the most elegant tricks in all of data structures: <strong>two heaps</strong>.</p>
+
+        <h2>The Insight: Split the Data in Half</h2>
+        <p>Here's the whole idea. Instead of keeping one sorted list, keep the numbers in <strong>two piles</strong>, split right down the middle:</p>
+        <ul>
+            <li>A <strong>max-heap</strong> holds the <strong>lower half</strong> — all the smaller numbers. Its top is the <em>largest</em> of the small ones.</li>
+            <li>A <strong>min-heap</strong> holds the <strong>upper half</strong> — all the bigger numbers. Its top is the <em>smallest</em> of the big ones.</li>
+        </ul>
+        <p>Picture the sorted data laid out left to right. The max-heap owns the left side, the min-heap owns the right side, and they meet in the middle. The two tops are exactly the two numbers sitting on either side of that boundary.</p>
+        <p>And the median? It lives <em>right at that boundary</em>:</p>
+        <ul>
+            <li>If both heaps are the <strong>same size</strong>, the median is the <strong>average of the two tops</strong> (the count is even — the middle falls between two values).</li>
+            <li>If one heap has <strong>one extra</strong> element, the median is <strong>that heap's top</strong> (the count is odd — there's a single true middle).</li>
+        </ul>
+        <p>So once the heaps are arranged correctly, reading the median is just peeking at one or two tops. That's <code>O(1)</code>. The clever part is keeping the two piles arranged correctly as new numbers stream in.</p>
+
+        <h2>The Balancing Rule</h2>
+        <p>Every time a number arrives, we have to maintain <strong>two invariants</strong>:</p>
+        <ul>
+            <li><strong>Invariant 1 (ordering):</strong> every element in the max-heap is <code>&le;</code> every element in the min-heap. The lower half really is lower than the upper half.</li>
+            <li><strong>Invariant 2 (balance):</strong> the two heaps differ in size by at most 1. (We'll let the max-heap be the one allowed to hold the extra element.)</li>
+        </ul>
+        <p>A clean recipe that maintains both, no matter what value arrives:</p>
+        <ol>
+            <li><strong>Push</strong> the new number <code>x</code> onto the <strong>max-heap</strong>.</li>
+            <li><strong>Move</strong> the max-heap's top over to the <strong>min-heap</strong>. (This guarantees Invariant 1: whatever was the biggest of the lower half gets a chance to float up to the upper half.)</li>
+            <li><strong>If the min-heap is now larger</strong> than the max-heap, move the min-heap's top back to the max-heap. (This restores Invariant 2 and keeps the max-heap as the heap that holds any extra element.)</li>
+        </ol>
+        <p>After these three steps the heaps are always balanced within 1, and the max-heap is never smaller than the min-heap. It's a tidy little dance: push, hand one across, hand one back if needed.</p>
+
+        <div class="note">
+            <strong>The whole trick in one sentence:</strong> the median always sits at the boundary between the two halves. Keep the lower half in a max-heap and the upper half in a min-heap, keep their sizes balanced within 1, and the median is always sitting right there at the tops — ready to read in <code>O(1)</code>.
+        </div>
+
+        <h2>Try It: Build the Median Live</h2>
+        <p>Add numbers and watch them sort themselves into the two halves. The <span style="color:#7c3aed;font-weight:600">max-heap (lower half)</span> sits on the left with its top on the inner edge; the <span style="color:#2563eb;font-weight:600">min-heap (upper half)</span> sits on the right with its top on the inner edge. The two highlighted tops are exactly the numbers that define the median.</p>
+
+        <div class="playground">
+            <div class="pg-title">⛰️ Two-Heaps Median Tracker</div>
+            <div class="pg-sub">Add a number — watch the balancing recipe land it in a heap and rebalance. The median updates after every insert.</div>
+            <div class="median-readout">
+                <div class="label">Median</div>
+                <div class="value" id="medianVal">—</div>
+            </div>
+            <div class="heaps-area">
+                <div class="heap-box left">
+                    <div class="heap-name">Max-Heap</div>
+                    <div class="heap-half">lower half &middot; top = largest small</div>
+                    <div class="heap-cells" id="lowCells"></div>
+                </div>
+                <div class="heap-box right">
+                    <div class="heap-name">Min-Heap</div>
+                    <div class="heap-half">upper half &middot; top = smallest big</div>
+                    <div class="heap-cells" id="highCells"></div>
+                </div>
+            </div>
+            <div class="pg-status" id="status">Empty. Add a number to begin building the stream.</div>
+            <div class="pg-controls">
+                <input type="number" id="valInput" placeholder="value" value="6">
+                <button class="btn btn-primary" id="addBtn" onclick="doAdd()">➕ Add Number</button>
+                <button class="btn btn-ghost" id="randBtn" onclick="doRandom()">🎲 Add Random</button>
+                <button class="btn btn-ghost" id="resetBtn" onclick="doReset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>The MedianFinder Class</h2>
+        <p>Two methods do all the work: <code>addNum(x)</code> runs the balancing recipe in <code>O(log n)</code>, and <code>findMedian()</code> peeks the tops in <code>O(1)</code>. The only real subtlety is <em>heap direction</em>, which differs by language — read the comments carefully.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppMF')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaMF')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyMF')">Python</button>
+            </div>
+            <div id="cppMF" class="code-content active">
+<pre>
+<span class="comment">// C++: priority_queue is a MAX-heap by default.</span>
+<span class="comment">// For the min-heap we pass greater&lt;&gt; to flip the order.</span>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+
+<span class="keyword">class</span> <span class="type">MedianFinder</span> {
+    std::priority_queue&lt;<span class="keyword">int</span>&gt; lo;                                  <span class="comment">// max-heap: lower half</span>
+    std::priority_queue&lt;<span class="keyword">int</span>, std::vector&lt;<span class="keyword">int</span>&gt;, std::greater&lt;&gt;&gt; hi; <span class="comment">// min-heap: upper half</span>
+<span class="keyword">public</span>:
+    <span class="keyword">void</span> addNum(<span class="keyword">int</span> x) {
+        lo.push(x);              <span class="comment">// 1. push onto max-heap</span>
+        hi.push(lo.top());       <span class="comment">// 2. hand its top across to min-heap</span>
+        lo.pop();
+        <span class="keyword">if</span> (hi.size() &gt; lo.size()) { <span class="comment">// 3. hand one back if min-heap is bigger</span>
+            lo.push(hi.top());
+            hi.pop();
+        }
+    }
+    <span class="keyword">double</span> findMedian() {
+        <span class="keyword">if</span> (lo.size() &gt; hi.size()) <span class="keyword">return</span> lo.top();        <span class="comment">// odd count</span>
+        <span class="keyword">return</span> (lo.top() + hi.top()) / <span class="number">2.0</span>;               <span class="comment">// even count</span>
+    }
+};
+</pre>
+            </div>
+            <div id="javaMF" class="code-content">
+<pre>
+<span class="comment">// Java: PriorityQueue is a MIN-heap by default.</span>
+<span class="comment">// For the max-heap we pass Collections.reverseOrder().</span>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> <span class="type">MedianFinder</span> {
+    <span class="keyword">private</span> <span class="type">PriorityQueue</span>&lt;<span class="type">Integer</span>&gt; lo = <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;(<span class="type">Collections</span>.reverseOrder()); <span class="comment">// max-heap</span>
+    <span class="keyword">private</span> <span class="type">PriorityQueue</span>&lt;<span class="type">Integer</span>&gt; hi = <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;();                       <span class="comment">// min-heap</span>
+
+    <span class="keyword">public</span> <span class="keyword">void</span> addNum(<span class="keyword">int</span> x) {
+        lo.offer(x);                 <span class="comment">// 1. push onto max-heap</span>
+        hi.offer(lo.poll());         <span class="comment">// 2. hand its top across to min-heap</span>
+        <span class="keyword">if</span> (hi.size() &gt; lo.size()) {  <span class="comment">// 3. hand one back if min-heap is bigger</span>
+            lo.offer(hi.poll());
+        }
+    }
+    <span class="keyword">public</span> <span class="keyword">double</span> findMedian() {
+        <span class="keyword">if</span> (lo.size() &gt; hi.size()) <span class="keyword">return</span> lo.peek();      <span class="comment">// odd count</span>
+        <span class="keyword">return</span> (lo.peek() + hi.peek()) / <span class="number">2.0</span>;             <span class="comment">// even count</span>
+    }
+}
+</pre>
+            </div>
+            <div id="pyMF" class="code-content">
+<pre>
+<span class="comment"># Python: heapq is ALWAYS a min-heap.</span>
+<span class="comment"># To fake a max-heap, store NEGATED values and negate back when reading.</span>
+<span class="keyword">import</span> heapq
+
+<span class="keyword">class</span> <span class="type">MedianFinder</span>:
+    <span class="keyword">def</span> __init__(self):
+        self.lo = []   <span class="comment"># max-heap (store negatives): lower half</span>
+        self.hi = []   <span class="comment"># min-heap: upper half</span>
+
+    <span class="keyword">def</span> addNum(self, x):
+        heapq.heappush(self.lo, -x)                  <span class="comment"># 1. push onto max-heap</span>
+        heapq.heappush(self.hi, -heapq.heappop(self.lo)) <span class="comment"># 2. hand top across</span>
+        <span class="keyword">if</span> len(self.hi) &gt; len(self.lo):              <span class="comment"># 3. hand one back if needed</span>
+            heapq.heappush(self.lo, -heapq.heappop(self.hi))
+
+    <span class="keyword">def</span> findMedian(self):
+        <span class="keyword">if</span> len(self.lo) &gt; len(self.hi):
+            <span class="keyword">return</span> -self.lo[<span class="number">0</span>]                       <span class="comment"># odd count</span>
+        <span class="keyword">return</span> (-self.lo[<span class="number">0</span>] + self.hi[<span class="number">0</span>]) / <span class="number">2.0</span>      <span class="comment"># even count</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>The #1 mistake: getting heap direction wrong.</strong> Each language defaults differently — C++ <code>priority_queue</code> is a max-heap (use <code>greater&lt;&gt;</code> for the min-heap); Java <code>PriorityQueue</code> is a min-heap (use <code>reverseOrder()</code> for the max-heap); Python <code>heapq</code> is a min-heap (negate values to fake the max-heap). Get a direction backwards and the tops stop meaning what you think. Two more traps: you <strong>must rebalance after every insert</strong> — skip a rebalance and the tops no longer represent the true halves; and watch the <strong>even/odd median formula</strong> — average the two tops only when the sizes are equal.
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <p><code>addNum</code> does a constant number of heap pushes and pops, each <code>O(log n)</code>. <code>findMedian</code> just peeks the tops, which is instant. That's the payoff over re-sorting: queries are free.</p>
+
+        <table>
+            <tr><th>Operation</th><th>Time Complexity</th></tr>
+            <tr><td>addNum (insert + rebalance)</td><td>O(log n)</td></tr>
+            <tr><td>findMedian (peek tops)</td><td>O(1)</td></tr>
+            <tr><td>Space (store every number)</td><td>O(n)</td></tr>
+        </table>
+
+        <h2>The Harder Cousin: Sliding Window Median</h2>
+        <p>A tougher variant asks for the median of only the <strong>last k numbers</strong> as a window slides across the stream — so elements must <em>leave</em> the structure, not just arrive. The same two-heaps idea still works, but plain heaps can't remove an arbitrary middle element cheaply. The usual fixes are <strong>lazy deletion</strong> (mark a leaving element and discard it only once it bubbles to a top) or a balanced <strong>multiset</strong> / ordered structure that supports <code>O(log k)</code> removal. Same boundary intuition, more bookkeeping.</p>
+
+        <h2>When to Reach for Two Heaps</h2>
+        <div class="compare">
+            <div>
+                <h3>The signal</h3>
+                <ul>
+                    <li>"<strong>Running</strong> or <strong>streaming</strong> median."</li>
+                    <li>Repeated "find the middle" queries as data arrives.</li>
+                    <li>You need the boundary between a lower and upper half.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>The shape of the fix</h3>
+                <ul>
+                    <li>Max-heap for the lower half, min-heap for the upper half.</li>
+                    <li>Rebalance to keep sizes within 1 every insert.</li>
+                    <li>Read the median off the tops in O(1).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Pattern to remember:</strong> whenever a problem keeps asking for the <em>middle</em> of a growing set of numbers, think "two heaps meeting at the boundary." Balance the halves and the answer is always sitting at the tops.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Two-heaps median playground ----
+        // We keep two SORTED arrays as stand-ins for the heaps. This is the
+        // simplest correct model: we read the boundary elements directly.
+        //   lo = lower half, kept ASCENDING so lo[last] is the max-heap "top".
+        //   hi = upper half, kept ASCENDING so hi[0]    is the min-heap "top".
+        // Invariants: lo.max <= hi.min, and 0 <= lo.length - hi.length <= 1.
+        let lo = [];  // lower half (max-heap)
+        let hi = [];  // upper half (min-heap)
+        let busy = false;
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        function insertSorted(arr, v) {
+            let i = 0;
+            while (i < arr.length && arr[i] < v) i++;
+            arr.splice(i, 0, v);
+        }
+
+        function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+        function median() {
+            if (lo.length === 0) return null;
+            if (lo.length > hi.length) return lo[lo.length - 1];
+            return (lo[lo.length - 1] + hi[0]) / 2;
+        }
+
+        function fmt(n) {
+            if (n === null) return '—';
+            return Number.isInteger(n) ? String(n) : n.toFixed(1);
+        }
+
+        function setControls(disabled) {
+            document.getElementById('addBtn').disabled = disabled;
+            document.getElementById('randBtn').disabled = disabled;
+            document.getElementById('resetBtn').disabled = disabled;
+        }
+
+        function render() {
+            // max-heap (left): top = largest = lo[last], shown on the INNER edge (bottom).
+            const lowCells = document.getElementById('lowCells');
+            const highCells = document.getElementById('highCells');
+            lowCells.innerHTML = '';
+            highCells.innerHTML = '';
+
+            if (lo.length === 0) {
+                const e = document.createElement('div');
+                e.className = 'heap-empty';
+                e.textContent = 'empty';
+                lowCells.appendChild(e);
+            } else {
+                // render ascending top-to-bottom so the max (top) lands at the bottom inner edge
+                lo.forEach((v, idx) => {
+                    const c = document.createElement('div');
+                    c.className = 'cell' + (idx === lo.length - 1 ? ' top' : '');
+                    c.textContent = v;
+                    lowCells.appendChild(c);
+                });
+            }
+
+            if (hi.length === 0) {
+                const e = document.createElement('div');
+                e.className = 'heap-empty';
+                e.textContent = 'empty';
+                highCells.appendChild(e);
+            } else {
+                // min (top) at the top inner edge
+                hi.forEach((v, idx) => {
+                    const c = document.createElement('div');
+                    c.className = 'cell' + (idx === 0 ? ' top' : '');
+                    c.textContent = v;
+                    highCells.appendChild(c);
+                });
+            }
+
+            document.getElementById('medianVal').textContent = fmt(median());
+        }
+
+        function flashTops() {
+            const lowTop = document.querySelector('#lowCells .cell.top');
+            const highTop = document.querySelector('#highCells .cell.top');
+            [lowTop, highTop].forEach(el => {
+                if (!el) return;
+                el.classList.remove('flash');
+                void el.offsetWidth;
+                el.classList.add('flash');
+            });
+        }
+
+        async function addNum(x) {
+            if (busy) return;
+            busy = true;
+            setControls(true);
+
+            // 1. push x onto max-heap (lo)
+            insertSorted(lo, x);
+            render();
+            let narrative = 'Added ' + x + ' → maxHeap.';
+            setStatus(narrative);
+            await sleep(550);
+
+            // 2. move maxHeap top -> minHeap
+            const moved = lo.pop();          // current max
+            insertSorted(hi, moved);
+            render();
+            narrative += ' Moved top ' + moved + ' to minHeap.';
+            setStatus(narrative);
+            await sleep(550);
+
+            // 3. if minHeap larger, move its top back to maxHeap
+            if (hi.length > lo.length) {
+                const back = hi.shift();     // current min
+                insertSorted(lo, back);
+                render();
+                narrative += ' minHeap was bigger — moved ' + back + ' back.';
+            } else {
+                narrative += ' Sizes balanced.';
+            }
+
+            flashTops();
+            narrative += ' Median = ' + fmt(median()) + '.';
+            setStatus(narrative);
+
+            busy = false;
+            setControls(false);
+        }
+
+        function readVal() {
+            const raw = document.getElementById('valInput').value;
+            const v = parseInt(raw, 10);
+            return isNaN(v) ? Math.floor(Math.random() * 20) : v;
+        }
+
+        function doAdd() { addNum(readVal()); }
+
+        function doRandom() {
+            const v = Math.floor(Math.random() * 20);
+            document.getElementById('valInput').value = v;
+            addNum(v);
+        }
+
+        function doReset() {
+            if (busy) return;
+            lo = [];
+            hi = [];
+            render();
+            setStatus('Reset. Add a number to begin building the stream.');
+        }
+
+        render();
+    </script>
+</body>
+</html>

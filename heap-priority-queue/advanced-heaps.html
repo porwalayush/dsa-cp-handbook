@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Heap Variants - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #7c3aed; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* Array row */
+        .array-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 6px 0 4px; min-height: 56px; }
+        .arr-cell { position: relative; display: flex; flex-direction: column; align-items: center; }
+        .arr-box {
+            min-width: 58px; height: 46px; padding: 0 8px; border-radius: 10px;
+            background: white; border: 2px solid #cbd5e1;
+            display: flex; align-items: center; justify-content: center;
+            color: #0f172a; font-weight: 700; font-size: 0.92em;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.15s ease;
+        }
+        .arr-idx { font-size: 0.68em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 600; }
+        .arr-box.root { background: #ede9fe; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+        .arr-box.stale { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; text-decoration: line-through; }
+        .arr-box.settled { background: #dcfce7; border-color: #16a34a; }
+
+        .pg-legend { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 12px; font-size: 0.76em; color: #64748b; }
+        .pg-legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .swatch { width: 14px; height: 14px; border-radius: 4px; border: 2px solid; }
+        .sw-root { background: #ede9fe; border-color: #7c3aed; }
+        .sw-stale { background: #fef2f2; border-color: #fca5a5; }
+        .sw-settled { background: #dcfce7; border-color: #16a34a; }
+
+        .settled-map { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0 2px; }
+        .smap-chip { font-family: 'JetBrains Mono', monospace; font-size: 0.8em; padding: 4px 10px; border-radius: 999px; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; }
+        .smap-chip b { color: #0f172a; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 90px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .pg-controls label { font-size: 0.82em; color: #64748b; font-weight: 500; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .pg-controls input { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Advanced Heap Variants</h1>
+        <p>The binary heap from the earlier lessons is a workhorse: simple, cache-friendly, and fast enough for almost everything. But it has a few sharp edges. It can't <em>lower the priority</em> of something already inside it without help, and it can't <em>merge</em> two heaps without dumping everything out and rebuilding.</p>
+        <p>This page is a tour of the variants that fix those edges. Think of it like upgrading from a reliable sedan to specialized vehicles — most days the sedan is the right choice, but sometimes you genuinely need the truck. We'll meet <strong>d-ary heaps</strong> (a shape tweak that speeds up some operations), <strong>indexed heaps</strong> (so you can decrease a key in place), and <strong>mergeable heaps</strong> (so two heaps can become one cheaply).</p>
+        <p>It's a touch more theory-flavored than the basics, but we'll keep every idea grounded in <em>why you'd reach for it</em> — usually while writing a Dijkstra or a Prim's MST.</p>
+
+        <h2>D-ary Heaps: Wider, Shorter Trees</h2>
+        <p>A binary heap gives every node up to <strong>two</strong> children. A <strong>d-ary heap</strong> simply lets each node have up to <strong>d</strong> children — say 3, or 4, or 8. Nothing else changes: same array layout, same "parent beats its children" rule.</p>
+        <p>The intuition is about <em>tree shape</em>. Picture pouring the same number of marbles into two funnels. A narrow funnel (d = 2) stacks them tall; a wide funnel (d = 4) spreads them into a short, bushy pile. More children per node means fewer levels: the height drops from about log&#8322;n to about log<sub>d</sub>n.</p>
+        <p>That shorter height is a direct win for any operation that walks <em>upward</em>, because it has fewer levels to climb:</p>
+        <ul>
+            <li><strong>insert</strong> and <strong>decrease-key</strong> sift a value <em>up</em> toward the root — now only log<sub>d</sub>n steps. Faster.</li>
+            <li><strong>extract-min</strong> sifts a value <em>down</em>, and at each level it must compare against <strong>all d children</strong> to find the smallest. So each level costs more: O(d) work over log<sub>d</sub>n levels = O(d&middot;log<sub>d</sub>n). Slower.</li>
+        </ul>
+        <p>So d is a tuning knob, a trade between cheaper sift-ups and pricier sift-downs. This matters for <strong>Dijkstra</strong>, which does a <em>lot</em> of decrease-key relative to extract-min on dense graphs. In practice a <strong>4-ary heap</strong> is often measurably faster than a binary one there — and it's friendlier to the CPU cache too, since siblings sit next to each other in memory.</p>
+
+        <h3>The index math (0-indexed)</h3>
+        <p>The pointer-free array trick still works, you just scale by d instead of 2. For a node at index <code>i</code>:</p>
+        <ul>
+            <li><strong>children</strong> live at indices <code>d*i + 1</code>, <code>d*i + 2</code>, &hellip;, <code>d*i + d</code></li>
+            <li><strong>parent</strong> is at <code>(i - 1) / d</code> (integer / floor division)</li>
+        </ul>
+        <p>When <code>d = 2</code> these collapse back to the familiar <code>2i+1</code>, <code>2i+2</code>, <code>(i-1)/2</code>. Here are the helpers plus sift-up / sift-down parameterized by d.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDary')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDary')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDary')">Python</button>
+            </div>
+            <div id="cppDary" class="code-content active">
+<pre>
+<span class="comment">// A d-ary MIN-heap stored in a flat vector. d children per node.</span>
+<span class="keyword">int</span> D = <span class="number">4</span>;                                  <span class="comment">// try 4-ary for Dijkstra</span>
+std::vector&lt;<span class="keyword">int</span>&gt; h;
+
+<span class="keyword">int</span> parent(<span class="keyword">int</span> i) { <span class="keyword">return</span> (i - <span class="number">1</span>) / D; }
+<span class="keyword">int</span> child (<span class="keyword">int</span> i, <span class="keyword">int</span> k) { <span class="keyword">return</span> D * i + <span class="number">1</span> + k; } <span class="comment">// k = 0..D-1</span>
+
+<span class="keyword">void</span> siftUp(<span class="keyword">int</span> i) {                       <span class="comment">// O(log_d n)</span>
+    <span class="keyword">while</span> (i &gt; <span class="number">0</span> &amp;&amp; h[i] &lt; h[parent(i)]) {
+        std::swap(h[i], h[parent(i)]);
+        i = parent(i);
+    }
+}
+
+<span class="keyword">void</span> siftDown(<span class="keyword">int</span> i) {                     <span class="comment">// O(d * log_d n)</span>
+    <span class="keyword">int</span> n = h.size();
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="keyword">int</span> smallest = i;
+        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; D; ++k) {       <span class="comment">// scan all d children</span>
+            <span class="keyword">int</span> c = child(i, k);
+            <span class="keyword">if</span> (c &lt; n &amp;&amp; h[c] &lt; h[smallest]) smallest = c;
+        }
+        <span class="keyword">if</span> (smallest == i) <span class="keyword">break</span>;
+        std::swap(h[i], h[smallest]);
+        i = smallest;
+    }
+}
+</pre>
+            </div>
+            <div id="javaDary" class="code-content">
+<pre>
+<span class="comment">// A d-ary MIN-heap stored in an int array. d children per node.</span>
+<span class="keyword">int</span> D = <span class="number">4</span>;                                  <span class="comment">// try 4-ary for Dijkstra</span>
+<span class="keyword">int</span>[] h; <span class="keyword">int</span> n;                            <span class="comment">// n = current size</span>
+
+<span class="keyword">int</span> parent(<span class="keyword">int</span> i) { <span class="keyword">return</span> (i - <span class="number">1</span>) / D; }
+<span class="keyword">int</span> child (<span class="keyword">int</span> i, <span class="keyword">int</span> k) { <span class="keyword">return</span> D * i + <span class="number">1</span> + k; } <span class="comment">// k = 0..D-1</span>
+
+<span class="keyword">void</span> siftUp(<span class="keyword">int</span> i) {                       <span class="comment">// O(log_d n)</span>
+    <span class="keyword">while</span> (i &gt; <span class="number">0</span> &amp;&amp; h[i] &lt; h[parent(i)]) {
+        <span class="keyword">int</span> t = h[i]; h[i] = h[parent(i)]; h[parent(i)] = t;
+        i = parent(i);
+    }
+}
+
+<span class="keyword">void</span> siftDown(<span class="keyword">int</span> i) {                     <span class="comment">// O(d * log_d n)</span>
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="keyword">int</span> smallest = i;
+        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; D; k++) {        <span class="comment">// scan all d children</span>
+            <span class="keyword">int</span> c = child(i, k);
+            <span class="keyword">if</span> (c &lt; n &amp;&amp; h[c] &lt; h[smallest]) smallest = c;
+        }
+        <span class="keyword">if</span> (smallest == i) <span class="keyword">break</span>;
+        <span class="keyword">int</span> t = h[i]; h[i] = h[smallest]; h[smallest] = t;
+        i = smallest;
+    }
+}
+</pre>
+            </div>
+            <div id="pyDary" class="code-content">
+<pre>
+<span class="comment"># A d-ary MIN-heap stored in a list. d children per node.</span>
+D = <span class="number">4</span>                                     <span class="comment"># try 4-ary for Dijkstra</span>
+h = []
+
+<span class="keyword">def</span> parent(i): <span class="keyword">return</span> (i - <span class="number">1</span>) // D
+<span class="keyword">def</span> child(i, k): <span class="keyword">return</span> D * i + <span class="number">1</span> + k    <span class="comment"># k = 0..D-1</span>
+
+<span class="keyword">def</span> sift_up(i):                          <span class="comment"># O(log_d n)</span>
+    <span class="keyword">while</span> i &gt; <span class="number">0</span> <span class="keyword">and</span> h[i] &lt; h[parent(i)]:
+        h[i], h[parent(i)] = h[parent(i)], h[i]
+        i = parent(i)
+
+<span class="keyword">def</span> sift_down(i):                        <span class="comment"># O(d * log_d n)</span>
+    n = len(h)
+    <span class="keyword">while</span> <span class="keyword">True</span>:
+        smallest = i
+        <span class="keyword">for</span> k <span class="keyword">in</span> range(D):                 <span class="comment"># scan all d children</span>
+            c = child(i, k)
+            <span class="keyword">if</span> c &lt; n <span class="keyword">and</span> h[c] &lt; h[smallest]:
+                smallest = c
+        <span class="keyword">if</span> smallest == i:
+            <span class="keyword">break</span>
+        h[i], h[smallest] = h[smallest], h[i]
+        i = smallest
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Why 4-ary, not 8-ary?</strong> Push d too high and the per-level scan of d children in <code>siftDown</code> starts to dominate. There's a sweet spot — empirically around d = 4 for Dijkstra-style workloads on modern hardware. It's a tuning parameter, not a magic number: measure on your own data if it's a hot path.
+        </div>
+
+        <h2>Decrease-Key &amp; the Indexed Heap</h2>
+        <p>Here's the operation a plain library priority queue quietly leaves out, and the one graph algorithms desperately want.</p>
+        <p>Picture <strong>Dijkstra</strong>. Each vertex sits in the heap keyed by its best-known tentative distance. When you relax an edge and find a <em>cheaper</em> route to a vertex that's already in the heap, you want to <strong>lower its key</strong> — that's <code>decrease-key</code>. The vertex should bubble up toward the front because it just got more urgent.</p>
+        <p>The snag: a binary heap can sift a value up in O(log n) <em>only if you can first find it</em>. And a heap has no fast way to locate an arbitrary element — searching is O(n). So decrease-key naively becomes O(n), wrecking the whole algorithm.</p>
+
+        <h3>Fix #1 — the indexed heap (position map)</h3>
+        <p>The classic fix is to keep a side table: a <strong>position map</strong> <code>pos[]</code> that records, for each element (e.g. each vertex id), <em>where it currently lives in the heap array</em>. Maintain it on every swap. Now "find vertex v" is an O(1) lookup, and decrease-key is back to a clean O(log n): look up its slot, lower the value, sift up.</p>
+        <p>This bundle — a heap that also tracks element positions and supports decrease-key — is called an <strong>indexed priority queue</strong>. The only real cost is discipline: <em>every</em> swap must also update <code>pos[]</code>, or the map silently rots.</p>
+
+        <h3>Fix #2 — lazy deletion (what most people actually do)</h3>
+        <p>The pragmatic alternative skips decrease-key entirely. Instead of editing the entry already in the heap, you just <strong>push a new entry</strong> with the smaller key and leave the old one to rot. The old entry is now <em>stale</em>.</p>
+        <p>When you pop, you check: is this the current best for its vertex? If a vertex is already settled, or the popped key is larger than the best you've recorded, the entry is stale — <strong>discard it and pop again</strong>. Each vertex gets settled exactly once, the first (smallest) time it surfaces.</p>
+        <p>It's "lazy" because you never clean up the garbage proactively; you just ignore it on the way out. The heap may hold up to O(E) entries instead of O(V), but it needs no position map and works with any off-the-shelf PQ. For competitive programming this is the default.</p>
+
+        <div class="compare">
+            <div>
+                <h3>Indexed heap (decrease-key)</h3>
+                <ul>
+                    <li>Edits the existing entry in place; sifts it up.</li>
+                    <li>Heap holds at most one entry per element &rarr; O(V) size.</li>
+                    <li>Needs a <code>pos[]</code> map, kept in sync on every swap.</li>
+                    <li>More code, more bug surface, but tight memory.</li>
+                    <li>The "textbook" Dijkstra / Prim implementation.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Lazy deletion (push duplicates)</h3>
+                <ul>
+                    <li>Pushes a new smaller entry; skips stale ones on pop.</li>
+                    <li>Heap can grow to O(E) entries (duplicates linger).</li>
+                    <li>No position map — works with <em>any</em> standard PQ.</li>
+                    <li>Less code; the go-to for contests and most real code.</li>
+                    <li>Same O(E log V) asymptotics for Dijkstra.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Code: indexed sift-up vs the lazy-deletion pop</h3>
+        <p>First, the heart of an indexed heap — a sift-up that keeps <code>pos[]</code> in sync (full in all three languages). Then the lazy-deletion pattern, which needs no map at all.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppIdx')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaIdx')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyIdx')">Python</button>
+            </div>
+            <div id="cppIdx" class="code-content active">
+<pre>
+<span class="comment">// Indexed binary MIN-heap. heap[] holds element ids; key[id] is its priority.
+// pos[id] = where id currently sits in heap[], or -1 if absent.</span>
+std::vector&lt;<span class="keyword">int</span>&gt; heap;          <span class="comment">// heap[slot] = id</span>
+std::vector&lt;<span class="keyword">int</span>&gt; pos;           <span class="comment">// pos[id]  = slot</span>
+std::vector&lt;<span class="keyword">long</span>&gt; key;          <span class="comment">// key[id]  = priority</span>
+
+<span class="keyword">void</span> swapNodes(<span class="keyword">int</span> a, <span class="keyword">int</span> b) {
+    std::swap(heap[a], heap[b]);
+    pos[heap[a]] = a;            <span class="comment">// keep the map in sync!</span>
+    pos[heap[b]] = b;
+}
+
+<span class="keyword">void</span> siftUp(<span class="keyword">int</span> i) {
+    <span class="keyword">while</span> (i &gt; <span class="number">0</span>) {
+        <span class="keyword">int</span> p = (i - <span class="number">1</span>) / <span class="number">2</span>;
+        <span class="keyword">if</span> (key[heap[i]] &gt;= key[heap[p]]) <span class="keyword">break</span>;
+        swapNodes(i, p);
+        i = p;
+    }
+}
+
+<span class="comment">// LOWER an element's key, then float it up. O(log n) thanks to pos[].</span>
+<span class="keyword">void</span> decreaseKey(<span class="keyword">int</span> id, <span class="keyword">long</span> newKey) {
+    <span class="keyword">if</span> (newKey &gt;= key[id]) <span class="keyword">return</span>;   <span class="comment">// only ever decreases</span>
+    key[id] = newKey;
+    siftUp(pos[id]);                <span class="comment">// O(1) to find it, then sift</span>
+}
+</pre>
+            </div>
+            <div id="javaIdx" class="code-content">
+<pre>
+<span class="comment">// Indexed binary MIN-heap. heap[] holds element ids; key[id] is its priority.
+// pos[id] = where id currently sits in heap[], or -1 if absent.</span>
+<span class="keyword">int</span>[] heap;     <span class="comment">// heap[slot] = id</span>
+<span class="keyword">int</span>[] pos;      <span class="comment">// pos[id]  = slot</span>
+<span class="keyword">long</span>[] key;    <span class="comment">// key[id]  = priority</span>
+
+<span class="keyword">void</span> swapNodes(<span class="keyword">int</span> a, <span class="keyword">int</span> b) {
+    <span class="keyword">int</span> t = heap[a]; heap[a] = heap[b]; heap[b] = t;
+    pos[heap[a]] = a;            <span class="comment">// keep the map in sync!</span>
+    pos[heap[b]] = b;
+}
+
+<span class="keyword">void</span> siftUp(<span class="keyword">int</span> i) {
+    <span class="keyword">while</span> (i &gt; <span class="number">0</span>) {
+        <span class="keyword">int</span> p = (i - <span class="number">1</span>) / <span class="number">2</span>;
+        <span class="keyword">if</span> (key[heap[i]] &gt;= key[heap[p]]) <span class="keyword">break</span>;
+        swapNodes(i, p);
+        i = p;
+    }
+}
+
+<span class="comment">// LOWER an element's key, then float it up. O(log n) thanks to pos[].</span>
+<span class="keyword">void</span> decreaseKey(<span class="keyword">int</span> id, <span class="keyword">long</span> newKey) {
+    <span class="keyword">if</span> (newKey &gt;= key[id]) <span class="keyword">return</span>;   <span class="comment">// only ever decreases</span>
+    key[id] = newKey;
+    siftUp(pos[id]);                <span class="comment">// O(1) to find it, then sift</span>
+}
+</pre>
+            </div>
+            <div id="pyIdx" class="code-content">
+<pre>
+<span class="comment"># Indexed binary MIN-heap. heap[] holds element ids; key[id] is its priority.
+# pos[id] = where id currently sits in heap[], or -1 if absent.</span>
+heap = []        <span class="comment"># heap[slot] = id</span>
+pos  = []        <span class="comment"># pos[id]  = slot</span>
+key  = []        <span class="comment"># key[id]  = priority</span>
+
+<span class="keyword">def</span> swap_nodes(a, b):
+    heap[a], heap[b] = heap[b], heap[a]
+    pos[heap[a]] = a             <span class="comment"># keep the map in sync!</span>
+    pos[heap[b]] = b
+
+<span class="keyword">def</span> sift_up(i):
+    <span class="keyword">while</span> i &gt; <span class="number">0</span>:
+        p = (i - <span class="number">1</span>) // <span class="number">2</span>
+        <span class="keyword">if</span> key[heap[i]] &gt;= key[heap[p]]:
+            <span class="keyword">break</span>
+        swap_nodes(i, p)
+        i = p
+
+<span class="comment"># LOWER an element's key, then float it up. O(log n) thanks to pos[].</span>
+<span class="keyword">def</span> decrease_key(id, new_key):
+    <span class="keyword">if</span> new_key &gt;= key[id]:
+        <span class="keyword">return</span>                   <span class="comment"># only ever decreases</span>
+    key[id] = new_key
+    sift_up(pos[id])             <span class="comment"># O(1) to find it, then sift</span>
+</pre>
+            </div>
+        </div>
+
+        <p>And the lazy-deletion pattern — the one most Dijkstra solutions actually ship. No <code>pos[]</code>, no decrease-key; just push duplicates and skip stale pops (Python <code>heapq</code> shown; the same shape works in C++/Java):</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'pyLazy')">Python</button>
+                <button class="code-tab" onclick="showCode(this, 'cppLazy')">C++</button>
+            </div>
+            <div id="pyLazy" class="code-content active">
+<pre>
+<span class="keyword">import</span> heapq
+<span class="comment"># Dijkstra with LAZY deletion. No decrease-key, no pos map.</span>
+<span class="keyword">def</span> dijkstra(adj, src):
+    dist = [float(<span class="string">'inf'</span>)] * len(adj)
+    dist[src] = <span class="number">0</span>
+    pq = [(<span class="number">0</span>, src)]                 <span class="comment"># (key, vertex)</span>
+    <span class="keyword">while</span> pq:
+        d, u = heapq.heappop(pq)
+        <span class="keyword">if</span> d &gt; dist[u]:             <span class="comment"># STALE: a better d was already settled</span>
+            <span class="keyword">continue</span>                 <span class="comment"># skip it and pop again</span>
+        <span class="keyword">for</span> v, w <span class="keyword">in</span> adj[u]:
+            <span class="keyword">if</span> dist[u] + w &lt; dist[v]:
+                dist[v] = dist[u] + w
+                heapq.heappush(pq, (dist[v], v))  <span class="comment"># push duplicate</span>
+    <span class="keyword">return</span> dist
+</pre>
+            </div>
+            <div id="cppLazy" class="code-content">
+<pre>
+<span class="comment">// Dijkstra with LAZY deletion. min-heap via greater&lt;&gt;. No pos map.</span>
+<span class="keyword">using</span> P = std::pair&lt;<span class="keyword">long</span>, <span class="keyword">int</span>&gt;;   <span class="comment">// (key, vertex)</span>
+std::vector&lt;<span class="keyword">long</span>&gt; dist(N, LLONG_MAX);
+std::priority_queue&lt;P, std::vector&lt;P&gt;, std::greater&lt;P&gt;&gt; pq;
+dist[src] = <span class="number">0</span>;
+pq.push({<span class="number">0</span>, src});
+<span class="keyword">while</span> (!pq.empty()) {
+    <span class="keyword">auto</span> [d, u] = pq.top(); pq.pop();
+    <span class="keyword">if</span> (d &gt; dist[u]) <span class="keyword">continue</span>;        <span class="comment">// STALE: skip and pop again</span>
+    <span class="keyword">for</span> (<span class="keyword">auto</span> [v, w] : adj[u]) {
+        <span class="keyword">if</span> (dist[u] + w &lt; dist[v]) {
+            dist[v] = dist[u] + w;
+            pq.push({dist[v], v});       <span class="comment">// push duplicate</span>
+        }
+    }
+}
+</pre>
+            </div>
+        </div>
+
+        <h2>Try It: Lazy Deletion in Action</h2>
+        <p>This is the technique to internalize, so let's watch it run. Below is a min-priority-queue used Dijkstra-style. <strong>Push</strong> a (key, vertex) entry, or <strong>Decrease key</strong> a vertex — note that "decrease" does <em>not</em> edit anything; it just pushes a new, smaller entry and leaves the old one behind. Then <strong>Pop valid min</strong> repeatedly: the demo pops the smallest entry and checks if it's stale (a better key for that vertex was already settled), skipping stale ones with narration.</p>
+
+        <div class="playground">
+            <div class="pg-title">&#128034; Lazy-Deletion Priority Queue</div>
+            <div class="pg-sub">Push entries, "decrease" a vertex (pushes a duplicate), then pop. Stale entries (red, struck-through) are skipped on the way out; the first valid pop settles that vertex (green).</div>
+            <div class="array-row" id="heapRow"></div>
+            <div class="settled-map" id="settledMap"></div>
+            <div class="pg-legend">
+                <span><span class="swatch sw-root"></span> current min (heap root)</span>
+                <span><span class="swatch sw-stale"></span> stale (outdated key)</span>
+                <span><span class="swatch sw-settled"></span> settled vertex</span>
+            </div>
+            <div class="pg-status" id="status">Push a (key, vertex) entry, or hit "Pop valid min" to start consuming the queue.</div>
+            <div class="pg-controls">
+                <label>key</label>
+                <input type="number" id="pushKey" value="5">
+                <label>vertex</label>
+                <input type="text" id="pushVtx" value="C" maxlength="2">
+                <button class="btn btn-primary" onclick="pushEntry()">Push</button>
+                <button class="btn btn-ghost" onclick="decreaseEntry()">Decrease key</button>
+            </div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="popBtn" onclick="popValid()">Pop valid min &#9654;</button>
+                <button class="btn btn-ghost" onclick="resetDemo()">&#8634; Reset</button>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Your standard-library priority queue does NOT do this for you.</strong> C++'s <code>std::priority_queue</code>, Java's <code>PriorityQueue</code>, and Python's <code>heapq</code> support push and pop only — <em>no</em> efficient decrease-key and <em>no</em> efficient meld. Don't assume they do. If you need decrease-key, build an indexed heap with a <code>pos[]</code> map, or (far more often) just use lazy deletion. If you need to merge two queues cheaply, reach for a mergeable heap below.
+        </div>
+
+        <h2>Mergeable (Meldable) Heaps</h2>
+        <p>Sometimes you have two heaps and want to fuse them into one. A binary heap is terrible at this: there's no clever shortcut, so you concatenate the arrays and re-heapify — O(n). A whole family of structures exists precisely to make <strong>meld</strong> (also called <em>union</em>) cheap, usually O(log n) or even O(1).</p>
+        <p>They earn it by giving up the rigid "complete tree in an array" shape. These heaps are <em>pointer-based</em> trees with looser structure, which is exactly what lets two of them snap together quickly.</p>
+
+        <table>
+            <tr><th>Heap</th><th>insert</th><th>find-min</th><th>extract-min</th><th>decrease-key</th><th>meld</th></tr>
+            <tr><td>Binary</td><td>O(log n)</td><td>O(1)</td><td>O(log n)</td><td>O(log n)</td><td>O(n)</td></tr>
+            <tr><td>Binomial</td><td>O(1)*</td><td>O(1)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td></tr>
+            <tr><td>Leftist / Skew</td><td>O(log n)</td><td>O(1)</td><td>O(log n)</td><td>O(log n)</td><td>O(log n)</td></tr>
+            <tr><td>Pairing</td><td>O(1)</td><td>O(1)</td><td>O(log n)*</td><td>O(log n)*</td><td>O(1)*</td></tr>
+            <tr><td>Fibonacci</td><td>O(1)</td><td>O(1)</td><td>O(log n)*</td><td>O(1)*</td><td>O(1)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">* = amortized. Binomial insert is O(1) amortized, O(log n) worst case. Pairing-heap bounds are amortized and partly conjectured to be even better in practice. Leftist gives worst-case O(log n); skew gives amortized O(log n) with simpler code.</p>
+
+        <h3>Leftist &amp; skew heaps: meld is the whole game</h3>
+        <p>In these two, <strong>every operation is built on one primitive: meld</strong>. Insert? Meld a single-node heap in. Extract-min? Remove the root, then meld its two subtrees. So if meld is O(log n), everything is.</p>
+        <p>The meld itself is a tidy recursion. To merge two min-heaps, take the one with the <em>smaller root</em> as the new top; its left child stays, and you recursively meld its right subtree with the other whole heap. The trick that keeps things balanced lives in what you do <em>after</em> that recursive merge:</p>
+        <ul>
+            <li><strong>Leftist heap:</strong> track each node's "null-path length" and swap children so the shorter spine is always on the right. This guarantees the right spine is O(log n) — a <em>worst-case</em> bound.</li>
+            <li><strong>Skew heap:</strong> skip the bookkeeping entirely — just <em>unconditionally swap children</em> after every merge. No stored metadata, dead simple, and it still achieves O(log n) <em>amortized</em>. It's the leftist heap's lazy cousin.</li>
+        </ul>
+        <p>Because a skew heap is so short to write, it's the one worth seeing in full. The entire data structure is essentially this one function.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppSkew')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaSkew')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pySkew')">Python</button>
+            </div>
+            <div id="cppSkew" class="code-content active">
+<pre>
+<span class="comment">// Skew heap: a min-heap where meld() swaps children each merge.
+// insert / extractMin are both just thin wrappers over meld().</span>
+<span class="keyword">struct</span> Node { <span class="keyword">int</span> val; Node *l = <span class="keyword">nullptr</span>, *r = <span class="keyword">nullptr</span>; };
+
+Node* meld(Node* a, Node* b) {
+    <span class="keyword">if</span> (!a) <span class="keyword">return</span> b;
+    <span class="keyword">if</span> (!b) <span class="keyword">return</span> a;
+    <span class="keyword">if</span> (b-&gt;val &lt; a-&gt;val) std::swap(a, b);   <span class="comment">// a = smaller root</span>
+    a-&gt;r = meld(a-&gt;r, b);                   <span class="comment">// recurse on right</span>
+    std::swap(a-&gt;l, a-&gt;r);                  <span class="comment">// the skew step!</span>
+    <span class="keyword">return</span> a;
+}
+
+Node* insert(Node* h, <span class="keyword">int</span> v) { <span class="keyword">return</span> meld(h, <span class="keyword">new</span> Node{v}); }
+Node* extractMin(Node* h) { <span class="keyword">return</span> meld(h-&gt;l, h-&gt;r); }  <span class="comment">// h-&gt;val is the min</span>
+</pre>
+            </div>
+            <div id="javaSkew" class="code-content">
+<pre>
+<span class="comment">// Skew heap: a min-heap where meld() swaps children each merge.
+// insert / extractMin are both just thin wrappers over meld().</span>
+<span class="keyword">static class</span> Node {
+    <span class="keyword">int</span> val; Node l, r;
+    Node(<span class="keyword">int</span> v) { val = v; }
+}
+
+<span class="keyword">static</span> Node meld(Node a, Node b) {
+    <span class="keyword">if</span> (a == <span class="keyword">null</span>) <span class="keyword">return</span> b;
+    <span class="keyword">if</span> (b == <span class="keyword">null</span>) <span class="keyword">return</span> a;
+    <span class="keyword">if</span> (b.val &lt; a.val) { Node t = a; a = b; b = t; }  <span class="comment">// a = smaller</span>
+    a.r = meld(a.r, b);                    <span class="comment">// recurse on right</span>
+    Node t = a.l; a.l = a.r; a.r = t;      <span class="comment">// the skew step!</span>
+    <span class="keyword">return</span> a;
+}
+
+<span class="keyword">static</span> Node insert(Node h, <span class="keyword">int</span> v) { <span class="keyword">return</span> meld(h, <span class="keyword">new</span> Node(v)); }
+<span class="keyword">static</span> Node extractMin(Node h) { <span class="keyword">return</span> meld(h.l, h.r); } <span class="comment">// h.val is min</span>
+</pre>
+            </div>
+            <div id="pySkew" class="code-content">
+<pre>
+<span class="comment"># Skew heap: a min-heap where meld() swaps children each merge.
+# insert / extract_min are both just thin wrappers over meld().</span>
+<span class="keyword">class</span> <span class="type">Node</span>:
+    <span class="keyword">def</span> __init__(self, val):
+        self.val = val
+        self.l = self.r = <span class="keyword">None</span>
+
+<span class="keyword">def</span> meld(a, b):
+    <span class="keyword">if</span> a <span class="keyword">is</span> <span class="keyword">None</span>: <span class="keyword">return</span> b
+    <span class="keyword">if</span> b <span class="keyword">is</span> <span class="keyword">None</span>: <span class="keyword">return</span> a
+    <span class="keyword">if</span> b.val &lt; a.val:
+        a, b = b, a                  <span class="comment"># a = smaller root</span>
+    a.r = meld(a.r, b)               <span class="comment"># recurse on right</span>
+    a.l, a.r = a.r, a.l              <span class="comment"># the skew step!</span>
+    <span class="keyword">return</span> a
+
+<span class="keyword">def</span> insert(h, v): <span class="keyword">return</span> meld(h, Node(v))
+<span class="keyword">def</span> extract_min(h): <span class="keyword">return</span> meld(h.l, h.r)   <span class="comment"># h.val is the min</span>
+</pre>
+            </div>
+        </div>
+
+        <h3>Binomial &amp; Fibonacci: the theory end</h3>
+        <p>The remaining two are worth <em>knowing about</em> more than implementing.</p>
+        <p>A <strong>binomial heap</strong> is a collection of specially-shaped trees (binomial trees), merged the way you add binary numbers — carrying trees of equal size together. That gives O(log n) meld and a neat O(1)-amortized insert.</p>
+        <p>The <strong>Fibonacci heap</strong> is the theoretical champion: O(1) amortized <code>insert</code>, <code>decrease-key</code>, and <code>meld</code>, with O(log n) amortized <code>extract-min</code>. That O(1) decrease-key is what famously drops Dijkstra to <strong>O(E + V log V)</strong>. But it's notorious for <strong>large constant factors</strong> and fiddly lazy-restructuring bookkeeping — so it's rarely worth implementing. A well-tuned binary or 4-ary heap usually beats it in wall-clock time.</p>
+
+        <div class="note">
+            <strong>Which one do I actually use?</strong>
+            <ul>
+                <li>For <strong>competitive programming</strong>, a plain binary heap with <strong>lazy deletion</strong> handles Dijkstra and Prim's just fine — reach for it first.</li>
+                <li>Tuning a hot Dijkstra on dense graphs? Try a <strong>4-ary heap</strong>.</li>
+                <li>Genuinely need fast <strong>meld</strong>? A <strong>pairing heap</strong> or <strong>skew heap</strong> is simple and fast in practice.</li>
+                <li><strong>Fibonacci heaps</strong> are mostly of theoretical interest — beautiful bounds, but the constants make them lose in real benchmarks.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Lazy-deletion priority queue demo ----
+        // Each entry: { key, vtx }. We keep a min-heap as a plain sorted-on-demand
+        // array (small demo, so we just find the min). best[vtx] = smallest key
+        // ever pushed for that vertex; settled[vtx] = true once consumed.
+        const DEFAULT = [
+            { key: 7, vtx: 'B' },
+            { key: 3, vtx: 'C' },
+            { key: 9, vtx: 'B' },
+            { key: 2, vtx: 'D' }
+        ];
+        let heap = [];
+        let best = {};       // vtx -> smallest key currently in / pushed
+        let settled = {};    // vtx -> true once it has been settled
+
+        function recomputeBest() {
+            best = {};
+            heap.forEach(e => {
+                if (!(e.vtx in best) || e.key < best[e.vtx]) best[e.vtx] = e.key;
+            });
+        }
+
+        function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+        // index of the current minimum entry in heap (the "root"); -1 if empty
+        function minIndex() {
+            if (heap.length === 0) return -1;
+            let m = 0;
+            for (let i = 1; i < heap.length; i++) {
+                if (heap[i].key < heap[m].key) m = i;
+            }
+            return m;
+        }
+
+        function isStale(e) {
+            // stale if its vertex is already settled, OR a smaller key for the
+            // same vertex still lives in the heap (this isn't that best one)
+            if (settled[e.vtx]) return true;
+            return e.key > best[e.vtx];
+        }
+
+        function render() {
+            recomputeBest();
+            const row = document.getElementById('heapRow');
+            row.innerHTML = '';
+            const mi = minIndex();
+            heap.forEach((e, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'arr-cell';
+                const box = document.createElement('div');
+                box.className = 'arr-box';
+                if (settled[e.vtx] || e.key > best[e.vtx]) box.classList.add('stale');
+                else if (i === mi) box.classList.add('root');
+                box.textContent = '(' + e.key + ', ' + e.vtx + ')';
+                const idx = document.createElement('div');
+                idx.className = 'arr-idx';
+                idx.textContent = (i === mi ? 'min' : '');
+                cell.appendChild(box);
+                cell.appendChild(idx);
+                row.appendChild(cell);
+            });
+            if (heap.length === 0) {
+                const empty = document.createElement('div');
+                empty.style.cssText = 'color:#94a3b8;font-size:0.85em;font-style:italic';
+                empty.textContent = 'heap is empty';
+                row.appendChild(empty);
+            }
+            // settled map
+            const smap = document.getElementById('settledMap');
+            smap.innerHTML = '';
+            const keys = Object.keys(settled).filter(v => settled[v]).sort();
+            if (keys.length) {
+                const lbl = document.createElement('div');
+                lbl.className = 'smap-chip';
+                lbl.style.cssText = 'background:transparent;border:none;color:#64748b';
+                lbl.textContent = 'settled:';
+                smap.appendChild(lbl);
+            }
+            keys.forEach(v => {
+                const chip = document.createElement('div');
+                chip.className = 'smap-chip';
+                chip.innerHTML = '<b>' + v + '</b> = ' + settled[v];
+                smap.appendChild(chip);
+            });
+        }
+
+        function pushEntry() {
+            const key = parseInt(document.getElementById('pushKey').value, 10);
+            const vtx = (document.getElementById('pushVtx').value || '').trim().toUpperCase();
+            if (isNaN(key) || !vtx) {
+                setStatus('Enter a numeric key and a vertex label (e.g. key 5, vertex C).');
+                return;
+            }
+            heap.push({ key, vtx });
+            render();
+            setStatus('Pushed (' + key + ', ' + vtx + '). The heap now holds ' + heap.length + ' entr' + (heap.length === 1 ? 'y' : 'ies') + '. Old entries for ' + vtx + ' are left in place.');
+        }
+
+        function decreaseEntry() {
+            const key = parseInt(document.getElementById('pushKey').value, 10);
+            const vtx = (document.getElementById('pushVtx').value || '').trim().toUpperCase();
+            if (isNaN(key) || !vtx) {
+                setStatus('Enter the NEW (smaller) key and the vertex to decrease.');
+                return;
+            }
+            recomputeBest();
+            if (vtx in best && key >= best[vtx]) {
+                setStatus('Decrease-key ignored: ' + key + ' is not smaller than ' + vtx + "'s current best (" + best[vtx] + '). A real decrease only lowers a key.');
+                return;
+            }
+            // lazy decrease-key = just push the smaller entry; old one becomes stale
+            heap.push({ key, vtx });
+            render();
+            setStatus('"Decreased" ' + vtx + ' to ' + key + ' by PUSHING a new entry (no edit!). The older, larger entry for ' + vtx + ' is now stale (red) and will be skipped on pop.');
+        }
+
+        function popValid() {
+            recomputeBest();
+            if (heap.length === 0) {
+                setStatus('The heap is empty — nothing left to pop.');
+                return;
+            }
+            // keep popping until we hit a valid (non-stale) entry or empty out
+            let skipped = [];
+            while (heap.length > 0) {
+                const mi = minIndex();
+                const e = heap[mi];
+                heap.splice(mi, 1);   // pop the min
+                if (isStale(e)) {
+                    skipped.push('(' + e.key + ', ' + e.vtx + ')');
+                    recomputeBest();
+                    continue;
+                }
+                // valid pop -> settle the vertex
+                settled[e.vtx] = e.key;
+                recomputeBest();
+                render();
+                let msg = '';
+                if (skipped.length) {
+                    msg += 'Skipped stale ' + skipped.join(', ') + ' (a better key for those was already settled). ';
+                }
+                msg += 'Popped (' + e.key + ', ' + e.vtx + ') — VALID, settle ' + e.vtx + ' at distance ' + e.key + '.';
+                setStatus(msg);
+                return;
+            }
+            recomputeBest();
+            render();
+            setStatus('Skipped stale ' + skipped.join(', ') + '. Heap drained — every remaining entry was stale.');
+        }
+
+        function resetDemo() {
+            heap = DEFAULT.map(e => ({ key: e.key, vtx: e.vtx }));
+            settled = {};
+            document.getElementById('pushKey').value = '5';
+            document.getElementById('pushVtx').value = 'C';
+            render();
+            setStatus('Reset. Heap holds (7,B), (3,C), (9,B), (2,D). Notice (9,B) is already stale — (7,B) is the better entry for B. Hit "Pop valid min".');
+        }
+
+        resetDemo();
+    </script>
+</body>
+</html>

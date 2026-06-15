@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top-K & K-Way Merge - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #7c3aed; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* K-way merge visual */
+        .kw-lists { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+        .kw-row { display: flex; align-items: center; gap: 10px; }
+        .kw-label { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #7c3aed; font-size: 0.85em; width: 58px; flex-shrink: 0; }
+        .kw-boxes { display: flex; gap: 6px; flex-wrap: wrap; }
+        .box {
+            width: 40px; height: 40px; border-radius: 8px; border: 2px solid #e2e8f0;
+            background: white; display: flex; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95em; color: #1e293b;
+            transition: all 0.2s ease;
+        }
+        .box.head { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+        .box.consumed { opacity: 0.32; border-color: #e2e8f0; background: #f8fafc; }
+        .box.pulling { animation: pulse 0.5s ease; border-color: #7c3aed; background: #ede9fe; }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+
+        .kw-section-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin: 16px 0 8px; }
+        .heap-boxes { display: flex; gap: 6px; min-height: 44px; align-items: center; flex-wrap: wrap; }
+        .hbox {
+            min-width: 56px; height: 40px; padding: 0 8px; border-radius: 8px; border: 2px solid #c4b5fd;
+            background: #f5f3ff; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.9em; color: #6d28d9; line-height: 1.1;
+        }
+        .hbox small { font-size: 0.62em; font-weight: 600; color: #a78bfa; }
+        .hbox.popping { animation: pulse 0.5s ease; background: #ddd6fe; border-color: #7c3aed; }
+        .heap-empty { color: #94a3b8; font-size: 0.85em; font-style: italic; }
+        .out-boxes { display: flex; gap: 6px; min-height: 44px; align-items: center; flex-wrap: wrap; }
+        .obox {
+            width: 40px; height: 40px; border-radius: 8px; border: 2px solid #86efac; background: #f0fdf4;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95em; color: #16a34a;
+            animation: popin 0.3s ease;
+        }
+        @keyframes popin { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Top-K &amp; K-Way Merge</h1>
+        <p>Two patterns cover a surprising share of every heap problem you'll meet. Once you internalize them, a whole category of interview questions collapses into "oh, that's just a heap of size K" or "oh, that's a K-way merge."</p>
+        <p>The big idea underneath both: a heap lets you keep just the <em>handful of items you actually care about</em> — and cheaply swap out the worst one as better candidates arrive. You never have to sort the whole pile.</p>
+
+        <h2>The Core Trick: A Heap of Size K</h2>
+        <p>Suppose you have a million numbers and you only want the <strong>10 largest</strong>. The lazy instinct is to sort all million (<code>O(n log n)</code>) and read off the top 10. That works, but it's wasteful — you sorted 999,990 numbers you didn't care about.</p>
+        <p>Here's the better way. Keep a small container that holds <strong>only K items</strong>. Walk through the numbers one at a time. For each new number, drop it in; if the container now holds more than K, throw away the <em>worst</em> one. When you reach the end, the K items left standing are exactly the K best.</p>
+        <p>Because the container never grows past K, each insert-and-evict is <code>O(log k)</code>, not <code>O(log n)</code>. Over <code>n</code> items that's <strong>O(n log k)</strong> — and you never hold more than K things in memory. For "top 10 out of a million," that's a heap of size 10 versus sorting a million.</p>
+
+        <h2>1. Kth Largest Element</h2>
+        <p>"Find the Kth largest number in this array." The trick above gives it to you directly: keep a heap of size K, and the answer falls out the bottom.</p>
+        <p>But here's the part that trips everyone up the first time. To find the K <em>largest</em> elements, you use a <strong>MIN-heap</strong>. Read that again — a min-heap to track the largest. Why?</p>
+        <p>The min-heap's top is its <em>smallest</em> element. If you keep a min-heap of size K, its top is the smallest of the K biggest you've seen so far — that is, the <strong>weakest survivor</strong>, the one on the bubble. When a new number arrives, you ask: "Is it bigger than the weakest survivor?" If yes, the weakest gets evicted (you pop the top) and the newcomer joins. If no, the newcomer can't make the cut and you skip it. After processing everything, the heap holds the K largest — and its <strong>top is the Kth largest</strong>, since the top is the smallest of those K.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppKth')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaKth')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyKth')">Python</button>
+            </div>
+            <div id="cppKth" class="code-content active">
+<pre>
+<span class="comment">// Kth largest: keep a MIN-heap of size k.</span>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+
+<span class="keyword">int</span> findKthLargest(std::vector&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> k) {
+    <span class="comment">// greater&lt;&gt; makes this a MIN-heap (smallest on top)</span>
+    std::priority_queue&lt;<span class="keyword">int</span>, std::vector&lt;<span class="keyword">int</span>&gt;, std::greater&lt;&gt;&gt; pq;
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : nums) {
+        pq.push(x);
+        <span class="keyword">if</span> ((<span class="keyword">int</span>)pq.size() &gt; k) pq.pop();  <span class="comment">// evict the weakest survivor</span>
+    }
+    <span class="keyword">return</span> pq.top();  <span class="comment">// smallest of the k largest = Kth largest</span>
+}
+</pre>
+            </div>
+            <div id="javaKth" class="code-content">
+<pre>
+<span class="comment">// Java: PriorityQueue is a MIN-heap by default — exactly what we want.</span>
+<span class="keyword">int</span> findKthLargest(<span class="keyword">int</span>[] nums, <span class="keyword">int</span> k) {
+    <span class="type">PriorityQueue</span>&lt;<span class="type">Integer</span>&gt; pq = <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;();
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : nums) {
+        pq.offer(x);
+        <span class="keyword">if</span> (pq.size() &gt; k) pq.poll();  <span class="comment">// drop the smallest survivor</span>
+    }
+    <span class="keyword">return</span> pq.peek();  <span class="comment">// the Kth largest</span>
+}
+</pre>
+            </div>
+            <div id="pyKth" class="code-content">
+<pre>
+<span class="comment"># Python: heapq is a MIN-heap. heappushpop pushes then pops the min in one step.</span>
+<span class="keyword">import</span> heapq
+
+<span class="keyword">def</span> find_kth_largest(nums, k):
+    heap = []
+    <span class="keyword">for</span> x <span class="keyword">in</span> nums:
+        heapq.heappush(heap, x)
+        <span class="keyword">if</span> <span class="keyword">len</span>(heap) &gt; k:
+            heapq.heappop(heap)      <span class="comment"># evict weakest survivor</span>
+    <span class="keyword">return</span> heap[<span class="number">0</span>]               <span class="comment"># min of the k largest = Kth largest</span>
+
+<span class="comment"># Shortcut: heapq.nlargest(k, nums)[-1] does the same thing.</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>2. Top K Frequent Elements</h2>
+        <p>"Which K values show up most often?" Same machinery, one extra step in front. First <strong>count</strong> how many times each value appears (a hash map: value &rarr; count). Now you have a pile of (value, count) pairs, and you want the K with the biggest counts — which is exactly the Kth-largest pattern again, just keyed by <em>count</em> instead of by the value itself.</p>
+        <p>Keep a size-K <strong>min-heap ordered by frequency</strong>. Push each (count, value) pair; whenever the heap exceeds K, pop the least-frequent. The K most frequent survive. That's <code>O(n)</code> to count plus <code>O(n log k)</code> to filter.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppFreq')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaFreq')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyFreq')">Python</button>
+            </div>
+            <div id="cppFreq" class="code-content active">
+<pre>
+<span class="comment">// Top K frequent: count, then a size-k MIN-heap keyed by frequency.</span>
+std::vector&lt;<span class="keyword">int</span>&gt; topKFrequent(std::vector&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> k) {
+    std::unordered_map&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt; cnt;
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : nums) cnt[x]++;
+
+    <span class="comment">// min-heap of {frequency, value}; smallest frequency on top</span>
+    std::priority_queue&lt;std::pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;,
+        std::vector&lt;std::pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt;, std::greater&lt;&gt;&gt; pq;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [val, f] : cnt) {
+        pq.push({f, val});
+        <span class="keyword">if</span> ((<span class="keyword">int</span>)pq.size() &gt; k) pq.pop();  <span class="comment">// drop least frequent</span>
+    }
+    std::vector&lt;<span class="keyword">int</span>&gt; res;
+    <span class="keyword">while</span> (!pq.empty()) { res.push_back(pq.top().second); pq.pop(); }
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="javaFreq" class="code-content">
+<pre>
+<span class="comment">// Java: count into a map, then a size-k min-heap by frequency.</span>
+<span class="keyword">int</span>[] topKFrequent(<span class="keyword">int</span>[] nums, <span class="keyword">int</span> k) {
+    <span class="type">Map</span>&lt;<span class="type">Integer</span>,<span class="type">Integer</span>&gt; cnt = <span class="keyword">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : nums) cnt.merge(x, <span class="number">1</span>, <span class="type">Integer</span>::sum);
+
+    <span class="comment">// order by frequency ascending -> min-frequency on top</span>
+    <span class="type">PriorityQueue</span>&lt;<span class="type">Integer</span>&gt; pq =
+        <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;((a, b) -&gt; cnt.get(a) - cnt.get(b));
+    <span class="keyword">for</span> (<span class="keyword">int</span> val : cnt.keySet()) {
+        pq.offer(val);
+        <span class="keyword">if</span> (pq.size() &gt; k) pq.poll();  <span class="comment">// drop least frequent</span>
+    }
+    <span class="keyword">int</span>[] res = <span class="keyword">new</span> <span class="keyword">int</span>[k];
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; k; i++) res[i] = pq.poll();
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="pyFreq" class="code-content">
+<pre>
+<span class="comment"># Python: Counter + a size-k min-heap of (freq, value).</span>
+<span class="keyword">import</span> heapq
+<span class="keyword">from</span> collections <span class="keyword">import</span> Counter
+
+<span class="keyword">def</span> top_k_frequent(nums, k):
+    cnt = Counter(nums)
+    heap = []
+    <span class="keyword">for</span> val, f <span class="keyword">in</span> cnt.items():
+        heapq.heappush(heap, (f, val))     <span class="comment"># keyed by frequency</span>
+        <span class="keyword">if</span> <span class="keyword">len</span>(heap) &gt; k:
+            heapq.heappop(heap)            <span class="comment"># drop least frequent</span>
+    <span class="keyword">return</span> [val <span class="keyword">for</span> f, val <span class="keyword">in</span> heap]
+
+<span class="comment"># Shortcut: [v for v, _ in Counter(nums).most_common(k)]</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Even faster — bucket sort, O(n).</strong> For Top K frequent, frequencies can't exceed <code>n</code>, so you can drop counts into <code>n+1</code> buckets indexed by frequency, then read buckets from the high end until you've collected K values. No heap, no log factor — just <code>O(n)</code>. The heap version is still the go-to in interviews because it generalizes to any "top K by some key" problem.
+        </div>
+
+        <h2>3. K Closest Points to Origin</h2>
+        <p>"Return the K points nearest to (0, 0)." Notice this is the <em>opposite</em> direction from Kth-largest: now we want the K <em>smallest</em> distances. So we flip the heap.</p>
+        <p>Use a size-K <strong>MAX-heap keyed by distance</strong>. The max-heap's top is the <em>farthest</em> point among the K we're keeping — the weakest survivor in a "smaller is better" contest. When a new point arrives that's closer than the current farthest, evict the farthest and admit the newcomer. The K closest remain. (We can compare squared distance and skip the square root — it doesn't change the ordering.)</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppClose')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaClose')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyClose')">Python</button>
+            </div>
+            <div id="cppClose" class="code-content active">
+<pre>
+<span class="comment">// K closest: size-k MAX-heap keyed by squared distance.</span>
+std::vector&lt;std::vector&lt;<span class="keyword">int</span>&gt;&gt; kClosest(
+        std::vector&lt;std::vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; pts, <span class="keyword">int</span> k) {
+    <span class="comment">// default priority_queue is a MAX-heap: largest distance on top</span>
+    std::priority_queue&lt;std::pair&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt;&gt; pq;  <span class="comment">// {dist2, index}</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="keyword">int</span>)pts.size(); i++) {
+        <span class="keyword">int</span> d = pts[i][<span class="number">0</span>]*pts[i][<span class="number">0</span>] + pts[i][<span class="number">1</span>]*pts[i][<span class="number">1</span>];
+        pq.push({d, i});
+        <span class="keyword">if</span> ((<span class="keyword">int</span>)pq.size() &gt; k) pq.pop();  <span class="comment">// evict the farthest</span>
+    }
+    std::vector&lt;std::vector&lt;<span class="keyword">int</span>&gt;&gt; res;
+    <span class="keyword">while</span> (!pq.empty()) { res.push_back(pts[pq.top().second]); pq.pop(); }
+    <span class="keyword">return</span> res;
+}
+</pre>
+            </div>
+            <div id="javaClose" class="code-content">
+<pre>
+<span class="comment">// Java: max-heap via reverse comparator on squared distance.</span>
+<span class="keyword">int</span>[][] kClosest(<span class="keyword">int</span>[][] pts, <span class="keyword">int</span> k) {
+    <span class="type">PriorityQueue</span>&lt;<span class="keyword">int</span>[]&gt; pq = <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;(
+        (a, b) -&gt; (b[<span class="number">0</span>]*b[<span class="number">0</span>]+b[<span class="number">1</span>]*b[<span class="number">1</span>]) - (a[<span class="number">0</span>]*a[<span class="number">0</span>]+a[<span class="number">1</span>]*a[<span class="number">1</span>]));
+    <span class="keyword">for</span> (<span class="keyword">int</span>[] p : pts) {
+        pq.offer(p);
+        <span class="keyword">if</span> (pq.size() &gt; k) pq.poll();  <span class="comment">// evict the farthest</span>
+    }
+    <span class="keyword">return</span> pq.toArray(<span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">0</span>][]);
+}
+</pre>
+            </div>
+            <div id="pyClose" class="code-content">
+<pre>
+<span class="comment"># Python heapq is a MIN-heap, so negate the distance to fake a MAX-heap.</span>
+<span class="keyword">import</span> heapq
+
+<span class="keyword">def</span> k_closest(points, k):
+    heap = []  <span class="comment"># entries: (-dist2, x, y)</span>
+    <span class="keyword">for</span> x, y <span class="keyword">in</span> points:
+        heapq.heappush(heap, (-(x*x + y*y), x, y))
+        <span class="keyword">if</span> <span class="keyword">len</span>(heap) &gt; k:
+            heapq.heappop(heap)            <span class="comment"># pops most-negative = farthest</span>
+    <span class="keyword">return</span> [[x, y] <span class="keyword">for</span> _, x, y <span class="keyword">in</span> heap]
+
+<span class="comment"># Shortcut: heapq.nsmallest(k, points, key=lambda p: p[0]**2 + p[1]**2)</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>4. Merge K Sorted Lists (K-Way Merge)</h2>
+        <p>"You have K already-sorted lists. Merge them into one sorted list." If K were 2, you'd just zip the two together with two pointers. With K lists, the question each step is: <em>of all the current front-of-list items, which is the smallest?</em> A min-heap answers that in <code>O(log k)</code>.</p>
+        <p>Here's the recipe. Seed the heap with the <strong>first element of each list</strong>, and tag each entry with <em>which list</em> it came from (and its index in that list). Then loop: <strong>pop the smallest</strong>, append it to the output, and <strong>push the next element from that same list</strong> — the successor of the one you just took. The heap always holds at most K items (one candidate per list), so you never look at more than K things to find the next smallest.</p>
+        <p>This is exactly how <strong>external merge sort</strong> stitches together sorted chunks too big to fit in memory: each chunk is a "list," and the heap picks the global next-smallest one record at a time. Total work is <strong>O(N log k)</strong> for <code>N</code> elements across <code>K</code> lists.</p>
+
+        <h3>Watch It Run: K-Way Merge</h3>
+        <p>Three sorted lists feed a min-heap. Each step pops the heap's minimum (violet), appends it to the output (green), then pulls the next head from the <em>same</em> list it came from. Step through it, or hit Auto Play.</p>
+
+        <div class="playground">
+            <div class="pg-title">🪄 K-Way Merge Visualizer</div>
+            <div class="pg-sub">Pop the min &rarr; append to output &rarr; push the successor from that same list. The heap never exceeds K = 3 items.</div>
+
+            <div class="kw-lists" id="kwLists"></div>
+
+            <div class="kw-section-label">Min-Heap (size &le; K)</div>
+            <div class="heap-boxes" id="kwHeap"></div>
+
+            <div class="kw-section-label">Merged Output</div>
+            <div class="out-boxes" id="kwOut"></div>
+
+            <div class="pg-status" id="kwStatus">Heap seeded with each list's first element: 1 (A), 2 (B), 3 (C). Ready — press Next Step.</div>
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="kwNext" onclick="kwStep()">Next Step &#9654;</button>
+                <button class="btn btn-ghost" id="kwAuto" onclick="kwAuto()">&#9193; Auto Play</button>
+                <button class="btn btn-ghost" onclick="kwReset()">&#8634; Reset</button>
+            </div>
+        </div>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppKway')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaKway')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyKway')">Python</button>
+            </div>
+            <div id="cppKway" class="code-content active">
+<pre>
+<span class="comment">// K-way merge of sorted arrays. Heap entry: {value, listIdx, elemIdx}.</span>
+std::vector&lt;<span class="keyword">int</span>&gt; mergeKSorted(std::vector&lt;std::vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; lists) {
+    <span class="keyword">using</span> Node = std::tuple&lt;<span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>&gt;;  <span class="comment">// (val, list, idx)</span>
+    std::priority_queue&lt;Node, std::vector&lt;Node&gt;, std::greater&lt;&gt;&gt; pq;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="keyword">int</span>)lists.size(); i++)
+        <span class="keyword">if</span> (!lists[i].empty()) pq.push({lists[i][<span class="number">0</span>], i, <span class="number">0</span>});
+
+    std::vector&lt;<span class="keyword">int</span>&gt; out;
+    <span class="keyword">while</span> (!pq.empty()) {
+        <span class="keyword">auto</span> [val, li, idx] = pq.top(); pq.pop();
+        out.push_back(val);
+        <span class="keyword">if</span> (idx + <span class="number">1</span> &lt; (<span class="keyword">int</span>)lists[li].size())   <span class="comment">// successor from SAME list</span>
+            pq.push({lists[li][idx + <span class="number">1</span>], li, idx + <span class="number">1</span>});
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="javaKway" class="code-content">
+<pre>
+<span class="comment">// K-way merge. Heap entry: {value, listIdx, elemIdx}.</span>
+<span class="keyword">int</span>[] mergeKSorted(<span class="keyword">int</span>[][] lists) {
+    <span class="type">PriorityQueue</span>&lt;<span class="keyword">int</span>[]&gt; pq =
+        <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;((a, b) -&gt; a[<span class="number">0</span>] - b[<span class="number">0</span>]);  <span class="comment">// by value</span>
+    <span class="keyword">int</span> total = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; lists.length; i++) {
+        total += lists[i].length;
+        <span class="keyword">if</span> (lists[i].length &gt; <span class="number">0</span>) pq.offer(<span class="keyword">new</span> <span class="keyword">int</span>[]{lists[i][<span class="number">0</span>], i, <span class="number">0</span>});
+    }
+    <span class="keyword">int</span>[] out = <span class="keyword">new</span> <span class="keyword">int</span>[total];
+    <span class="keyword">int</span> w = <span class="number">0</span>;
+    <span class="keyword">while</span> (!pq.isEmpty()) {
+        <span class="keyword">int</span>[] n = pq.poll();          <span class="comment">// n = {val, listIdx, elemIdx}</span>
+        out[w++] = n[<span class="number">0</span>];
+        <span class="keyword">int</span> li = n[<span class="number">1</span>], idx = n[<span class="number">2</span>];
+        <span class="keyword">if</span> (idx + <span class="number">1</span> &lt; lists[li].length)  <span class="comment">// successor from SAME list</span>
+            pq.offer(<span class="keyword">new</span> <span class="keyword">int</span>[]{lists[li][idx + <span class="number">1</span>], li, idx + <span class="number">1</span>});
+    }
+    <span class="keyword">return</span> out;
+}
+</pre>
+            </div>
+            <div id="pyKway" class="code-content">
+<pre>
+<span class="comment"># K-way merge. heapq compares tuples lexicographically -> sorts by value.</span>
+<span class="keyword">import</span> heapq
+
+<span class="keyword">def</span> merge_k_sorted(lists):
+    heap = []
+    <span class="keyword">for</span> i, lst <span class="keyword">in</span> <span class="keyword">enumerate</span>(lists):
+        <span class="keyword">if</span> lst:
+            heapq.heappush(heap, (lst[<span class="number">0</span>], i, <span class="number">0</span>))  <span class="comment"># (val, listIdx, idx)</span>
+
+    out = []
+    <span class="keyword">while</span> heap:
+        val, li, idx = heapq.heappop(heap)          <span class="comment"># smallest head</span>
+        out.append(val)
+        <span class="keyword">if</span> idx + <span class="number">1</span> &lt; <span class="keyword">len</span>(lists[li]):              <span class="comment"># successor from SAME list</span>
+            heapq.heappush(heap, (lists[li][idx + <span class="number">1</span>], li, idx + <span class="number">1</span>))
+    <span class="keyword">return</span> out
+</pre>
+            </div>
+        </div>
+
+        <h2>Bonus: Kth-Largest as a Running Heap</h2>
+        <p>To make the size-K idea concrete, here's a tiny widget for Kth-largest. Feed numbers in one at a time and watch the min-heap stay capped at K = 3 — pushing on a new value, popping the smallest survivor whenever it overflows. The top of the heap is always the current 3rd-largest.</p>
+
+        <div class="playground">
+            <div class="pg-title">🏆 Kth-Largest Running Heap (K = 3)</div>
+            <div class="pg-sub">Feed a value. It joins the min-heap; if the heap exceeds 3, the smallest survivor is evicted. The heap's top is the 3rd largest so far.</div>
+            <div class="kw-section-label">Min-Heap (keeps the 3 largest)</div>
+            <div class="heap-boxes" id="klHeap"></div>
+            <div class="pg-status" id="klStatus">Empty heap. Feed values to find the 3rd largest.</div>
+            <div class="pg-controls">
+                <input type="number" id="klInput" placeholder="value" value="12">
+                <button class="btn btn-primary" onclick="klFeed()">&#11014; Feed</button>
+                <button class="btn btn-ghost" onclick="klRandom()">&#127922; Random</button>
+                <button class="btn btn-ghost" onclick="klReset()">&#8634; Reset</button>
+            </div>
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <p>Every pattern on this page rides the same engine — a heap that never grows past K — so the costs rhyme. The win over a full sort is the <code>log k</code> instead of <code>log n</code> factor.</p>
+
+        <table>
+            <tr><th>Problem</th><th>Time</th><th>Heap Space</th></tr>
+            <tr><td>Kth largest element</td><td>O(n log k)</td><td>O(k)</td></tr>
+            <tr><td>Top K frequent elements</td><td>O(n log k)</td><td>O(k)</td></tr>
+            <tr><td>K closest points to origin</td><td>O(n log k)</td><td>O(k)</td></tr>
+            <tr><td>Merge K sorted lists (K-way)</td><td>O(N log k)</td><td>O(k)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">N is the total number of elements across all K lists. A full sort would be O(n log n) — the heap-of-size-K trick shaves the log factor down to log k whenever k &lt;&lt; n.</p>
+
+        <div class="note">
+            <strong>The one idea to remember:</strong> a heap of size K hands you the K best in <code>O(n log k)</code> instead of <code>O(n log n)</code> — and you never hold more than K items at once. Pick the heap direction by what you want to <em>throw away</em>:
+            <ul>
+                <li><strong>Want the K largest?</strong> Use a <strong>MIN-heap</strong> — its top is the weakest survivor, the first to evict when something better arrives.</li>
+                <li><strong>Want the K smallest / closest?</strong> Use a <strong>MAX-heap</strong> — its top is the farthest/biggest, the one to drop.</li>
+            </ul>
+        </div>
+
+        <div class="warn">
+            <strong>The two classic traps:</strong>
+            <ul>
+                <li><strong>Inverting the heap direction.</strong> It feels backwards, and it's the #1 confusion: use a <strong>MIN-heap to keep the K LARGEST</strong>, and a <strong>MAX-heap to keep the K SMALLEST</strong>. The heap's top is always the candidate you're ready to evict, not the answer's headline.</li>
+                <li><strong>K-way merge: push the successor from the SAME list.</strong> After you pop a value, the next candidate must come from the <em>same list</em> you just pulled from — not the next list. Mix that up and your output stops being sorted.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        // ============ K-Way Merge visualizer ============
+        const KW_INITIAL = [
+            { label: 'List A', data: [1, 4, 7] },
+            { label: 'List B', data: [2, 5, 8] },
+            { label: 'List C', data: [3, 6, 9] },
+        ];
+        const LABELS = ['A', 'B', 'C'];
+        let kwLists, kwPtr, kwHeap, kwOut, kwBusy = false, kwPullHint = null;
+
+        function kwInit() {
+            kwLists = KW_INITIAL.map(l => l.data.slice());
+            kwPtr = kwLists.map(() => 0);
+            kwHeap = [];
+            kwOut = [];
+            // seed heap with first element of each list
+            kwLists.forEach((lst, i) => {
+                if (lst.length > 0) { kwHeap.push({ val: lst[0], listIdx: i }); kwPtr[i] = 1; }
+            });
+            kwSortHeap();
+            kwPullHint = null;
+        }
+
+        function kwSortHeap() { kwHeap.sort((a, b) => a.val - b.val); }
+
+        function kwSetStatus(msg) { document.getElementById('kwStatus').textContent = msg; }
+
+        function kwRender(opts = {}) {
+            const popVal = opts.popVal, popList = opts.popList, appended = opts.appended;
+            // lists
+            const listsEl = document.getElementById('kwLists');
+            listsEl.innerHTML = '';
+            kwLists.forEach((lst, i) => {
+                const row = document.createElement('div'); row.className = 'kw-row';
+                const lab = document.createElement('div'); lab.className = 'kw-label';
+                lab.textContent = KW_INITIAL[i].label;
+                row.appendChild(lab);
+                const boxes = document.createElement('div'); boxes.className = 'kw-boxes';
+                lst.forEach((v, j) => {
+                    const b = document.createElement('div'); b.className = 'box';
+                    b.textContent = v;
+                    if (j < kwPtr[i]) b.className += ' consumed';        // already pulled into heap
+                    else if (j === kwPtr[i]) b.className += ' head';     // current head
+                    if (kwPullHint && kwPullHint.listIdx === i && kwPullHint.idx === j) b.className += ' pulling';
+                    boxes.appendChild(b);
+                });
+                row.appendChild(boxes);
+                listsEl.appendChild(row);
+            });
+            // heap
+            const heapEl = document.getElementById('kwHeap');
+            heapEl.innerHTML = '';
+            if (kwHeap.length === 0) {
+                const e = document.createElement('div'); e.className = 'heap-empty';
+                e.textContent = 'heap empty — merge complete';
+                heapEl.appendChild(e);
+            } else {
+                kwHeap.forEach((n, idx) => {
+                    const h = document.createElement('div'); h.className = 'hbox';
+                    if (idx === 0 && popVal != null && n.val === popVal && n.listIdx === popList) h.className += ' popping';
+                    h.innerHTML = n.val + '<small>' + LABELS[n.listIdx] + '</small>';
+                    heapEl.appendChild(h);
+                });
+            }
+            // output
+            const outEl = document.getElementById('kwOut');
+            outEl.innerHTML = '';
+            kwOut.forEach(v => {
+                const o = document.createElement('div'); o.className = 'obox';
+                o.textContent = v; outEl.appendChild(o);
+            });
+            document.getElementById('kwNext').disabled = kwHeap.length === 0;
+            document.getElementById('kwAuto').disabled = kwHeap.length === 0;
+        }
+
+        async function kwStep() {
+            if (kwBusy || kwHeap.length === 0) return;
+            kwBusy = true;
+            document.getElementById('kwNext').disabled = true;
+            document.getElementById('kwAuto').disabled = true;
+
+            kwSortHeap();
+            const min = kwHeap[0];
+            const lab = LABELS[min.listIdx];
+
+            // 1) highlight pop
+            kwRender({ popVal: min.val, popList: min.listIdx });
+            kwSetStatus('Heap min = ' + min.val + ' (from list ' + lab + '). Pop it.');
+            await sleep(620);
+
+            // 2) pop + append
+            kwHeap.shift();
+            kwOut.push(min.val);
+            kwRender();
+
+            // 3) push successor from SAME list
+            const li = min.listIdx;
+            const nextIdx = kwPtr[li];
+            if (nextIdx < kwLists[li].length) {
+                const nextVal = kwLists[li][nextIdx];
+                kwPullHint = { listIdx: li, idx: nextIdx };
+                kwRender();
+                await sleep(420);
+                kwHeap.push({ val: nextVal, listIdx: li });
+                kwPtr[li] = nextIdx + 1;
+                kwSortHeap();
+                kwPullHint = null;
+                kwRender();
+                kwSetStatus('Appended ' + min.val + ' to output. Push list ' + lab + "'s next head " + nextVal + ' into the heap.');
+            } else {
+                kwRender();
+                kwSetStatus('Appended ' + min.val + ' to output. List ' + lab + ' is exhausted — nothing to push.');
+            }
+
+            if (kwHeap.length === 0) {
+                kwSetStatus('Done! Merged output is fully sorted: [' + kwOut.join(', ') + '].');
+            }
+            kwBusy = false;
+            kwRender();
+        }
+
+        async function kwAuto() {
+            if (kwBusy) return;
+            while (kwHeap.length > 0 && !kwBusy) {
+                await kwStep();
+                await sleep(260);
+            }
+        }
+
+        function kwReset() {
+            if (kwBusy) return;
+            kwInit();
+            kwRender();
+            kwSetStatus("Reset. Heap seeded with each list's first element: 1 (A), 2 (B), 3 (C). Ready — press Next Step.");
+        }
+
+        kwInit();
+        kwRender();
+
+        // ============ Kth-Largest running heap (K = 3) ============
+        const KL_K = 3;
+        let klHeap = [];
+
+        function klSort() { klHeap.sort((a, b) => a - b); } // min-heap: smallest first
+
+        function klSetStatus(msg) { document.getElementById('klStatus').textContent = msg; }
+
+        function klRender(flashTop) {
+            const el = document.getElementById('klHeap');
+            el.innerHTML = '';
+            if (klHeap.length === 0) {
+                const e = document.createElement('div'); e.className = 'heap-empty';
+                e.textContent = 'heap empty';
+                el.appendChild(e);
+                return;
+            }
+            klSort();
+            klHeap.forEach((v, idx) => {
+                const h = document.createElement('div'); h.className = 'hbox';
+                if (idx === 0 && flashTop) h.className += ' popping';
+                let tag = idx === 0 ? 'top' : '';
+                h.innerHTML = v + '<small>' + tag + '</small>';
+                el.appendChild(h);
+            });
+        }
+
+        function klFeed() {
+            const raw = document.getElementById('klInput').value;
+            let v = parseInt(raw, 10);
+            if (isNaN(v)) v = Math.floor(Math.random() * 99 + 1);
+            klPush(v);
+        }
+
+        function klRandom() {
+            const v = Math.floor(Math.random() * 99 + 1);
+            document.getElementById('klInput').value = v;
+            klPush(v);
+        }
+
+        function klPush(v) {
+            klHeap.push(v);
+            klSort();
+            if (klHeap.length > KL_K) {
+                const evicted = klHeap.shift(); // remove smallest survivor
+                klRender(true);
+                if (klHeap.length === KL_K) {
+                    klSetStatus('Fed ' + v + '. Heap over K=3, evicted smallest survivor ' + evicted + '. 3rd largest so far = ' + klHeap[0] + '.');
+                }
+            } else {
+                klRender(true);
+                if (klHeap.length === KL_K) {
+                    klSetStatus('Fed ' + v + '. Heap now holds 3 — the 3rd largest so far = ' + klHeap[0] + '.');
+                } else {
+                    klSetStatus('Fed ' + v + '. Heap has ' + klHeap.length + ' of ' + KL_K + ' — need more values before there is a 3rd largest.');
+                }
+            }
+        }
+
+        function klReset() {
+            klHeap = [];
+            klRender();
+            klSetStatus('Empty heap. Feed values to find the 3rd largest.');
+        }
+
+        klRender();
+    </script>
+</body>
+</html>

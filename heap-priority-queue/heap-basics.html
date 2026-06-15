@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heaps: The Basics - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #7c3aed; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* Array row */
+        .array-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 6px 0 4px; }
+        .arr-cell { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .arr-box {
+            width: 46px; height: 46px; border-radius: 10px;
+            background: white; border: 2px solid #cbd5e1;
+            display: flex; align-items: center; justify-content: center;
+            color: #0f172a; font-weight: 700; font-size: 1em;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.15s ease;
+        }
+        .arr-idx { font-size: 0.68em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 600; }
+        .arr-cell:hover .arr-box { border-color: #7c3aed; }
+        .arr-box.sel { background: #ede9fe; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+        .arr-box.rel-parent { background: #fef9c3; border-color: #eab308; }
+        .arr-box.rel-child { background: #dcfce7; border-color: #16a34a; }
+
+        .pg-legend { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 12px; font-size: 0.76em; color: #64748b; }
+        .pg-legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .swatch { width: 14px; height: 14px; border-radius: 4px; border: 2px solid; }
+        .sw-sel { background: #ede9fe; border-color: #7c3aed; }
+        .sw-parent { background: #fef9c3; border-color: #eab308; }
+        .sw-child { background: #dcfce7; border-color: #16a34a; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 200px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input.small { width: 70px; }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .pg-controls label { font-size: 0.82em; color: #64748b; font-weight: 500; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .pg-controls input { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Heaps: The Basics</h1>
+        <p>Imagine a <strong>company org chart</strong>, or the bracket of a knockout tournament. Every manager sits <em>above</em> their direct reports, and there's a rule everyone follows: a boss is always "more important" than the people under them. Follow the chart all the way up and you land on one person at the very top — the most important of all, reachable in a single glance.</p>
+        <p>That's the whole idea behind a <strong>heap</strong>. It's a tree where every parent outranks its children by some measure. If "more important" means "smaller," the smallest value floats to the very top. If it means "larger," the largest does. Either way, the champion is always sitting right at the root, ready to be read instantly.</p>
+        <p>What makes a heap special isn't just the ordering — it's that this neat, predictable shape lets us pack the whole tree into a plain <strong>array</strong> with no pointers and no wasted space. That trick is the heart of this lesson.</p>
+
+        <h2>First, a Complete Binary Tree</h2>
+        <p>Before the ordering rule, a heap has a strict <em>shape</em> rule. A heap is always a <strong>complete binary tree</strong>: every level is completely full, except possibly the last one — and that last level fills in strictly <strong>left to right</strong>, with no gaps.</p>
+        <p>Think of seating people in a theater row by row. You fill the front row completely before anyone sits in the second row, and within a row you fill seats left to right. You never leave an empty seat with someone sitting to its right.</p>
+        <p>This "no gaps" guarantee is exactly <em>why</em> a heap fits so perfectly into an array. Because the nodes pack in left-to-right with no holes, you can lay them out in reading order — level by level, left to right — and the array has no empty slots to work around.</p>
+
+        <h2>The Heap Property</h2>
+        <p>Now the ordering rule, called the <strong>heap property</strong>. It comes in two flavors:</p>
+        <ul>
+            <li><strong>Min-heap</strong> — every parent is <em>less than or equal to</em> its children. The <strong>smallest</strong> value bubbles all the way to the root.</li>
+            <li><strong>Max-heap</strong> — every parent is <em>greater than or equal to</em> its children. The <strong>largest</strong> value sits at the root.</li>
+        </ul>
+        <p>That's the only constraint. Notice how <em>loose</em> it is: a parent must beat its own children, but <strong>siblings have no ordering at all</strong>, and a node on the left of the tree could be larger or smaller than some unrelated node on the right.</p>
+        <p>So a heap is <strong>not</strong> a sorted structure, and it is <strong>not</strong> a binary search tree. It makes one promise and one promise only: the best element is at the top. That single guarantee is enough to power priority queues, heap sort, Dijkstra, and more.</p>
+
+        <h2>The Key Insight: A Tree Inside an Array</h2>
+        <p>Here's the trick that makes heaps so efficient. Because a complete binary tree has no gaps, we can store it in a flat array by reading the tree level by level, left to right. The root goes at index 0, its two children at indices 1 and 2, the next level at 3, 4, 5, 6, and so on.</p>
+        <p>Once the nodes are laid out this way, you never need pointers. Given any index, plain arithmetic tells you exactly where a node's parent and children live (using 0-based indexing):</p>
+        <ul>
+            <li>For a node at index <code>i</code>: <strong>left child</strong> = <code>2i + 1</code></li>
+            <li><strong>right child</strong> = <code>2i + 2</code></li>
+            <li><strong>parent</strong> = <code>(i - 1) / 2</code> (integer division, i.e. floor)</li>
+        </ul>
+        <p>Take the array <code>[1, 3, 6, 5, 9, 8]</code>. Index 0 holds <code>1</code> (the root). Its children are at indices 1 and 2 — values <code>3</code> and <code>6</code>. The node at index 1 (<code>3</code>) has children at indices 3 and 4 — values <code>5</code> and <code>9</code>. Every relationship is just a multiply-and-add away. No tree nodes, no pointers, no allocation per element.</p>
+
+        <div class="note">
+            <strong>0-indexed vs 1-indexed.</strong> The formulas above assume the array starts at index 0 (the convention in C++, Java, and Python). Some textbooks start the heap at index 1 instead, because the math looks cleaner:
+            <ul>
+                <li>1-indexed: <strong>left</strong> = <code>2i</code>, <strong>right</strong> = <code>2i + 1</code>, <strong>parent</strong> = <code>i / 2</code> (floor).</li>
+            </ul>
+            Both are correct — just be consistent and never mix the two in one implementation.
+        </div>
+
+        <h2>Min-Heap vs Max-Heap</h2>
+        <p>Same shape, same array layout — the only difference is which direction the ordering points. Pick the one that puts the element you care about at the root.</p>
+
+        <div class="compare">
+            <div>
+                <h3>Min-Heap</h3>
+                <ul>
+                    <li>Every parent <code>&le;</code> its children.</li>
+                    <li>The <strong>smallest</strong> element is at the root (index 0).</li>
+                    <li><code>peek()</code> gives you the minimum in O(1).</li>
+                    <li>Default in Python's <code>heapq</code> and Java's <code>PriorityQueue</code>.</li>
+                    <li>Great for "give me the cheapest / closest / earliest next."</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Max-Heap</h3>
+                <ul>
+                    <li>Every parent <code>&ge;</code> its children.</li>
+                    <li>The <strong>largest</strong> element is at the root (index 0).</li>
+                    <li><code>peek()</code> gives you the maximum in O(1).</li>
+                    <li>Default in C++'s <code>priority_queue</code>.</li>
+                    <li>Great for "give me the biggest / most urgent next."</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>Try It: The Array ↔ Tree Duality</h2>
+        <p>This is the single most important idea on the page, so play with it. Below, the same data is shown <strong>two ways at once</strong>: as a row of indexed array cells and as a binary tree. Click any cell or any tree node — both views light up together, and the status line spells out its parent and child indices using the <code>2i+1 / 2i+2 / (i-1)/2</code> math.</p>
+
+        <div class="playground">
+            <div class="pg-title">⛰️ Array ↔ Tree Explorer</div>
+            <div class="pg-sub">Click an array cell or a tree node. The selected element glows violet; its parent turns yellow and its children turn green in both views.</div>
+            <svg id="treeSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="array-row" id="arrayRow"></div>
+            <div class="pg-legend">
+                <span><span class="swatch sw-sel"></span> selected (index i)</span>
+                <span><span class="swatch sw-parent"></span> parent (i-1)/2</span>
+                <span><span class="swatch sw-child"></span> children 2i+1, 2i+2</span>
+            </div>
+            <div class="pg-status" id="status">Click any element to see how it maps between the array and the tree.</div>
+            <div class="pg-controls">
+                <label>Array:</label>
+                <input type="text" id="arrInput" value="1,3,6,5,9,8,2" placeholder="comma-separated">
+                <button class="btn btn-primary" onclick="applyArray()">Apply</button>
+                <button class="btn btn-ghost" onclick="resetArray()">↺ Reset</button>
+            </div>
+            <div class="pg-controls">
+                <label>Highlight index:</label>
+                <input type="number" id="stepIdx" class="small" value="1" min="0">
+                <button class="btn btn-ghost" onclick="stepTo()">Highlight ▶</button>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>A heap is NOT sorted, and NOT a binary search tree.</strong> This trips up almost everyone at first. In a BST, everything to the left of a node is smaller and everything to the right is larger — so you can binary-search it. A heap makes no such promise: siblings are unordered, and the left subtree can hold values larger than the right. The <em>only</em> guaranteed-fast lookup is the root (the min or max). Searching for any other value is O(n) — you have to scan. Do not try to binary-search a heap.
+        </div>
+
+        <h2>The Representation in Code</h2>
+        <p>You rarely hand-roll a heap (the standard library gives you one), but seeing the index math makes the whole structure click. Here's how the array maps to a tree and the three little helper functions that navigate it.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppHeap')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaHeap')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyHeap')">Python</button>
+            </div>
+            <div id="cppHeap" class="code-content active">
+<pre>
+<span class="comment">// A heap is just an array. These helpers do all the navigation.</span>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+
+std::vector&lt;<span class="keyword">int</span>&gt; heap = {<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">8</span>};
+<span class="comment">//   index:  0  1  2  3  4  5
+//
+//                 1            &lt;- index 0 (root, the minimum)
+//               /   \
+//              3     6        &lt;- index 1, 2
+//             / \   /
+//            5   9 8          &lt;- index 3, 4, 5</span>
+
+<span class="keyword">int</span> parent(<span class="keyword">int</span> i) { <span class="keyword">return</span> (i - <span class="number">1</span>) / <span class="number">2</span>; }   <span class="comment">// floor division</span>
+<span class="keyword">int</span> left  (<span class="keyword">int</span> i) { <span class="keyword">return</span> <span class="number">2</span> * i + <span class="number">1</span>; }
+<span class="keyword">int</span> right (<span class="keyword">int</span> i) { <span class="keyword">return</span> <span class="number">2</span> * i + <span class="number">2</span>; }
+
+<span class="comment">// node at index 1 (value 3): parent=0, left=3, right=4</span>
+<span class="keyword">int</span> p = parent(<span class="number">1</span>);   <span class="comment">// 0  -&gt; value 1</span>
+<span class="keyword">int</span> l = left(<span class="number">1</span>);     <span class="comment">// 3  -&gt; value 5</span>
+<span class="keyword">int</span> r = right(<span class="number">1</span>);    <span class="comment">// 4  -&gt; value 9</span>
+
+<span class="comment">// a child index is only valid if it is &lt; heap.size()</span>
+</pre>
+            </div>
+            <div id="javaHeap" class="code-content">
+<pre>
+<span class="comment">// A heap is just an array. These helpers do all the navigation.</span>
+<span class="keyword">int</span>[] heap = { <span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">8</span> };
+<span class="comment">//   index:  0  1  2  3  4  5
+//
+//                 1            &lt;- index 0 (root, the minimum)
+//               /   \
+//              3     6        &lt;- index 1, 2
+//             / \   /
+//            5   9 8          &lt;- index 3, 4, 5</span>
+
+<span class="keyword">static</span> <span class="keyword">int</span> parent(<span class="keyword">int</span> i) { <span class="keyword">return</span> (i - <span class="number">1</span>) / <span class="number">2</span>; }  <span class="comment">// floor</span>
+<span class="keyword">static</span> <span class="keyword">int</span> left  (<span class="keyword">int</span> i) { <span class="keyword">return</span> <span class="number">2</span> * i + <span class="number">1</span>; }
+<span class="keyword">static</span> <span class="keyword">int</span> right (<span class="keyword">int</span> i) { <span class="keyword">return</span> <span class="number">2</span> * i + <span class="number">2</span>; }
+
+<span class="comment">// node at index 1 (value 3): parent=0, left=3, right=4</span>
+<span class="keyword">int</span> p = parent(<span class="number">1</span>);   <span class="comment">// 0  -&gt; value 1</span>
+<span class="keyword">int</span> l = left(<span class="number">1</span>);     <span class="comment">// 3  -&gt; value 5</span>
+<span class="keyword">int</span> r = right(<span class="number">1</span>);    <span class="comment">// 4  -&gt; value 9</span>
+
+<span class="comment">// a child index is only valid if it is &lt; heap.length</span>
+</pre>
+            </div>
+            <div id="pyHeap" class="code-content">
+<pre>
+<span class="comment"># A heap is just a list. These helpers do all the navigation.</span>
+heap = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">8</span>]
+<span class="comment">#  index:  0  1  2  3  4  5
+#
+#                1            &lt;- index 0 (root, the minimum)
+#              /   \
+#             3     6        &lt;- index 1, 2
+#            / \   /
+#           5   9 8          &lt;- index 3, 4, 5</span>
+
+<span class="keyword">def</span> parent(i): <span class="keyword">return</span> (i - <span class="number">1</span>) // <span class="number">2</span>   <span class="comment"># // is floor division</span>
+<span class="keyword">def</span> left(i):   <span class="keyword">return</span> <span class="number">2</span> * i + <span class="number">1</span>
+<span class="keyword">def</span> right(i):  <span class="keyword">return</span> <span class="number">2</span> * i + <span class="number">2</span>
+
+<span class="comment"># node at index 1 (value 3): parent=0, left=3, right=4</span>
+p = parent(<span class="number">1</span>)   <span class="comment"># 0  -&gt; value 1</span>
+l = left(<span class="number">1</span>)     <span class="comment"># 3  -&gt; value 5</span>
+r = right(<span class="number">1</span>)    <span class="comment"># 4  -&gt; value 9</span>
+
+<span class="comment"># a child index is only valid if it is &lt; len(heap)</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <p>The headline is the root: reading the min (or max) is instant. Everything that <em>changes</em> the heap costs O(log n) because a value may have to travel the height of the tree — and a complete tree of n nodes is only about log&#8322;(n) levels tall. The operations themselves are covered in the next lesson; here are the costs to keep in mind.</p>
+
+        <table>
+            <tr><th>Operation</th><th>Time Complexity</th></tr>
+            <tr><td>peek / find-min (or max) — read the root</td><td>O(1)</td></tr>
+            <tr><td>insert (add an element)</td><td>O(log n)</td></tr>
+            <tr><td>extract-min (or max) — remove the root</td><td>O(log n)</td></tr>
+            <tr><td>build-heap (heapify a whole array)</td><td>O(n)</td></tr>
+            <tr><td>search for an arbitrary value</td><td>O(n)</td></tr>
+            <tr><td>space</td><td>O(n)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">Build-heap looks like it should be O(n log n), but a clever bottom-up heapify gets it down to O(n). Arbitrary search is O(n) because — as the warning above says — a heap gives you no shortcut to anything but the root.</p>
+
+        <div class="note">
+            <strong>Pattern to remember:</strong> whenever a problem keeps asking for the <em>"smallest so far,"</em> the <em>"largest,"</em> the <em>"cheapest next,"</em> or the <em>"top K,"</em> a heap is almost certainly the right tool. It hands you the extreme element instantly and re-balances itself in O(log n). The next lesson shows exactly how insert and extract keep the heap property intact.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Array <-> Tree explorer ----
+        const DEFAULT = [1, 3, 6, 5, 9, 8, 2];
+        let data = DEFAULT.slice();
+        let selected = null;
+
+        function parent(i) { return (i - 1) >> 1; }
+        function left(i)   { return 2 * i + 1; }
+        function right(i)  { return 2 * i + 2; }
+
+        function setStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+
+        // Compute node positions level by level: node i at depth floor(log2(i+1)),
+        // spread evenly within its level.
+        function computePositions(n) {
+            const R = 20, vGap = 70, topPad = 30;
+            // group indices by depth
+            const levels = [];
+            for (let i = 0; i < n; i++) {
+                const d = Math.floor(Math.log2(i + 1));
+                (levels[d] = levels[d] || []).push(i);
+            }
+            const maxLevelCount = Math.pow(2, levels.length - 1);
+            const slotW = 54;
+            const width = Math.max(maxLevelCount * slotW, 200);
+            const pos = {};
+            levels.forEach((idxs, d) => {
+                const capacity = Math.pow(2, d);          // full slots at this depth
+                const firstIdx = capacity - 1;            // first array index on this level
+                idxs.forEach(i => {
+                    const slot = i - firstIdx;            // 0-based position within level
+                    const x = width * (slot + 0.5) / capacity;
+                    const y = topPad + d * vGap + R;
+                    pos[i] = { x, y };
+                });
+            });
+            const height = topPad + (levels.length - 1) * vGap + 2 * R + 10;
+            return { pos, width, height, R };
+        }
+
+        function colorFor(i) {
+            if (selected === null) return null;
+            if (i === selected) return 'sel';
+            if (i === parent(selected) && selected > 0) return 'parent';
+            if (i === left(selected) || i === right(selected)) return 'child';
+            return null;
+        }
+
+        function renderTree() {
+            const svg = document.getElementById('treeSvg');
+            const n = data.length;
+            if (n === 0) { svg.innerHTML = ''; svg.setAttribute('viewBox', '0 0 200 80'); return; }
+            const { pos, width, height, R } = computePositions(n);
+            let edges = '', circles = '';
+            for (let i = 0; i < n; i++) {
+                [left(i), right(i)].forEach(c => {
+                    if (c < n) {
+                        edges += `<line x1="${pos[i].x}" y1="${pos[i].y}" x2="${pos[c].x}" y2="${pos[c].y}" stroke="#cbd5e1" stroke-width="2"/>`;
+                    }
+                });
+            }
+            for (let i = 0; i < n; i++) {
+                const p = pos[i];
+                let fill = '#ffffff', stroke = '#cbd5e1', tcol = '#0f172a', sw = 2.5;
+                const role = colorFor(i);
+                if (role === 'sel')    { fill = '#ede9fe'; stroke = '#7c3aed'; sw = 3.5; }
+                if (role === 'parent') { fill = '#fef9c3'; stroke = '#eab308'; sw = 3; }
+                if (role === 'child')  { fill = '#dcfce7'; stroke = '#16a34a'; sw = 3; }
+                circles += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" style="cursor:pointer" onclick="selectIndex(${i})"/>`;
+                circles += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="${tcol}" style="pointer-events:none">${data[i]}</text>`;
+                circles += `<text x="${p.x}" y="${p.y - R - 4}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#94a3b8" style="pointer-events:none">${i}</text>`;
+            }
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.setAttribute('width', '100%');
+            svg.style.maxHeight = (height + 10) + 'px';
+            svg.innerHTML = edges + circles;
+        }
+
+        function renderArray() {
+            const row = document.getElementById('arrayRow');
+            row.innerHTML = '';
+            data.forEach((v, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'arr-cell';
+                cell.onclick = () => selectIndex(i);
+                const box = document.createElement('div');
+                box.className = 'arr-box';
+                const role = colorFor(i);
+                if (role === 'sel')    box.classList.add('sel');
+                if (role === 'parent') box.classList.add('rel-parent');
+                if (role === 'child')  box.classList.add('rel-child');
+                box.textContent = v;
+                const idx = document.createElement('div');
+                idx.className = 'arr-idx';
+                idx.textContent = i;
+                cell.appendChild(box);
+                cell.appendChild(idx);
+                row.appendChild(cell);
+            });
+        }
+
+        function render() { renderTree(); renderArray(); }
+
+        function selectIndex(i) {
+            if (i < 0 || i >= data.length) return;
+            selected = i;
+            render();
+            const n = data.length;
+            const pi = parent(i), li = left(i), ri = right(i);
+            const parentTxt = i === 0 ? 'none (this is the root)' : `index ${pi} (value ${data[pi]})`;
+            const leftTxt  = li < n ? `index ${li} (value ${data[li]})` : 'none';
+            const rightTxt = ri < n ? `index ${ri} (value ${data[ri]})` : 'none';
+            setStatus(`Index ${i} (value ${data[i]}): parent = ${parentTxt}, left child = ${leftTxt}, right child = ${rightTxt}.`);
+        }
+
+        function applyArray() {
+            const raw = document.getElementById('arrInput').value;
+            const parsed = raw.split(',')
+                .map(s => parseInt(s.trim(), 10))
+                .filter(x => !isNaN(x));
+            if (parsed.length === 0) {
+                setStatus('Enter at least one number, e.g. 1,3,6,5,9,8,2');
+                return;
+            }
+            data = parsed.slice(0, 15); // keep the tree readable
+            selected = null;
+            render();
+            setStatus('Array applied. Click any element to explore its parent/child indices.');
+        }
+
+        function resetArray() {
+            data = DEFAULT.slice();
+            document.getElementById('arrInput').value = DEFAULT.join(',');
+            selected = null;
+            render();
+            setStatus('Reset to [' + DEFAULT.join(', ') + ']. Click any element to explore.');
+        }
+
+        function stepTo() {
+            const i = parseInt(document.getElementById('stepIdx').value, 10);
+            if (isNaN(i) || i < 0 || i >= data.length) {
+                setStatus('That index is out of range. Valid indices are 0 to ' + (data.length - 1) + '.');
+                return;
+            }
+            selectIndex(i);
+        }
+
+        render();
+    </script>
+</body>
+</html>

@@ -1,1 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heaps & Priority Queues - Complete Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .navbar.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.1em;
+            color: #7c3aed;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links { display: flex; gap: 24px; }
+
+        .nav-links a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.88em;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover { color: #7c3aed; }
+
+        .hero {
+            position: relative;
+            text-align: center;
+            padding: 140px 20px 80px;
+            background: linear-gradient(135deg, #f8fafc 0%, #ede9fe 30%, #fae8ff 60%, #f8fafc 100%);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0);
+            background-size: 40px 40px;
+            opacity: 0.5;
+        }
+
+        .hero-content { position: relative; z-index: 1; }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #7c3aed, #db2777);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            color: #64748b;
+            font-weight: 400;
+            max-width: 660px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        /* Animated mini-heap tree in hero */
+        .hero-viz {
+            display: flex;
+            justify-content: center;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+        .heap-tree { position: relative; width: 320px; height: 170px; }
+        .heap-node {
+            position: absolute;
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            box-shadow: 0 6px 16px rgba(124,58,237,0.3);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 1em;
+            transform: translate(-50%, -50%);
+            animation: bob 3s ease-in-out infinite;
+            z-index: 2;
+        }
+        .heap-node.root { background: linear-gradient(135deg, #db2777, #ec4899); }
+        .heap-node.n1 { top: 24px; left: 160px; }
+        .heap-node.n2 { top: 96px; left: 90px; animation-delay: 0.3s; }
+        .heap-node.n3 { top: 96px; left: 230px; animation-delay: 0.6s; }
+        .heap-node.n4 { top: 162px; left: 55px; animation-delay: 0.9s; }
+        .heap-node.n5 { top: 162px; left: 125px; animation-delay: 1.2s; }
+        .heap-edge { position: absolute; height: 2px; background: #c4b5fd; transform-origin: left center; z-index: 1; }
+
+        @keyframes bob { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, calc(-50% - 7px)); } }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 32px 20px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .stat { text-align: center; }
+        .stat-number { font-size: 1.8em; font-weight: 800; color: #7c3aed; letter-spacing: -0.02em; }
+        .stat-label { font-size: 0.82em; color: #64748b; font-weight: 500; margin-top: 4px; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px 60px; }
+
+        .roadmap-section { margin: 48px 0; }
+        .roadmap-section h2 {
+            font-size: 1.6em; font-weight: 800; color: #0f172a;
+            margin-bottom: 8px; letter-spacing: -0.02em; text-align: center;
+        }
+        .roadmap-section > p { color: #64748b; text-align: center; margin-bottom: 32px; }
+        .roadmap { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        .roadmap-item {
+            padding: 10px 20px; background: white; border: 1px solid #e2e8f0;
+            border-radius: 100px; font-size: 0.88em; font-weight: 500; color: #475569;
+            transition: all 0.2s ease; cursor: default; position: relative;
+        }
+        .roadmap-item:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; transform: scale(1.05); }
+        .roadmap-item::after {
+            content: ''; position: absolute; right: -12px; top: 50%;
+            transform: translateY(-50%); width: 0; height: 0;
+            border-top: 4px solid transparent; border-bottom: 4px solid transparent;
+            border-left: 5px solid #cbd5e1;
+        }
+        .roadmap-item:last-child::after { display: none; }
+
+        .section { margin-bottom: 48px; }
+        .section-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0;
+        }
+        .section-number {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; background: #7c3aed; color: white;
+            border-radius: 8px; font-size: 0.8em; font-weight: 700; flex-shrink: 0;
+        }
+        .section-title { font-size: 1.4em; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            position: relative; background: white; border: 1px solid #e2e8f0;
+            border-radius: 16px; padding: 24px 24px 20px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer; text-decoration: none; color: inherit; display: block; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; background: #e2e8f0; transition: background 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px); border-color: #ddd6fe;
+            box-shadow: 0 12px 40px -8px rgba(124, 58, 237, 0.12), 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .card:hover::before { background: #7c3aed; }
+        .card h3 { font-size: 1.05em; font-weight: 650; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.01em; }
+        .card p { color: #64748b; line-height: 1.6; font-size: 0.88em; }
+        .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+        .difficulty {
+            display: inline-block; padding: 4px 10px; border-radius: 100px;
+            font-size: 0.7em; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;
+        }
+        .easy { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .medium { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .hard { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .complexity-tag {
+            display: inline-block; padding: 3px 8px; border-radius: 6px;
+            font-size: 0.68em; font-weight: 500; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+        }
+
+        .pattern-section {
+            background: linear-gradient(135deg, #ede9fe, #fae8ff);
+            border-radius: 24px; padding: 48px 40px; margin: 48px 0; border: 1px solid #e2e8f0;
+        }
+        .pattern-section h2 { font-size: 1.6em; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.02em; }
+        .pattern-section > p { color: #64748b; margin-bottom: 32px; font-size: 1em; }
+        .pattern-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+        .pattern-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; transition: all 0.2s ease; }
+        .pattern-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.1); }
+        .pattern-icon {
+            width: 36px; height: 36px; background: #f5f3ff; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.1em; font-weight: 700; color: #7c3aed;
+        }
+        .pattern-card h4 { font-size: 0.95em; font-weight: 650; color: #0f172a; margin-bottom: 6px; }
+        .pattern-card p { font-size: 0.82em; color: #64748b; line-height: 1.5; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.4em; }
+            .hero { padding: 120px 20px 60px; }
+            .grid { grid-template-columns: 1fr; }
+            .container { padding: 20px 16px 40px; }
+            .stats { gap: 24px; flex-wrap: wrap; }
+            .nav-links { display: none; }
+            .pattern-section { padding: 32px 20px; }
+            .pattern-grid { grid-template-columns: 1fr; }
+            .heap-tree { transform: scale(0.85); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-logo">⛰️ Heaps & PQs</div>
+        <div class="nav-links">
+            <a href="#fundamentals">Fundamentals</a>
+            <a href="#core">Core Problems</a>
+            <a href="#patterns">Patterns</a>
+            <a href="../index.html">All Topics</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Heaps &amp; <span>Priority Queues</span></h1>
+            <p>The data structure that always hands you the smallest (or largest) item next — instantly. A heap is a complete binary tree living inside a plain array. Watch elements bubble up and sink down as you insert and extract, and meet the priority queue that powers Dijkstra, Huffman coding, and the median-of-a-stream trick.</p>
+            <div class="hero-viz">
+                <div class="heap-tree">
+                    <div class="heap-edge" id="e1"></div>
+                    <div class="heap-edge" id="e2"></div>
+                    <div class="heap-edge" id="e3"></div>
+                    <div class="heap-edge" id="e4"></div>
+                    <div class="heap-node root n1">2</div>
+                    <div class="heap-node n2">5</div>
+                    <div class="heap-node n3">4</div>
+                    <div class="heap-node n4">8</div>
+                    <div class="heap-node n5">7</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat"><div class="stat-number">8</div><div class="stat-label">Lessons</div></div>
+        <div class="stat"><div class="stat-number">3</div><div class="stat-label">Languages</div></div>
+        <div class="stat"><div class="stat-number">100%</div><div class="stat-label">Interactive</div></div>
+    </div>
+
+    <div class="container">
+        <!-- Roadmap -->
+        <div class="roadmap-section">
+            <h2>Learning Roadmap</h2>
+            <p>Build the heap, then wield the priority queue</p>
+            <div class="roadmap">
+                <div class="roadmap-item">Complete tree</div>
+                <div class="roadmap-item">Array layout</div>
+                <div class="roadmap-item">Sift up / down</div>
+                <div class="roadmap-item">Build-heap O(n)</div>
+                <div class="roadmap-item">Priority Queue</div>
+                <div class="roadmap-item">Heap Sort</div>
+                <div class="roadmap-item">Top-K & K-way</div>
+                <div class="roadmap-item">Two Heaps (median)</div>
+            </div>
+        </div>
+
+        <!-- Section 1: Fundamentals -->
+        <div class="section" id="fundamentals">
+            <div class="section-header">
+                <span class="section-number">1</span>
+                <h2 class="section-title">Fundamentals</h2>
+            </div>
+            <div class="grid">
+                <a class="card" href="heap-basics.html">
+                    <h3>Heaps: The Basics</h3>
+                    <p>What a heap really is — a complete binary tree with the heap property — and the magic of storing it in a flat array with parent/child index math. Min-heap vs max-heap.</p>
+                    <div class="card-meta">
+                        <span class="difficulty easy">Easy</span>
+                        <span class="complexity-tag">Array ↔ Tree</span>
+                    </div>
+                </a>
+                <a class="card" href="heap-operations.html">
+                    <h3>Insert, Extract & Heapify</h3>
+                    <p>Sift-up on insert, sift-down on extract-min/max, peek in O(1), and building a heap from an array in O(n). Step through every swap.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(log n) / O(n) build</span>
+                    </div>
+                </a>
+                <a class="card" href="priority-queue.html">
+                    <h3>Priority Queues in Practice</h3>
+                    <p>Using the library PQ (C++ priority_queue, Java PriorityQueue, Python heapq), min vs max, custom comparators, and where priority queues power real algorithms.</p>
+                    <div class="card-meta">
+                        <span class="difficulty easy">Easy</span>
+                        <span class="complexity-tag">O(log n) push/pop</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Section 2: Core Problems -->
+        <div class="section" id="core">
+            <div class="section-header">
+                <span class="section-number">2</span>
+                <h2 class="section-title">Core Problems</h2>
+            </div>
+            <div class="grid">
+                <a class="card" href="heap-sort.html">
+                    <h3>Heap Sort</h3>
+                    <p>Build a max-heap, then repeatedly swap the root to the end and sift down. An in-place O(n log n) sort with no extra memory. Watch the array sort itself.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n log n)</span>
+                    </div>
+                </a>
+                <a class="card" href="top-k-kway.html">
+                    <h3>Top-K & K-Way Merge</h3>
+                    <p>Kth largest element, Top K frequent, K closest points, and merging K sorted lists with a min-heap. The "keep a heap of size K" pattern.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n log k)</span>
+                    </div>
+                </a>
+                <a class="card" href="two-heaps.html">
+                    <h3>Two Heaps: Median of a Stream</h3>
+                    <p>Balance a max-heap (lower half) against a min-heap (upper half) to read the running median in O(1). Plus sliding-window median.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="complexity-tag">O(log n) add</span>
+                    </div>
+                </a>
+                <a class="card" href="greedy-scheduling.html">
+                    <h3>Greedy & Scheduling</h3>
+                    <p>The priority queue as a greedy engine. Huffman coding, connect ropes, task scheduler, reorganize string, and meeting rooms II.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="complexity-tag">O(n log n)</span>
+                    </div>
+                </a>
+                <a class="card" href="advanced-heaps.html">
+                    <h3>Advanced Heap Variants</h3>
+                    <p>D-ary heaps, decrease-key & indexed heaps (for Dijkstra/Prim), lazy deletion, and mergeable heaps — leftist, skew, pairing, and Fibonacci.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="complexity-tag">Decrease-key / Meld</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pattern Section -->
+        <div class="pattern-section" id="patterns">
+            <h2>How to Recognize a Heap Problem</h2>
+            <p>Spot the signal, reach for the priority queue</p>
+            <div class="pattern-grid">
+                <div class="pattern-card">
+                    <div class="pattern-icon">1</div>
+                    <h4>"Kth largest / smallest"?</h4>
+                    <p>Keep a heap of size <strong>K</strong>. For the Kth largest, use a min-heap of size K — its top is your answer. O(n log k).</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">2</div>
+                    <h4>"Top K frequent / closest"?</h4>
+                    <p>Count or measure, then push into a size-K heap. Pop the worst whenever it overflows, and the heap holds your winners.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">3</div>
+                    <h4>"Merge K sorted things"?</h4>
+                    <p>A min-heap holds one head from each list. Pop the smallest, push its successor — the classic K-way merge in O(N log k).</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">4</div>
+                    <h4>"Running / streaming median"?</h4>
+                    <p>Two heaps: a max-heap for the lower half, a min-heap for the upper half. Keep them balanced; the median sits at the tops.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">5</div>
+                    <h4>"Always take the cheapest next"?</h4>
+                    <p>A priority queue is the engine of Dijkstra, Prim's MST, Huffman coding, and task scheduling — greedily pop the best option.</p>
+                </div>
+                <div class="pattern-card">
+                    <div class="pattern-icon">6</div>
+                    <h4>"Schedule / process by priority"?</h4>
+                    <p>Push jobs with a priority key; pop the highest priority. CPU scheduling, event simulation, and A* search all lean on this.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 20) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // Position the heap-tree edges to connect parent/child node centers
+        (function drawHeapEdges() {
+            const tree = document.querySelector('.heap-tree');
+            if (!tree) return;
+            const pairs = [['n1','n2'], ['n1','n3'], ['n2','n4'], ['n2','n5']];
+            const ids = ['e1','e2','e3','e4'];
+            const coord = el => {
+                const m = el.className.match(/n\d/)[0];
+                return { x: parseFloat(el.style.left || getComputedStyle(el).left), y: parseFloat(el.style.top || getComputedStyle(el).top) };
+            };
+            pairs.forEach((p, i) => {
+                const a = tree.querySelector('.' + p[0]);
+                const b = tree.querySelector('.' + p[1]);
+                const ax = parseFloat(getComputedStyle(a).left), ay = parseFloat(getComputedStyle(a).top);
+                const bx = parseFloat(getComputedStyle(b).left), by = parseFloat(getComputedStyle(b).top);
+                const len = Math.hypot(bx - ax, by - ay);
+                const ang = Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
+                const edge = document.getElementById(ids[i]);
+                edge.style.left = ax + 'px';
+                edge.style.top = ay + 'px';
+                edge.style.width = len + 'px';
+                edge.style.transform = `rotate(${ang}deg)`;
+            });
+        })();
+    </script>
+</body>
+</html>

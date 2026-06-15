@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Queues in Practice - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #7c3aed; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* PQ visual */
+        .pq-mode { display: flex; gap: 8px; margin-bottom: 16px; }
+        .mode-btn {
+            padding: 8px 18px; border: 1px solid #cbd5e1; border-radius: 100px;
+            background: white; color: #64748b; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .mode-btn:hover { border-color: #7c3aed; color: #7c3aed; }
+        .mode-btn.active { background: #7c3aed; color: white; border-color: #7c3aed; }
+        .pq-area {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+            min-height: 90px; padding: 18px; background: #f8fafc;
+            border: 1px solid #e2e8f0; border-radius: 12px;
+        }
+        .pq-chip {
+            min-width: 48px; height: 48px; padding: 0 12px; border-radius: 12px;
+            background: white; border: 2px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            color: #475569; font-weight: 700; font-size: 1em;
+            font-family: 'JetBrains Mono', monospace;
+            animation: popin 0.3s ease; position: relative;
+        }
+        .pq-chip.next {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border-color: #7c3aed; color: white;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+        }
+        .pq-chip.next::after {
+            content: 'NEXT OUT'; position: absolute; top: -20px; left: 50%;
+            transform: translateX(-50%); font-size: 0.55em; letter-spacing: 0.06em;
+            font-weight: 700; color: #7c3aed; white-space: nowrap; font-family: 'Inter', sans-serif;
+        }
+        .pq-chip.flash { animation: flash 0.6s ease; }
+        @keyframes popin { from { transform: scale(0.6) translateY(-12px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        @keyframes flash {
+            0%, 100% { box-shadow: 0 4px 12px rgba(124,58,237,0.3); transform: scale(1); }
+            50% { box-shadow: 0 0 0 4px #fbbf24, 0 6px 18px rgba(251,191,36,0.5); transform: scale(1.12); }
+        }
+        .empty-msg { color: #94a3b8; font-weight: 600; font-size: 0.9em; padding: 14px; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Priority Queues in Practice</h1>
+        <p>Imagine the line at a hospital emergency room. People don't get seen in the order they walked in — the patient with the most urgent injury goes first, no matter when they arrived. That's a <strong>priority queue</strong>: a line that's always sorted by <em>importance</em>, not by arrival time.</p>
+        <p>Formally, a <strong>priority queue (PQ)</strong> is an <strong>abstract data type</strong> — a contract that says "give me the most important item next." It doesn't dictate <em>how</em> that's done. A <strong>heap</strong> is the usual machinery underneath, but in real code you almost never build it yourself: every language ships a priority queue in its standard library, and you just use it.</p>
+        <p>Contrast it with a normal <strong>queue</strong>. A queue is <strong>FIFO</strong> — first in, first out, like a line at a coffee shop. A priority queue pops by <strong>priority</strong>, not arrival order. The "best" element (smallest or largest, depending on the setup) always comes out next, even if it was the last one added.</p>
+
+        <div class="note">
+            <strong>The mental model:</strong> a PQ is a bag where you can throw items in any order, and when you reach in, you always pull out the <em>highest-priority</em> one. Two questions decide everything: (1) is "highest priority" the smallest or the largest value? (2) what counts as the priority when items are complex objects?
+        </div>
+
+        <h2>The Language Gotchas</h2>
+        <p>This is the part that actually trips people up. The three big languages disagree on the defaults, and mixing them up is a classic interview and code-review bug. Let's nail down all three.</p>
+
+        <h3>1. Default direction: min-heap or max-heap?</h3>
+        <p>Out of the box, each language has an <em>opinion</em> about what "most important" means:</p>
+        <ul>
+            <li><strong>C++</strong> <code>std::priority_queue</code> is a <strong>MAX-heap</strong> — <code>top()</code> gives you the <em>largest</em> element.</li>
+            <li><strong>Java</strong> <code>PriorityQueue</code> is a <strong>MIN-heap</strong> — <code>peek()</code> gives you the <em>smallest</em>.</li>
+            <li><strong>Python</strong> <code>heapq</code> is a <strong>MIN-heap</strong> too — and it's a set of <em>functions over a plain list</em>, not a class you instantiate.</li>
+        </ul>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppDefault')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaDefault')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyDefault')">Python</button>
+            </div>
+            <div id="cppDefault" class="code-content active">
+<pre>
+<span class="comment">// C++ std::priority_queue is a MAX-heap by default</span>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+
+std::priority_queue&lt;<span class="keyword">int</span>&gt; pq;
+
+pq.push(<span class="number">5</span>);
+pq.push(<span class="number">1</span>);
+pq.push(<span class="number">9</span>);          <span class="comment">// holds {5, 1, 9}</span>
+
+<span class="keyword">int</span> t = pq.top();    <span class="comment">// peek -> 9 (the LARGEST)</span>
+pq.pop();             <span class="comment">// removes 9. NOTE: pop() returns void</span>
+<span class="comment">// now top() == 5</span>
+
+<span class="keyword">if</span> (!pq.empty()) {    <span class="comment">// always guard before top()/pop()</span>
+    <span class="keyword">int</span> x = pq.top(); <span class="comment">// 5</span>
+}
+</pre>
+            </div>
+            <div id="javaDefault" class="code-content">
+<pre>
+<span class="comment">// Java PriorityQueue is a MIN-heap by default</span>
+<span class="type">PriorityQueue</span>&lt;<span class="type">Integer</span>&gt; pq = <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;();
+
+pq.offer(<span class="number">5</span>);          <span class="comment">// add() works too</span>
+pq.offer(<span class="number">1</span>);
+pq.offer(<span class="number">9</span>);          <span class="comment">// holds {5, 1, 9}</span>
+
+<span class="keyword">int</span> t = pq.peek();    <span class="comment">// peek -> 1 (the SMALLEST)</span>
+<span class="keyword">int</span> x = pq.poll();    <span class="comment">// removes AND returns 1</span>
+<span class="comment">// now peek() == 5</span>
+
+<span class="keyword">if</span> (!pq.isEmpty()) {   <span class="comment">// peek()/poll() return null when empty</span>
+    <span class="keyword">int</span> y = pq.peek(); <span class="comment">// 5</span>
+}
+</pre>
+            </div>
+            <div id="pyDefault" class="code-content">
+<pre>
+<span class="comment"># Python heapq is a MIN-heap, and it's FUNCTIONS over a list</span>
+<span class="keyword">import</span> heapq
+
+pq = []                  <span class="comment"># just a plain list</span>
+
+heapq.heappush(pq, <span class="number">5</span>)
+heapq.heappush(pq, <span class="number">1</span>)
+heapq.heappush(pq, <span class="number">9</span>)    <span class="comment"># heap-ordered list</span>
+
+top = pq[<span class="number">0</span>]              <span class="comment"># peek -> 1 (the SMALLEST), no removal</span>
+x = heapq.heappop(pq)    <span class="comment"># removes AND returns 1</span>
+<span class="comment"># now pq[0] == 5</span>
+
+<span class="keyword">if</span> pq:                   <span class="comment"># empty list is falsy -> your isEmpty check</span>
+    y = pq[<span class="number">0</span>]          <span class="comment"># 5</span>
+</pre>
+            </div>
+        </div>
+
+        <h3>2. Flipping the direction</h3>
+        <p>Need the opposite of the default? Each language has its own trick. The idea is always the same — change what "comes first" means.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppFlip')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaFlip')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyFlip')">Python</button>
+            </div>
+            <div id="cppFlip" class="code-content active">
+<pre>
+<span class="comment">// C++: a MIN-heap needs greater&lt;&gt; as the comparator</span>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+
+std::priority_queue&lt;<span class="keyword">int</span>, std::vector&lt;<span class="keyword">int</span>&gt;, std::greater&lt;<span class="keyword">int</span>&gt;&gt; pq;
+
+pq.push(<span class="number">5</span>);
+pq.push(<span class="number">1</span>);
+pq.push(<span class="number">9</span>);
+
+<span class="keyword">int</span> t = pq.top();    <span class="comment">// 1 (the SMALLEST) — now a min-heap</span>
+</pre>
+            </div>
+            <div id="javaFlip" class="code-content">
+<pre>
+<span class="comment">// Java: a MAX-heap uses Collections.reverseOrder()</span>
+<span class="type">PriorityQueue</span>&lt;<span class="type">Integer</span>&gt; pq =
+    <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;(<span class="type">Collections</span>.reverseOrder());
+
+pq.offer(<span class="number">5</span>);
+pq.offer(<span class="number">1</span>);
+pq.offer(<span class="number">9</span>);
+
+<span class="keyword">int</span> t = pq.peek();   <span class="comment">// 9 (the LARGEST) — now a max-heap</span>
+</pre>
+            </div>
+            <div id="pyFlip" class="code-content">
+<pre>
+<span class="comment"># Python: no max-heap built in — push NEGATED values</span>
+<span class="keyword">import</span> heapq
+
+pq = []
+<span class="keyword">for</span> v <span class="keyword">in</span> (<span class="number">5</span>, <span class="number">1</span>, <span class="number">9</span>):
+    heapq.heappush(pq, -v)   <span class="comment"># store the negatives</span>
+
+biggest = -heapq.heappop(pq) <span class="comment"># negate back -> 9 (LARGEST)</span>
+
+<span class="comment"># (CPython also has heapq._heapify_max, but it's private — avoid it.)</span>
+</pre>
+            </div>
+        </div>
+
+        <h3>3. Custom comparators &amp; ordering objects</h3>
+        <p>Real items are rarely bare integers. Say each item is a <em>task</em> with a priority number, and you want the highest-priority task out first. Now you must tell the PQ <em>which field</em> to order by.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppCmp')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaCmp')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyCmp')">Python</button>
+            </div>
+            <div id="cppCmp" class="code-content active">
+<pre>
+<span class="comment">// C++: order tasks by priority with a lambda comparator</span>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;string&gt;</span>
+
+<span class="keyword">struct</span> Task { <span class="keyword">int</span> prio; std::string name; };
+
+<span class="comment">// returns true if a should come AFTER b -> highest prio on top</span>
+<span class="keyword">auto</span> cmp = [](<span class="keyword">const</span> Task&amp; a, <span class="keyword">const</span> Task&amp; b) {
+    <span class="keyword">return</span> a.prio &lt; b.prio;
+};
+std::priority_queue&lt;Task, std::vector&lt;Task&gt;, <span class="keyword">decltype</span>(cmp)&gt; pq(cmp);
+
+pq.push({<span class="number">2</span>, <span class="string">"email"</span>});
+pq.push({<span class="number">5</span>, <span class="string">"pager"</span>});   <span class="comment">// highest prio</span>
+pq.push({<span class="number">1</span>, <span class="string">"log"</span>});
+<span class="comment">// pq.top().name == "pager"</span>
+</pre>
+            </div>
+            <div id="javaCmp" class="code-content">
+<pre>
+<span class="comment">// Java: pass a Comparator (lambda) to order by a field</span>
+<span class="keyword">record</span> <span class="type">Task</span>(<span class="keyword">int</span> prio, <span class="type">String</span> name) {}
+
+<span class="comment">// max-heap on prio: highest priority polled first</span>
+<span class="type">PriorityQueue</span>&lt;<span class="type">Task</span>&gt; pq =
+    <span class="keyword">new</span> <span class="type">PriorityQueue</span>&lt;&gt;(<span class="type">Comparator</span>.comparingInt(<span class="type">Task</span>::prio).reversed());
+
+pq.offer(<span class="keyword">new</span> <span class="type">Task</span>(<span class="number">2</span>, <span class="string">"email"</span>));
+pq.offer(<span class="keyword">new</span> <span class="type">Task</span>(<span class="number">5</span>, <span class="string">"pager"</span>));  <span class="comment">// highest prio</span>
+pq.offer(<span class="keyword">new</span> <span class="type">Task</span>(<span class="number">1</span>, <span class="string">"log"</span>));
+<span class="comment">// pq.peek().name() == "pager"</span>
+</pre>
+            </div>
+            <div id="pyCmp" class="code-content">
+<pre>
+<span class="comment"># Python: push TUPLES (priority, tiebreaker, item)</span>
+<span class="keyword">import</span> heapq
+<span class="keyword">import</span> itertools
+
+pq = []
+counter = itertools.count()   <span class="comment"># unique, increasing tiebreaker</span>
+
+<span class="keyword">def</span> add(prio, name):
+    <span class="comment"># negate prio for "highest first"; counter breaks ties</span>
+    heapq.heappush(pq, (-prio, <span class="keyword">next</span>(counter), name))
+
+add(<span class="number">2</span>, <span class="string">"email"</span>)
+add(<span class="number">5</span>, <span class="string">"pager"</span>)            <span class="comment"># highest prio</span>
+add(<span class="number">1</span>, <span class="string">"log"</span>)
+
+_, _, name = heapq.heappop(pq)  <span class="comment"># name == "pager"</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Python heapq survival kit:</strong>
+            <ul>
+                <li>Store <code>(priority, item)</code> tuples — heapq compares tuples element-by-element.</li>
+                <li>For a max-heap, <strong>negate</strong> the priority on the way in and out.</li>
+                <li>Add a <strong>tiebreaker</strong> (like a counter) between the priority and the item, so heapq never tries to compare two un-orderable objects when priorities tie: <code>(priority, count, item)</code>.</li>
+            </ul>
+        </div>
+
+        <div class="warn">
+            <strong>The classic cross-language bug:</strong> C++'s default <code>priority_queue</code> is a <strong>MAX</strong>-heap, but Java and Python default to <strong>MIN</strong>-heaps. Porting code between them without flipping the comparator silently gives you the wrong "best" element every time. <br><br>
+            <strong>Also:</strong> don't mutate an element's priority while it's still inside the PQ — the heap won't re-order itself and your ordering quietly breaks. <strong>Remove the item and re-add it</strong> with the new priority (the "lazy deletion" pattern) instead.
+        </div>
+
+        <h2>Try It: A Priority Queue Simulator</h2>
+        <p>Push values into the queue and watch which one is marked <strong>NEXT OUT</strong>. Flip between <strong>Min-Heap</strong> and <strong>Max-Heap</strong> mode and notice how the same contents suddenly pop a different element first — that's the entire lesson of section 1 in one toggle.</p>
+
+        <div class="playground">
+            <div class="pg-title">🎚️ Priority Queue Playground</div>
+            <div class="pg-sub">The violet chip is whatever would pop next. Switch modes to flip min vs max — the contents stay the same, only the "winner" changes.</div>
+            <div class="pq-mode">
+                <button class="mode-btn active" id="minBtn" onclick="setMode('min')">Min-Heap</button>
+                <button class="mode-btn" id="maxBtn" onclick="setMode('max')">Max-Heap</button>
+            </div>
+            <div class="pq-area" id="pqArea"></div>
+            <div class="pg-status" id="status">Min-Heap mode. Queue holds [5, 1, 9, 3] — next out is 1 (the smallest).</div>
+            <div class="pg-controls">
+                <input type="number" id="valInput" placeholder="value" value="7">
+                <button class="btn btn-primary" onclick="doPush()">⬆ Push</button>
+                <button class="btn btn-danger" id="popBtn" onclick="doPop()">⬇ Pop</button>
+                <button class="btn btn-ghost" onclick="doReset()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>Where PQs Power Real Algorithms</h2>
+        <p>Once you can "always grab the best option next" in <code>O(log n)</code>, a whole family of greedy algorithms falls out almost for free. Here's where priority queues quietly do the heavy lifting.</p>
+
+        <div class="compare">
+            <div>
+                <h3>Graphs &amp; pathfinding</h3>
+                <ul>
+                    <li><strong>Dijkstra's shortest path</strong> — pop the closest unsettled node, relax its neighbors, repeat.</li>
+                    <li><strong>Prim's MST</strong> — pop the cheapest edge that grows the tree without forming a cycle.</li>
+                    <li><strong>A* search</strong> — pop the node with the best estimated total cost (distance so far + heuristic).</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Scheduling &amp; encoding</h3>
+                <ul>
+                    <li><strong>Huffman coding</strong> — repeatedly pop the two smallest frequencies and merge them into one node.</li>
+                    <li><strong>Event-driven simulation</strong> — pop the next event by timestamp to advance the clock.</li>
+                    <li><strong>Task scheduling</strong> — pop the highest-priority (or earliest-deadline) job to run next.</li>
+                </ul>
+            </div>
+        </div>
+
+        <p>The common thread: each of these is a <strong>greedy</strong> algorithm that, at every step, needs the single best option out of a changing set. That "best of a changing set, fast" job is exactly what a priority queue was built for.</p>
+
+        <h2>Complexity at a Glance</h2>
+        <p>Because a PQ is backed by a heap, the costs are the heap's costs. Notice that <em>peeking</em> the best element is free — it's always sitting at the top.</p>
+
+        <table>
+            <tr><th>Operation</th><th>Time Complexity</th></tr>
+            <tr><td>push (insert)</td><td>O(log n)</td></tr>
+            <tr><td>pop (remove best)</td><td>O(log n)</td></tr>
+            <tr><td>peek / top (read best)</td><td>O(1)</td></tr>
+            <tr><td>build from n items</td><td>O(n)</td></tr>
+            <tr><td>size</td><td>O(1)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">Building from <code>n</code> items all at once (C++ constructor, Java constructor with a collection, Python <code>heapify</code>) is O(n) — cheaper than pushing them one at a time, which would be O(n log n).</p>
+
+        <div class="note">
+            <strong>Pattern to remember:</strong> if a problem says <em>"always take the cheapest / closest / highest-priority next,"</em> <em>"Kth largest,"</em> or <em>"merge K sorted things,"</em> reach for a priority queue. Just remember to decide min vs max <em>before</em> you write the comparator.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Priority Queue playground ----
+        let pq = [5, 1, 9, 3];
+        let mode = 'min'; // 'min' or 'max'
+
+        function setStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+
+        // index of the element that would pop next, per current mode
+        function nextIndex() {
+            if (pq.length === 0) return -1;
+            let best = 0;
+            for (let i = 1; i < pq.length; i++) {
+                if (mode === 'min' ? pq[i] < pq[best] : pq[i] > pq[best]) best = i;
+            }
+            return best;
+        }
+
+        function render() {
+            const area = document.getElementById('pqArea');
+            area.innerHTML = '';
+            const popBtn = document.getElementById('popBtn');
+            popBtn.disabled = pq.length === 0;
+
+            if (pq.length === 0) {
+                const e = document.createElement('div');
+                e.className = 'empty-msg';
+                e.textContent = 'Priority queue is empty';
+                area.appendChild(e);
+                return;
+            }
+
+            const ni = nextIndex();
+            pq.forEach((v, i) => {
+                const chip = document.createElement('div');
+                chip.className = 'pq-chip' + (i === ni ? ' next' : '');
+                chip.textContent = v;
+                area.appendChild(chip);
+            });
+        }
+
+        function modeWord() { return mode === 'min' ? 'smallest' : 'largest'; }
+        function modeName() { return mode === 'min' ? 'Min-Heap' : 'Max-Heap'; }
+
+        function setMode(m) {
+            if (m === mode) return;
+            mode = m;
+            document.getElementById('minBtn').classList.toggle('active', mode === 'min');
+            document.getElementById('maxBtn').classList.toggle('active', mode === 'max');
+            render();
+            const ni = nextIndex();
+            if (ni === -1) {
+                setStatus('Switched to ' + modeName() + ' — queue is empty.');
+            } else {
+                setStatus('Switched to ' + modeName() + ' — next pop would be ' + pq[ni] + ' (the ' + modeWord() + ').');
+            }
+        }
+
+        function readVal() {
+            const raw = document.getElementById('valInput').value;
+            const v = parseInt(raw, 10);
+            return isNaN(v) ? Math.floor(Math.random() * 90 + 1) : v;
+        }
+
+        function doPush() {
+            const v = readVal();
+            pq.push(v);
+            render();
+            const ni = nextIndex();
+            setStatus('Pushed ' + v + '. In ' + modeName() + ' mode, next out is ' + pq[ni] + ' (the ' + modeWord() + ').');
+        }
+
+        function doPop() {
+            if (pq.length === 0) {
+                setStatus('Queue is empty — nothing to pop! Always check size first.');
+                return;
+            }
+            const ni = nextIndex();
+            const v = pq[ni];
+            // flash the chip before removing
+            const area = document.getElementById('pqArea');
+            const chip = area.children[ni];
+            if (chip) {
+                chip.classList.add('flash');
+            }
+            setTimeout(() => {
+                pq.splice(ni, 1);
+                render();
+                if (pq.length === 0) {
+                    setStatus('Popped ' + v + ' (the ' + modeWord() + ', ' + modeName() + ' mode). The queue is now empty.');
+                } else {
+                    const nj = nextIndex();
+                    setStatus('Popped ' + v + ' (the ' + modeWord() + ', ' + modeName() + ' mode). Next out is now ' + pq[nj] + '.');
+                }
+            }, 350);
+        }
+
+        function doReset() {
+            pq = [5, 1, 9, 3];
+            mode = 'min';
+            document.getElementById('minBtn').classList.add('active');
+            document.getElementById('maxBtn').classList.remove('active');
+            render();
+            setStatus('Reset. Min-Heap mode, queue holds [5, 1, 9, 3] — next out is 1 (the smallest).');
+        }
+
+        render();
+    </script>
+</body>
+</html>

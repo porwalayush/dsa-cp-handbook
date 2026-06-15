@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heap Sort - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #7c3aed; margin-bottom: 10px; margin-top: 0; font-size: 1em; }
+        .compare ul { padding-left: 18px; }
+        .compare li { font-size: 0.85em; margin-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        /* Bar chart visual */
+        .bar-area { display: flex; align-items: flex-end; justify-content: center; gap: 10px; min-height: 230px; padding: 10px 0; border-bottom: 2px solid #cbd5e1; }
+        .bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .bar {
+            width: 42px; border-radius: 8px 8px 0 0;
+            background: linear-gradient(180deg, #a855f7, #7c3aed);
+            display: flex; align-items: flex-start; justify-content: center;
+            color: white; font-weight: 700; font-size: 0.82em; padding-top: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            transition: height 0.3s ease, background 0.2s ease;
+        }
+        .bar.active { background: linear-gradient(180deg, #fbbf24, #f59e0b); box-shadow: 0 0 0 3px rgba(251,191,36,0.4); }
+        .bar.sorted { background: linear-gradient(180deg, #34d399, #16a34a); }
+        .bar.heaproot { background: linear-gradient(180deg, #db2777, #be185d); }
+        .bar-idx { font-size: 0.72em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 230px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+
+        .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; font-size: 0.78em; color: #64748b; }
+        .legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+        .sw-heap { background: linear-gradient(180deg, #a855f7, #7c3aed); }
+        .sw-root { background: linear-gradient(180deg, #db2777, #be185d); }
+        .sw-active { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
+        .sw-sorted { background: linear-gradient(180deg, #34d399, #16a34a); }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .pg-controls input { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Heap Sort</h1>
+        <p>Imagine a pile of numbered tickets and one simple rule: <strong>always pluck out the biggest ticket, set it aside in its final spot, and repeat.</strong> Do that until the pile is empty and — without ever comparing the small tickets to each other directly — you've sorted everything.</p>
+        <p>That's the whole idea of <strong>heap sort</strong>. The trick is making "find the biggest" fast. A plain pile would force you to scan everything each round. So instead we arrange the numbers into a <strong>max-heap</strong> — a structure whose <em>root is always the largest element</em>. Now grabbing the biggest is instant, and fixing the heap afterward only costs <code>O(log n)</code>.</p>
+        <p>Heap sort runs entirely <strong>in place</strong> inside the original array. The same array is part heap, part sorted result — and the boundary between them slides as we go.</p>
+
+        <h2>The Big Picture: Two Phases</h2>
+        <p>Heap sort happens in two clean phases. First we organize the chaos into a heap; then we drain the heap one max at a time into the sorted tail.</p>
+
+        <h3>Phase 1 — Build a max-heap (O(n))</h3>
+        <p>We turn the raw array into a max-heap, in place. The clever part: we don't insert items one by one. Instead we start at the <strong>last non-leaf node</strong> (index <code>n/2 - 1</code>) and sift-down each node, walking backwards to index <code>0</code>.</p>
+        <p>Why start there? Every node past <code>n/2 - 1</code> is a leaf — a heap of size one, already valid. By fixing parents from the bottom up, each sift-down can assume its children are already proper heaps. This bottom-up build costs only <code>O(n)</code>, not <code>O(n log n)</code>.</p>
+
+        <h3>Phase 2 — Sort by draining the heap</h3>
+        <p>Now the largest element sits at the root, index <code>0</code>. Here's the loop, for <code>end = n-1</code> down to <code>1</code>:</p>
+        <ul>
+            <li><strong>Swap</strong> <code>a[0]</code> with <code>a[end]</code>. The biggest element is now parked at the back — its <em>final</em> sorted position.</li>
+            <li><strong>Shrink</strong> the heap by one (pretend <code>a[end]</code> no longer exists; it's "sorted" now).</li>
+            <li><strong>Sift down</strong> the new root within the shrunken heap, so the next-biggest bubbles up to index <code>0</code>.</li>
+        </ul>
+        <p>Each pass locks one more element into place at the back. The sorted region grows from right to left until the whole array is in order — ascending.</p>
+
+        <div class="note">
+            <strong>The key insight:</strong> the array does double duty. The <em>front</em> is a shrinking max-heap; the <em>back</em> is a growing, already-sorted tail. The biggest value in the heap always swaps into the slot just before the sorted tail — so the tail stays sorted, and we never need extra memory.
+        </div>
+
+        <h2>Why O(n log n)?</h2>
+        <p>Add up the work in the two phases:</p>
+        <ul>
+            <li><strong>Build phase:</strong> <code>O(n)</code> — a tighter bound than it looks, because most nodes are near the bottom and sift down only a level or two.</li>
+            <li><strong>Sort phase:</strong> <code>n - 1</code> extractions, each doing one sift-down of cost <code>O(log n)</code> &rarr; <code>O(n log n)</code>.</li>
+        </ul>
+        <p>The sort phase dominates, so the total is <code>O(n log n)</code>. And crucially, this holds in the <strong>best, average, AND worst case</strong> — there's no input that can make heap sort go quadratic.</p>
+
+        <h2>Try It: Watch a Heap Sort</h2>
+        <p>The array below is drawn as a bar chart — taller bar means bigger value. Step through it one unit of work at a time. Watch Phase 1 build the heap, then watch the root keep swapping to the back. Bars turn <strong>green</strong> once they're locked into their final sorted spot.</p>
+
+        <div class="playground">
+            <div class="pg-title">📊 Heap Sort Visualizer</div>
+            <div class="pg-sub">Bars = array values. Step through build-heap, then the swap-and-sift-down sort phase. Green = sorted &amp; locked.</div>
+            <div class="bar-area" id="barArea"></div>
+            <div class="legend">
+                <span><span class="swatch sw-heap"></span> in heap</span>
+                <span><span class="swatch sw-root"></span> heap root (current max)</span>
+                <span><span class="swatch sw-active"></span> comparing / swapping</span>
+                <span><span class="swatch sw-sorted"></span> sorted &amp; locked</span>
+            </div>
+            <div class="pg-status" id="status">Ready. Press “Next Step ▶” to begin the build-heap phase.</div>
+            <div class="pg-controls">
+                <input type="text" id="arrInput" placeholder="comma-separated" value="4,10,3,5,1,8,2">
+                <button class="btn btn-ghost" id="applyBtn" onclick="applyArr()">Apply</button>
+                <button class="btn btn-primary" id="stepBtn" onclick="nextStep()">Next Step ▶</button>
+                <button class="btn btn-primary" id="autoBtn" onclick="autoPlay()">Auto Play</button>
+                <button class="btn btn-danger" id="resetBtn" onclick="resetArr()">↺ Reset</button>
+            </div>
+        </div>
+
+        <h2>Heap Sort in Code</h2>
+        <p>Here's the full algorithm in each language: a <code>siftDown</code> helper plus the two-phase <code>heapSort</code>. All max-heap, 0-indexed, sorting ascending. Notice that <code>siftDown</code> takes the current heap <em>size</em> as a parameter — that's how the sort phase keeps the locked tail untouched.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppSort')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaSort')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pySort')">Python</button>
+            </div>
+            <div id="cppSort" class="code-content active">
+<pre>
+<span class="comment">// Max-heap heap sort, 0-indexed, sorts ascending.</span>
+<span class="comment">// Sift a[i] down within a heap of size n.</span>
+<span class="keyword">void</span> siftDown(<span class="type">int</span> a[], <span class="type">int</span> n, <span class="type">int</span> i) {
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="type">int</span> largest = i;
+        <span class="type">int</span> l = <span class="number">2</span> * i + <span class="number">1</span>, r = <span class="number">2</span> * i + <span class="number">2</span>;
+        <span class="keyword">if</span> (l &lt; n &amp;&amp; a[l] &gt; a[largest]) largest = l;
+        <span class="keyword">if</span> (r &lt; n &amp;&amp; a[r] &gt; a[largest]) largest = r;
+        <span class="keyword">if</span> (largest == i) <span class="keyword">break</span>;     <span class="comment">// heap property restored</span>
+        std::swap(a[i], a[largest]);
+        i = largest;                  <span class="comment">// follow the swapped child down</span>
+    }
+}
+
+<span class="keyword">void</span> heapSort(<span class="type">int</span> a[], <span class="type">int</span> n) {
+    <span class="comment">// Phase 1: build max-heap from last non-leaf down to root.</span>
+    <span class="keyword">for</span> (<span class="type">int</span> i = n / <span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i)
+        siftDown(a, n, i);
+
+    <span class="comment">// Phase 2: repeatedly move the max to the back.</span>
+    <span class="keyword">for</span> (<span class="type">int</span> end = n - <span class="number">1</span>; end &gt; <span class="number">0</span>; --end) {
+        std::swap(a[<span class="number">0</span>], a[end]);     <span class="comment">// max -&gt; its final spot</span>
+        siftDown(a, end, <span class="number">0</span>);       <span class="comment">// sift within SHRUNK heap (size = end)</span>
+    }
+}
+</pre>
+            </div>
+            <div id="javaSort" class="code-content">
+<pre>
+<span class="comment">// Max-heap heap sort, 0-indexed, sorts ascending.</span>
+<span class="keyword">static</span> <span class="type">void</span> siftDown(<span class="type">int</span>[] a, <span class="type">int</span> n, <span class="type">int</span> i) {
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="type">int</span> largest = i;
+        <span class="type">int</span> l = <span class="number">2</span> * i + <span class="number">1</span>, r = <span class="number">2</span> * i + <span class="number">2</span>;
+        <span class="keyword">if</span> (l &lt; n &amp;&amp; a[l] &gt; a[largest]) largest = l;
+        <span class="keyword">if</span> (r &lt; n &amp;&amp; a[r] &gt; a[largest]) largest = r;
+        <span class="keyword">if</span> (largest == i) <span class="keyword">break</span>;
+        <span class="type">int</span> t = a[i]; a[i] = a[largest]; a[largest] = t;
+        i = largest;
+    }
+}
+
+<span class="keyword">static</span> <span class="type">void</span> heapSort(<span class="type">int</span>[] a) {
+    <span class="type">int</span> n = a.length;
+    <span class="comment">// Phase 1: build max-heap.</span>
+    <span class="keyword">for</span> (<span class="type">int</span> i = n / <span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--)
+        siftDown(a, n, i);
+
+    <span class="comment">// Phase 2: drain the heap into the sorted tail.</span>
+    <span class="keyword">for</span> (<span class="type">int</span> end = n - <span class="number">1</span>; end &gt; <span class="number">0</span>; end--) {
+        <span class="type">int</span> t = a[<span class="number">0</span>]; a[<span class="number">0</span>] = a[end]; a[end] = t;
+        siftDown(a, end, <span class="number">0</span>);   <span class="comment">// heap size shrinks to 'end'</span>
+    }
+}
+</pre>
+            </div>
+            <div id="pySort" class="code-content">
+<pre>
+<span class="comment"># Max-heap heap sort, 0-indexed, sorts ascending.</span>
+<span class="keyword">def</span> <span class="type">sift_down</span>(a, n, i):
+    <span class="keyword">while</span> <span class="keyword">True</span>:
+        largest = i
+        l, r = <span class="number">2</span> * i + <span class="number">1</span>, <span class="number">2</span> * i + <span class="number">2</span>
+        <span class="keyword">if</span> l &lt; n <span class="keyword">and</span> a[l] &gt; a[largest]: largest = l
+        <span class="keyword">if</span> r &lt; n <span class="keyword">and</span> a[r] &gt; a[largest]: largest = r
+        <span class="keyword">if</span> largest == i: <span class="keyword">break</span>
+        a[i], a[largest] = a[largest], a[i]
+        i = largest
+
+<span class="keyword">def</span> <span class="type">heap_sort</span>(a):
+    n = len(a)
+    <span class="comment"># Phase 1: build max-heap from last non-leaf to root.</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(n // <span class="number">2</span> - <span class="number">1</span>, -<span class="number">1</span>, -<span class="number">1</span>):
+        sift_down(a, n, i)
+
+    <span class="comment"># Phase 2: move the max to the back, then re-sift.</span>
+    <span class="keyword">for</span> end <span class="keyword">in</span> range(n - <span class="number">1</span>, <span class="number">0</span>, -<span class="number">1</span>):
+        a[<span class="number">0</span>], a[end] = a[end], a[<span class="number">0</span>]
+        sift_down(a, end, <span class="number">0</span>)   <span class="comment"># sift within shrunk heap of size 'end'</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Two gotchas.</strong> First, heap sort is <strong>NOT stable</strong> — equal elements can be reordered, because swapping the root to the back jumbles their original order. Second, in the sort phase you MUST sift down within the <em>shrinking</em> heap size (<code>end</code>), not the full array length. If you pass <code>n</code> after swapping, the sift-down reaches back into the sorted tail, drags those elements back into the heap, and ruins everything.
+        </div>
+
+        <h2>Heap Sort vs. Its Rivals</h2>
+        <p>Heap sort, merge sort, and quicksort are the three classic <code>O(n log n)</code> comparison sorts. They make different trade-offs around memory, stability, and worst-case behavior.</p>
+
+        <div class="compare">
+            <div>
+                <h3>Heap Sort</h3>
+                <ul>
+                    <li>Time: <strong>O(n log n)</strong> all cases</li>
+                    <li>Space: <strong>O(1)</strong> in-place</li>
+                    <li><strong>Not stable</strong></li>
+                    <li>Guaranteed worst case, but poor cache locality &rarr; often slower in practice</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Merge Sort</h3>
+                <ul>
+                    <li>Time: <strong>O(n log n)</strong> all cases</li>
+                    <li>Space: <strong>O(n)</strong> extra</li>
+                    <li><strong>Stable</strong></li>
+                    <li>Great for linked lists &amp; external sorting</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Quick Sort</h3>
+                <ul>
+                    <li>Time: avg <strong>O(n log n)</strong>, worst <strong>O(n&sup2;)</strong></li>
+                    <li>Space: <strong>O(log n)</strong> in-place</li>
+                    <li><strong>Not stable</strong></li>
+                    <li>Usually fastest in practice (cache-friendly)</li>
+                </ul>
+            </div>
+        </div>
+
+        <p>The headline: heap sort is the only one of the three that gives you <strong>both</strong> a guaranteed <code>O(n log n)</code> worst case <em>and</em> <code>O(1)</code> extra space. Quicksort can degrade to <code>O(n&sup2;)</code>; merge sort needs <code>O(n)</code> scratch memory. Heap sort gives up the constant-factor speed crown but never blows up.</p>
+
+        <h2>Complexity at a Glance</h2>
+        <table>
+            <tr><th>Aspect</th><th>Cost</th></tr>
+            <tr><td>Best-case time</td><td>O(n log n)</td></tr>
+            <tr><td>Average-case time</td><td>O(n log n)</td></tr>
+            <tr><td>Worst-case time</td><td>O(n log n)</td></tr>
+            <tr><td>Space (extra)</td><td>O(1) — in place</td></tr>
+            <tr><td>Stable?</td><td>No</td></tr>
+            <tr><td>Build-heap (Phase 1)</td><td>O(n)</td></tr>
+        </table>
+
+        <div class="note">
+            <strong>When to reach for it:</strong> when you need a sort with a hard worst-case guarantee and can't afford extra memory — embedded systems, real-time guarantees, or as the fallback that rescues quicksort from its <code>O(n&sup2;)</code> worst case (that hybrid is called <strong>introsort</strong>, used by many standard libraries).
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Heap Sort playground ----
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        const DEFAULT_ARR = [4, 10, 3, 5, 1, 8, 2];
+        let arr = DEFAULT_ARR.slice();
+
+        // Machine state
+        // phase: 'build' | 'sort' | 'done'
+        let phase, buildI, heapSize, siftI, sortEnd, justSwapped, active;
+
+        function initMachine() {
+            phase = 'build';
+            heapSize = arr.length;
+            buildI = Math.floor(arr.length / 2) - 1; // last non-leaf
+            siftI = null;        // current node being sifted (null = none in progress)
+            sortEnd = arr.length - 1;
+            justSwapped = false;
+            active = [];         // indices to highlight yellow
+            if (arr.length <= 1) phase = 'done';
+        }
+
+        function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+        function render() {
+            const area = document.getElementById('barArea');
+            area.innerHTML = '';
+            const maxVal = Math.max(1, ...arr);
+            arr.forEach((v, i) => {
+                const col = document.createElement('div');
+                col.className = 'bar-col';
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                // sorted tail: indices > sortEnd are locked (in sort phase / done)
+                const isSorted = (phase === 'done') || (phase === 'sort' && i > sortEnd);
+                const isRoot = (phase === 'sort' && i === 0 && !isSorted && heapSize > 1);
+                if (isSorted) bar.classList.add('sorted');
+                else if (active.includes(i)) bar.classList.add('active');
+                else if (isRoot) bar.classList.add('heaproot');
+                bar.style.height = (24 + (v / maxVal) * 180) + 'px';
+                bar.textContent = v;
+                col.appendChild(bar);
+                const idx = document.createElement('div');
+                idx.className = 'bar-idx';
+                idx.textContent = i;
+                col.appendChild(idx);
+                area.appendChild(col);
+            });
+        }
+
+        function updateButtons() {
+            document.getElementById('stepBtn').disabled = (phase === 'done') || busy;
+            document.getElementById('autoBtn').disabled = (phase === 'done') || busy;
+            document.getElementById('applyBtn').disabled = busy;
+            document.getElementById('resetBtn').disabled = busy;
+        }
+
+        // One atomic sift-down increment on node siftI within heap of size `size`.
+        // Returns true if the sift is still in progress, false if finished.
+        function siftStep(size) {
+            const i = siftI;
+            let largest = i;
+            const l = 2 * i + 1, r = 2 * i + 2;
+            if (l < size && arr[l] > arr[largest]) largest = l;
+            if (r < size && arr[r] > arr[largest]) largest = r;
+            if (largest === i) {
+                active = [];
+                siftI = null;
+                return false; // done sifting this node
+            }
+            // swap and continue down
+            [arr[i], arr[largest]] = [arr[largest], arr[i]];
+            active = [i, largest];
+            siftI = largest;
+            return true;
+        }
+
+        // Advances exactly ONE unit of work.
+        function nextStep() {
+            if (phase === 'done') return;
+
+            if (phase === 'build') {
+                if (siftI === null) {
+                    // start sifting the next build index
+                    if (buildI < 0) {
+                        // build complete -> begin sort phase
+                        phase = 'sort';
+                        active = [];
+                        setStatus('Max-heap built! Largest (' + arr[0] + ') is at the root. Now drain it into the sorted tail.');
+                        render(); updateButtons();
+                        return;
+                    }
+                    siftI = buildI;
+                    setStatus('Build phase: sift down index ' + buildI + ' (value ' + arr[buildI] + ').');
+                    active = [buildI];
+                    render(); updateButtons();
+                    return;
+                } else {
+                    const more = siftStep(heapSize);
+                    if (more) {
+                        setStatus('Build phase: sifting index ' + buildI + ' — swapped down, value keeps sinking.');
+                    } else {
+                        setStatus('Build phase: index ' + buildI + ' settled. Subtree is now a valid max-heap.');
+                        buildI--;
+                    }
+                    render(); updateButtons();
+                    return;
+                }
+            }
+
+            if (phase === 'sort') {
+                if (!justSwapped && siftI === null) {
+                    // swap root with the last heap element
+                    const rootVal = arr[0], lastVal = arr[sortEnd];
+                    [arr[0], arr[sortEnd]] = [arr[sortEnd], arr[0]];
+                    active = [0, sortEnd];
+                    justSwapped = true;
+                    setStatus('Swap root ' + rootVal + ' with last ' + lastVal + ' — ' + rootVal + ' is now sorted (locked at index ' + sortEnd + ').');
+                    render(); updateButtons();
+                    return;
+                }
+                if (justSwapped && siftI === null) {
+                    // shrink heap and begin sifting the new root
+                    heapSize = sortEnd;       // one element now locked at the back
+                    sortEnd--;
+                    justSwapped = false;
+                    if (heapSize <= 1) {
+                        // nothing left to sift; everything sorted
+                        phase = 'done';
+                        active = [];
+                        setStatus('Done! The array is fully sorted ascending. Every bar is locked green.');
+                        render(); updateButtons();
+                        return;
+                    }
+                    siftI = 0;
+                    active = [0];
+                    setStatus('Sift down the new root (' + arr[0] + ') within heap of size ' + heapSize + '.');
+                    render(); updateButtons();
+                    return;
+                }
+                if (siftI !== null) {
+                    const more = siftStep(heapSize);
+                    if (more) {
+                        setStatus('Sift down within heap of size ' + heapSize + ' — root sinking toward its spot.');
+                    } else {
+                        setStatus('Heap restored. Largest remaining value (' + arr[0] + ') is back at the root.');
+                    }
+                    render(); updateButtons();
+                    return;
+                }
+            }
+        }
+
+        async function autoPlay() {
+            if (busy || phase === 'done') return;
+            busy = true;
+            updateButtons();
+            while (phase !== 'done') {
+                nextStep();
+                await sleep(650);
+            }
+            busy = false;
+            updateButtons();
+        }
+
+        function applyArr() {
+            if (busy) return;
+            const raw = document.getElementById('arrInput').value;
+            const parsed = raw.split(',')
+                .map(s => parseInt(s.trim(), 10))
+                .filter(v => !isNaN(v));
+            if (parsed.length === 0) {
+                setStatus('Please enter at least one number, comma-separated.');
+                return;
+            }
+            arr = parsed.slice(0, 12); // cap for layout
+            initMachine();
+            setStatus('Applied array of ' + arr.length + ' values. Press “Next Step ▶” to start the build-heap phase.');
+            render(); updateButtons();
+        }
+
+        function resetArr() {
+            if (busy) return;
+            arr = DEFAULT_ARR.slice();
+            document.getElementById('arrInput').value = DEFAULT_ARR.join(',');
+            initMachine();
+            setStatus('Reset. Array is back to [' + DEFAULT_ARR.join(', ') + ']. Press “Next Step ▶” to begin.');
+            render(); updateButtons();
+        }
+
+        // boot
+        initMachine();
+        render();
+        updateButtons();
+    </script>
+</body>
+</html>

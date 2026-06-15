@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heaps for Greedy & Scheduling - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #7c3aed; margin-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+
+        .pg-section-label { font-size: 0.74em; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #94a3b8; margin: 14px 0 8px; }
+
+        /* Heap node row (the min-heap of current forest roots) */
+        .heap-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 56px; align-items: center; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
+        .heap-node {
+            display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+            min-width: 50px; padding: 8px 10px; border-radius: 10px;
+            background: white; border: 2px solid #cbd5e1; transition: all 0.15s ease;
+        }
+        .heap-node .hn-label { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.95em; color: #0f172a; }
+        .heap-node .hn-freq { font-size: 0.7em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-top: 2px; }
+        .heap-node.sel { background: #ede9fe; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+        .heap-empty { color: #94a3b8; font-size: 0.85em; }
+
+        .forest-area { margin-top: 8px; }
+        #huffSvg { display: block; margin: auto; max-width: 100%; }
+
+        .codes-table { width: auto; margin: 14px auto 0; }
+        .codes-table td, .codes-table th { padding: 6px 14px; font-family: 'JetBrains Mono', monospace; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 240px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .pg-controls label { font-size: 0.82em; color: #64748b; font-weight: 500; }
+        .pg-cost { margin-left: auto; font-size: 0.85em; color: #475569; font-weight: 600; }
+        .pg-cost span { color: #7c3aed; font-family: 'JetBrains Mono', monospace; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .pg-controls input { width: 100%; } .pg-cost { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Heaps for Greedy &amp; Scheduling</h1>
+        <p>Picture a busy coffee counter where you always serve whoever has been waiting longest, or a checkout line where the express lane keeps grabbing the customer with the fewest items. Each time, you make one move: <strong>pick the most extreme thing right now</strong> — the longest wait, the smallest cart, the cheapest option — act on it, then look again.</p>
+        <p>That repeated "take the best next" move is the heartbeat of <strong>greedy algorithms</strong>. And a heap is the perfect engine for it: it always keeps the current champion at the root, hands it to you in O(1), and re-settles itself in O(log n) after you pop it or push something new.</p>
+        <p>This lesson is about a single, reusable pattern: <strong>whenever a problem says "repeatedly take the smallest / largest / most-frequent / cheapest next," reach for a heap.</strong> We'll see it power tree-building, rope-merging, CPU scheduling, string layout, and room allocation — five problems that look unrelated until you notice they all run the same loop.</p>
+
+        <div class="note">
+            <strong>The unifying insight.</strong> A heap turns <em>"repeatedly pick the extreme element"</em> from O(n) per pick (scan the whole collection every time) into O(log n) per pick. That single speed-up is exactly why heaps power so many greedy algorithms — the greedy <em>strategy</em> decides <em>what</em> to grab next, and the heap makes grabbing it fast.
+        </div>
+
+        <h2>1. Huffman Coding — a Heap that Builds a Tree</h2>
+        <p>Here's the centerpiece. Suppose you want to compress text. Letters that appear a lot (like <code>e</code> or a space) should get <strong>short</strong> codes; rare letters (like <code>z</code>) can afford <strong>long</strong> ones. That's the whole intuition behind Huffman coding: spend your short codes where they'll be used most.</p>
+        <p>How do we decide the exact codes? We build a binary tree from the bottom up, and a min-heap drives the construction. Start with one tiny node per symbol, keyed by its frequency. Then repeat:</p>
+        <ol>
+            <li><strong>Pop the two lowest-frequency</strong> nodes from the min-heap.</li>
+            <li><strong>Merge</strong> them under a new parent node whose frequency is the <em>sum</em> of the two.</li>
+            <li><strong>Push</strong> that parent back into the heap.</li>
+        </ol>
+        <p>Each merge shrinks the heap by one. When a single node remains, it's the root of the finished tree. Read each leaf's path from the root — <strong>left = 0, right = 1</strong> — and that string of bits is the symbol's code.</p>
+
+        <h3>Why greedy-by-lowest-frequency is optimal</h3>
+        <p>The depth of a leaf in the tree <em>is</em> the length of its code. Cost = the sum over all symbols of (frequency &times; depth). We want to minimize that.</p>
+        <p>The two rarest symbols should sit <strong>deepest</strong> — they're used least, so paying a long code for them costs the fewest total bits. By always merging the two smallest frequencies first, we push them down early; every later merge sits above them, so they end up at the greatest depth. Exchange-argument proof sketch: in any optimal tree, you can swap the two least-frequent symbols down to the deepest level without increasing cost, which is exactly what this greedy choice produces. So the local choice is provably globally optimal.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppHuff')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaHuff')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyHuff')">Python</button>
+            </div>
+            <div id="cppHuff" class="code-content active">
+<pre>
+<span class="comment">// Build the optimal prefix-code tree with a min-heap of nodes.</span>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+
+<span class="keyword">struct</span> Node {
+    <span class="keyword">int</span> freq; <span class="keyword">char</span> ch;
+    Node *left = <span class="keyword">nullptr</span>, *right = <span class="keyword">nullptr</span>;
+};
+<span class="comment">// min-heap: smallest freq on top</span>
+<span class="keyword">struct</span> Cmp { <span class="keyword">bool</span> <span class="keyword">operator</span>()(Node* a, Node* b) { <span class="keyword">return</span> a-&gt;freq &gt; b-&gt;freq; } };
+
+Node* buildHuffman(std::vector&lt;std::pair&lt;<span class="keyword">char</span>,<span class="keyword">int</span>&gt;&gt;&amp; freqs) {
+    std::priority_queue&lt;Node*, std::vector&lt;Node*&gt;, Cmp&gt; pq;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [c, f] : freqs) pq.push(<span class="keyword">new</span> Node{f, c});
+
+    <span class="keyword">while</span> (pq.size() &gt; <span class="number">1</span>) {
+        Node* a = pq.top(); pq.pop();   <span class="comment">// two smallest</span>
+        Node* b = pq.top(); pq.pop();
+        Node* parent = <span class="keyword">new</span> Node{a-&gt;freq + b-&gt;freq, <span class="string">'\0'</span>};
+        parent-&gt;left = a; parent-&gt;right = b;
+        pq.push(parent);                <span class="comment">// push merged node back</span>
+    }
+    <span class="keyword">return</span> pq.top();                    <span class="comment">// the root</span>
+}
+
+<span class="comment">// Walk the tree: left = '0', right = '1' to read each leaf's code.</span>
+</pre>
+            </div>
+            <div id="javaHuff" class="code-content">
+<pre>
+<span class="comment">// Build the optimal prefix-code tree with a min-heap of nodes.</span>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">class</span> Node {
+    <span class="keyword">int</span> freq; <span class="type">char</span> ch;
+    Node left, right;
+    Node(<span class="keyword">int</span> f, <span class="type">char</span> c) { freq = f; ch = c; }
+}
+
+Node buildHuffman(<span class="type">char</span>[] chars, <span class="keyword">int</span>[] freqs) {
+    <span class="comment">// min-heap ordered by frequency</span>
+    PriorityQueue&lt;Node&gt; pq = <span class="keyword">new</span> PriorityQueue&lt;&gt;((a, b) -&gt; a.freq - b.freq);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; chars.length; i++)
+        pq.offer(<span class="keyword">new</span> Node(freqs[i], chars[i]));
+
+    <span class="keyword">while</span> (pq.size() &gt; <span class="number">1</span>) {
+        Node a = pq.poll();             <span class="comment">// two smallest</span>
+        Node b = pq.poll();
+        Node parent = <span class="keyword">new</span> Node(a.freq + b.freq, <span class="string">'\0'</span>);
+        parent.left = a; parent.right = b;
+        pq.offer(parent);               <span class="comment">// push merged node back</span>
+    }
+    <span class="keyword">return</span> pq.poll();                   <span class="comment">// the root</span>
+}
+
+<span class="comment">// Walk the tree: left = '0', right = '1' to read each leaf's code.</span>
+</pre>
+            </div>
+            <div id="pyHuff" class="code-content">
+<pre>
+<span class="comment"># Build the optimal prefix-code tree with a min-heap of nodes.</span>
+<span class="keyword">import</span> heapq
+
+<span class="keyword">def</span> build_huffman(freqs):           <span class="comment"># freqs: list of (char, frequency)</span>
+    <span class="comment"># heap entries: [freq, tiebreak, node]; node = (char, left, right)</span>
+    heap = [[f, i, (c, <span class="keyword">None</span>, <span class="keyword">None</span>)] <span class="keyword">for</span> i, (c, f) <span class="keyword">in</span> enumerate(freqs)]
+    heapq.heapify(heap)
+    counter = len(heap)
+
+    <span class="keyword">while</span> len(heap) &gt; <span class="number">1</span>:
+        f1, _, n1 = heapq.heappop(heap)   <span class="comment"># two smallest</span>
+        f2, _, n2 = heapq.heappop(heap)
+        merged = (<span class="keyword">None</span>, n1, n2)            <span class="comment"># internal node</span>
+        heapq.heappush(heap, [f1 + f2, counter, merged])
+        counter += <span class="number">1</span>                       <span class="comment"># push merged node back</span>
+
+    <span class="keyword">return</span> heap[<span class="number">0</span>][<span class="number">2</span>]                  <span class="comment"># the root node</span>
+
+<span class="comment"># Walk the tree: left = '0', right = '1' to read each leaf's code.</span>
+</pre>
+            </div>
+        </div>
+        <p style="font-size:0.82em;color:#94a3b8">Building the tree does <code>n - 1</code> merges, each a couple of O(log n) heap operations, so the whole thing is O(n log n).</p>
+
+        <h2>2. Connect Ropes / Minimum Cost to Connect Sticks</h2>
+        <p>You have several ropes of given lengths and want to tie them all into one. Joining two ropes costs the sum of their lengths, and the joined rope keeps that combined length for the next join. Minimize the total cost.</p>
+        <p>This is Huffman's twin. A rope's length gets re-paid every time it's part of a later join — exactly like a symbol's frequency getting re-paid at every level of depth. So you want short ropes joined <strong>first</strong> (paid many times while small) and long ropes joined <strong>last</strong>. A min-heap gives you the two shortest every step.</p>
+        <ul>
+            <li>Pop the two smallest lengths.</li>
+            <li>Add their sum to the running cost.</li>
+            <li>Push the sum back into the heap.</li>
+        </ul>
+        <p>Stop when one rope remains. (The Huffman playground below uses the very same loop — watch the running merge-cost; that number <em>is</em> the connect-ropes answer.)</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppRope')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaRope')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyRope')">Python</button>
+            </div>
+            <div id="cppRope" class="code-content active">
+<pre>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+
+<span class="keyword">int</span> connectRopes(std::vector&lt;<span class="keyword">int</span>&gt;&amp; ropes) {
+    <span class="comment">// min-heap of lengths</span>
+    std::priority_queue&lt;<span class="keyword">int</span>, std::vector&lt;<span class="keyword">int</span>&gt;, std::greater&lt;&gt;&gt; pq(ropes.begin(), ropes.end());
+    <span class="keyword">int</span> cost = <span class="number">0</span>;
+    <span class="keyword">while</span> (pq.size() &gt; <span class="number">1</span>) {
+        <span class="keyword">int</span> a = pq.top(); pq.pop();   <span class="comment">// two shortest</span>
+        <span class="keyword">int</span> b = pq.top(); pq.pop();
+        cost += a + b;                <span class="comment">// pay to join</span>
+        pq.push(a + b);               <span class="comment">// joined rope goes back</span>
+    }
+    <span class="keyword">return</span> cost;
+}
+</pre>
+            </div>
+            <div id="javaRope" class="code-content">
+<pre>
+<span class="keyword">import</span> java.util.PriorityQueue;
+
+<span class="keyword">int</span> connectRopes(<span class="keyword">int</span>[] ropes) {
+    PriorityQueue&lt;<span class="type">Integer</span>&gt; pq = <span class="keyword">new</span> PriorityQueue&lt;&gt;();  <span class="comment">// min-heap</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> r : ropes) pq.offer(r);
+    <span class="keyword">int</span> cost = <span class="number">0</span>;
+    <span class="keyword">while</span> (pq.size() &gt; <span class="number">1</span>) {
+        <span class="keyword">int</span> a = pq.poll();            <span class="comment">// two shortest</span>
+        <span class="keyword">int</span> b = pq.poll();
+        cost += a + b;                <span class="comment">// pay to join</span>
+        pq.offer(a + b);              <span class="comment">// joined rope goes back</span>
+    }
+    <span class="keyword">return</span> cost;
+}
+</pre>
+            </div>
+            <div id="pyRope" class="code-content">
+<pre>
+<span class="keyword">import</span> heapq
+
+<span class="keyword">def</span> connect_ropes(ropes):
+    heapq.heapify(ropes)              <span class="comment"># min-heap in place</span>
+    cost = <span class="number">0</span>
+    <span class="keyword">while</span> len(ropes) &gt; <span class="number">1</span>:
+        a = heapq.heappop(ropes)      <span class="comment"># two shortest</span>
+        b = heapq.heappop(ropes)
+        cost += a + b                 <span class="comment"># pay to join</span>
+        heapq.heappush(ropes, a + b)  <span class="comment"># joined rope goes back</span>
+    <span class="keyword">return</span> cost
+</pre>
+            </div>
+        </div>
+
+        <h2>3. Task Scheduler — CPU Scheduling by Priority</h2>
+        <p>The CPU must run a list of tasks, but identical tasks need a <strong>cooldown</strong> of <code>n</code> intervals between runs (think: a core needs to cool off before repeating the same heavy job). Tasks of different kinds can run back-to-back. Minimize total time, including any forced idle slots.</p>
+        <p>Intuition: the task with the <strong>most remaining copies</strong> is the bottleneck — it's the one most likely to force idle gaps later. So at each tick, run the most-pending task. That calls for a <strong>max-heap keyed by remaining count</strong>.</p>
+        <p>The cooldown is the subtle part. When you run a task, you don't immediately put it back — it must wait. Pop the most-pending task, decrement its count, and place it in a <strong>cooldown queue</strong> stamped with the time it becomes available again. Each tick, anything whose cooldown has expired goes back into the max-heap. If the heap is empty but the cooldown queue isn't, the CPU sits idle for that tick.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppTask')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaTask')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyTask')">Python</button>
+            </div>
+            <div id="cppTask" class="code-content active">
+<pre>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;unordered_map&gt;</span>
+
+<span class="keyword">int</span> leastInterval(std::vector&lt;<span class="keyword">char</span>&gt;&amp; tasks, <span class="keyword">int</span> n) {
+    std::unordered_map&lt;<span class="keyword">char</span>, <span class="keyword">int</span>&gt; cnt;
+    <span class="keyword">for</span> (<span class="keyword">char</span> t : tasks) cnt[t]++;
+
+    std::priority_queue&lt;<span class="keyword">int</span>&gt; pq;          <span class="comment">// max-heap of remaining counts</span>
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; [c, k] : cnt) pq.push(k);
+
+    std::queue&lt;std::pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt;&gt; cool; <span class="comment">// {remaining, readyTime}</span>
+    <span class="keyword">int</span> time = <span class="number">0</span>;
+    <span class="keyword">while</span> (!pq.empty() || !cool.empty()) {
+        time++;
+        <span class="keyword">if</span> (!cool.empty() &amp;&amp; cool.front().second == time) {
+            pq.push(cool.front().first);     <span class="comment">// cooldown expired -&gt; re-push</span>
+            cool.pop();
+        }
+        <span class="keyword">if</span> (!pq.empty()) {
+            <span class="keyword">int</span> remaining = pq.top() - <span class="number">1</span>; pq.pop();
+            <span class="keyword">if</span> (remaining &gt; <span class="number">0</span>) cool.push({remaining, time + n + <span class="number">1</span>});
+        }
+        <span class="comment">// else: heap empty but tasks cooling -&gt; this tick is idle</span>
+    }
+    <span class="keyword">return</span> time;
+}
+</pre>
+            </div>
+            <div id="javaTask" class="code-content">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">int</span> leastInterval(<span class="type">char</span>[] tasks, <span class="keyword">int</span> n) {
+    <span class="keyword">int</span>[] cnt = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">26</span>];
+    <span class="keyword">for</span> (<span class="type">char</span> t : tasks) cnt[t - <span class="string">'A'</span>]++;
+
+    <span class="comment">// max-heap of remaining counts</span>
+    PriorityQueue&lt;<span class="type">Integer</span>&gt; pq = <span class="keyword">new</span> PriorityQueue&lt;&gt;(Collections.reverseOrder());
+    <span class="keyword">for</span> (<span class="keyword">int</span> c : cnt) <span class="keyword">if</span> (c &gt; <span class="number">0</span>) pq.offer(c);
+
+    Queue&lt;<span class="keyword">int</span>[]&gt; cool = <span class="keyword">new</span> LinkedList&lt;&gt;(); <span class="comment">// {remaining, readyTime}</span>
+    <span class="keyword">int</span> time = <span class="number">0</span>;
+    <span class="keyword">while</span> (!pq.isEmpty() || !cool.isEmpty()) {
+        time++;
+        <span class="keyword">if</span> (!cool.isEmpty() &amp;&amp; cool.peek()[<span class="number">1</span>] == time)
+            pq.offer(cool.poll()[<span class="number">0</span>]);          <span class="comment">// cooldown done -&gt; re-push</span>
+        <span class="keyword">if</span> (!pq.isEmpty()) {
+            <span class="keyword">int</span> remaining = pq.poll() - <span class="number">1</span>;
+            <span class="keyword">if</span> (remaining &gt; <span class="number">0</span>) cool.offer(<span class="keyword">new</span> <span class="keyword">int</span>[]{remaining, time + n + <span class="number">1</span>});
+        }
+    }
+    <span class="keyword">return</span> time;
+}
+</pre>
+            </div>
+            <div id="pyTask" class="code-content">
+<pre>
+<span class="keyword">import</span> heapq
+<span class="keyword">from</span> collections <span class="keyword">import</span> Counter, deque
+
+<span class="keyword">def</span> least_interval(tasks, n):
+    <span class="comment"># Python heapq is a min-heap, so store NEGATIVE counts for a max-heap</span>
+    heap = [-c <span class="keyword">for</span> c <span class="keyword">in</span> Counter(tasks).values()]
+    heapq.heapify(heap)
+    cool = deque()                    <span class="comment"># (remaining_neg, ready_time)</span>
+    time = <span class="number">0</span>
+    <span class="keyword">while</span> heap <span class="keyword">or</span> cool:
+        time += <span class="number">1</span>
+        <span class="keyword">if</span> cool <span class="keyword">and</span> cool[<span class="number">0</span>][<span class="number">1</span>] == time:
+            heapq.heappush(heap, cool.popleft()[<span class="number">0</span>])  <span class="comment"># re-push after cooldown</span>
+        <span class="keyword">if</span> heap:
+            remaining = heapq.heappop(heap) + <span class="number">1</span>   <span class="comment"># +1 because counts are negative</span>
+            <span class="keyword">if</span> remaining &lt; <span class="number">0</span>:
+                cool.append((remaining, time + n + <span class="number">1</span>))
+        <span class="comment"># else: idle tick</span>
+    <span class="keyword">return</span> time
+</pre>
+            </div>
+        </div>
+        <p style="font-size:0.82em;color:#94a3b8">With a heap this is O(n log A) where A is the number of distinct tasks (at most 26 letters, so effectively O(n)). A pure counting formula can solve it in O(n) without a heap, but the heap version makes the "most-pending-first" intuition explicit.</p>
+
+        <h2>4. Reorganize String</h2>
+        <p>Rearrange a string so that no two adjacent characters are the same — for example <code>"aab"</code> &rarr; <code>"aba"</code>. Intuition: the character with the <strong>most copies left</strong> is the one most in danger of being forced next to itself, so always place it next. A <strong>max-heap keyed by count</strong> hands you that character.</p>
+        <p>The trick: after placing a character, you can't reuse it on the very next slot. So hold the just-used character <em>aside</em> for one step (decrement its count first), and only push it back into the heap on the following iteration — once a different character has been placed in between.</p>
+        <p>It's <strong>infeasible</strong> when the most frequent character appears more than <code>(n + 1) / 2</code> times — there simply aren't enough gaps to separate all its copies, and the heap will run dry while that character still has leftovers.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppReorg')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaReorg')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyReorg')">Python</button>
+            </div>
+            <div id="cppReorg" class="code-content active">
+<pre>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;string&gt;</span>
+
+std::string reorganize(std::string s) {
+    <span class="keyword">int</span> cnt[<span class="number">26</span>] = {<span class="number">0</span>};
+    <span class="keyword">for</span> (<span class="keyword">char</span> c : s) cnt[c - <span class="string">'a'</span>]++;
+    <span class="comment">// max-heap of {count, char}</span>
+    std::priority_queue&lt;std::pair&lt;<span class="keyword">int</span>,<span class="keyword">char</span>&gt;&gt; pq;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">26</span>; i++)
+        <span class="keyword">if</span> (cnt[i]) pq.push({cnt[i], <span class="keyword">char</span>(<span class="string">'a'</span> + i)});
+
+    std::string res;
+    std::pair&lt;<span class="keyword">int</span>,<span class="keyword">char</span>&gt; hold = {<span class="number">0</span>, <span class="string">'\0'</span>};   <span class="comment">// just-used char on hold</span>
+    <span class="keyword">while</span> (!pq.empty()) {
+        <span class="keyword">auto</span> [c, ch] = pq.top(); pq.pop();    <span class="comment">// most frequent</span>
+        res += ch;
+        <span class="keyword">if</span> (hold.first &gt; <span class="number">0</span>) pq.push(hold);    <span class="comment">// release previous after a gap</span>
+        hold = {c - <span class="number">1</span>, ch};                  <span class="comment">// hold this one for one step</span>
+    }
+    <span class="keyword">return</span> res.size() == s.size() ? res : <span class="string">""</span>;  <span class="comment">// "" if impossible</span>
+}
+</pre>
+            </div>
+            <div id="javaReorg" class="code-content">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+String reorganize(String s) {
+    <span class="keyword">int</span>[] cnt = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">26</span>];
+    <span class="keyword">for</span> (<span class="type">char</span> c : s.toCharArray()) cnt[c - <span class="string">'a'</span>]++;
+    <span class="comment">// max-heap by count</span>
+    PriorityQueue&lt;<span class="keyword">int</span>[]&gt; pq = <span class="keyword">new</span> PriorityQueue&lt;&gt;((a, b) -&gt; b[<span class="number">0</span>] - a[<span class="number">0</span>]);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">26</span>; i++)
+        <span class="keyword">if</span> (cnt[i] &gt; <span class="number">0</span>) pq.offer(<span class="keyword">new</span> <span class="keyword">int</span>[]{cnt[i], i});
+
+    StringBuilder sb = <span class="keyword">new</span> StringBuilder();
+    <span class="keyword">int</span>[] hold = <span class="keyword">null</span>;                       <span class="comment">// just-used char on hold</span>
+    <span class="keyword">while</span> (!pq.isEmpty()) {
+        <span class="keyword">int</span>[] cur = pq.poll();              <span class="comment">// most frequent</span>
+        sb.append((<span class="type">char</span>)(<span class="string">'a'</span> + cur[<span class="number">1</span>]));
+        <span class="keyword">if</span> (hold != <span class="keyword">null</span> &amp;&amp; hold[<span class="number">0</span>] &gt; <span class="number">0</span>) pq.offer(hold);
+        cur[<span class="number">0</span>]--;
+        hold = cur;                       <span class="comment">// release on next round</span>
+    }
+    <span class="keyword">return</span> sb.length() == s.length() ? sb.toString() : <span class="string">""</span>;
+}
+</pre>
+            </div>
+            <div id="pyReorg" class="code-content">
+<pre>
+<span class="keyword">import</span> heapq
+<span class="keyword">from</span> collections <span class="keyword">import</span> Counter
+
+<span class="keyword">def</span> reorganize(s):
+    <span class="comment"># max-heap via negative counts</span>
+    heap = [(-c, ch) <span class="keyword">for</span> ch, c <span class="keyword">in</span> Counter(s).items()]
+    heapq.heapify(heap)
+    res, hold = [], <span class="keyword">None</span>                  <span class="comment"># hold = just-used char</span>
+    <span class="keyword">while</span> heap:
+        c, ch = heapq.heappop(heap)       <span class="comment"># most frequent (c is negative)</span>
+        res.append(ch)
+        <span class="keyword">if</span> hold <span class="keyword">and</span> hold[<span class="number">0</span>] &lt; <span class="number">0</span>:
+            heapq.heappush(heap, hold)    <span class="comment"># release after a gap</span>
+        hold = (c + <span class="number">1</span>, ch)               <span class="comment"># used one copy, hold for one step</span>
+    <span class="keyword">return</span> <span class="string">""</span>.join(res) <span class="keyword">if</span> len(res) == len(s) <span class="keyword">else</span> <span class="string">""</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>5. Meeting Rooms II</h2>
+        <p>Given a list of meetings with start and end times, how many rooms do you need so none overlap? The answer is the <strong>maximum number of meetings happening at the same time</strong>.</p>
+        <p>Intuition: process meetings in order of start time. Keep a <strong>min-heap of end times</strong> — one entry per room currently in use, with the soonest-to-free room on top. For each new meeting: if the earliest-ending room frees up before this meeting starts, reuse it (pop, then push the new end time). Otherwise, you need a fresh room (just push). The heap's size at any moment is the number of rooms in use; its peak size is the answer.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppRoom')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaRoom')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyRoom')">Python</button>
+            </div>
+            <div id="cppRoom" class="code-content active">
+<pre>
+<span class="preproc">#include</span> <span class="string">&lt;queue&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;algorithm&gt;</span>
+
+<span class="keyword">int</span> minMeetingRooms(std::vector&lt;std::vector&lt;<span class="keyword">int</span>&gt;&gt;&amp; m) {
+    std::sort(m.begin(), m.end());        <span class="comment">// by start time</span>
+    <span class="comment">// min-heap of end times (soonest-free room on top)</span>
+    std::priority_queue&lt;<span class="keyword">int</span>, std::vector&lt;<span class="keyword">int</span>&gt;, std::greater&lt;&gt;&gt; ends;
+    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; mt : m) {
+        <span class="keyword">if</span> (!ends.empty() &amp;&amp; ends.top() &lt;= mt[<span class="number">0</span>])
+            ends.pop();                   <span class="comment">// a room freed up -&gt; reuse it</span>
+        ends.push(mt[<span class="number">1</span>]);                 <span class="comment">// occupy a room with this end time</span>
+    }
+    <span class="keyword">return</span> ends.size();                   <span class="comment">// peak rooms in use</span>
+}
+</pre>
+            </div>
+            <div id="javaRoom" class="code-content">
+<pre>
+<span class="keyword">import</span> java.util.*;
+
+<span class="keyword">int</span> minMeetingRooms(<span class="keyword">int</span>[][] m) {
+    Arrays.sort(m, (a, b) -&gt; a[<span class="number">0</span>] - b[<span class="number">0</span>]);   <span class="comment">// by start time</span>
+    <span class="comment">// min-heap of end times</span>
+    PriorityQueue&lt;<span class="type">Integer</span>&gt; ends = <span class="keyword">new</span> PriorityQueue&lt;&gt;();
+    <span class="keyword">for</span> (<span class="keyword">int</span>[] mt : m) {
+        <span class="keyword">if</span> (!ends.isEmpty() &amp;&amp; ends.peek() &lt;= mt[<span class="number">0</span>])
+            ends.poll();                  <span class="comment">// a room freed up -&gt; reuse it</span>
+        ends.offer(mt[<span class="number">1</span>]);                <span class="comment">// occupy a room</span>
+    }
+    <span class="keyword">return</span> ends.size();                   <span class="comment">// peak rooms in use</span>
+}
+</pre>
+            </div>
+            <div id="pyRoom" class="code-content">
+<pre>
+<span class="keyword">import</span> heapq
+
+<span class="keyword">def</span> min_meeting_rooms(meetings):
+    meetings.sort()                       <span class="comment"># by start time</span>
+    ends = []                             <span class="comment"># min-heap of end times</span>
+    <span class="keyword">for</span> start, end <span class="keyword">in</span> meetings:
+        <span class="keyword">if</span> ends <span class="keyword">and</span> ends[<span class="number">0</span>] &lt;= start:
+            heapq.heappop(ends)           <span class="comment"># a room freed up -&gt; reuse it</span>
+        heapq.heappush(ends, end)         <span class="comment"># occupy a room</span>
+    <span class="keyword">return</span> len(ends)                      <span class="comment"># peak rooms in use</span>
+</pre>
+            </div>
+        </div>
+
+        <h2>The Same Engine: Dijkstra, Prim, IPO</h2>
+        <p>Once you see the pattern, you'll spot it everywhere. These three live in full in the Graphs module, but they're driven by the exact same greedy-pop-the-best heap engine:</p>
+        <ul>
+            <li><strong>Dijkstra (shortest paths)</strong> — a min-heap repeatedly pops the unvisited node with the smallest known distance, relaxes its neighbors, and pushes updated distances back.</li>
+            <li><strong>Prim (minimum spanning tree)</strong> — a min-heap repeatedly pops the cheapest edge crossing out of the tree built so far, then pushes the new frontier edges.</li>
+            <li><strong>IPO / Maximize Capital</strong> — two heaps: a min-heap by capital reveals which projects you can afford, and a max-heap by profit picks the most profitable affordable project each round.</li>
+        </ul>
+
+        <h2>Interactive: Build a Huffman Tree</h2>
+        <p>This is the pattern made visible. Enter symbol frequencies (or a short word to compute letter frequencies from), then step through the greedy merges. Each step pops the two lowest-frequency nodes (they glow violet), merges them into a parent, and pushes it back. Watch the heap shrink and the forest grow until one root remains — then the codes appear.</p>
+
+        <div class="playground">
+            <div class="pg-title">🌳 Huffman Coding — Greedy Tree Builder</div>
+            <div class="pg-sub">Each "Next Step" pops the two smallest nodes from the min-heap, merges them (sum of frequencies), and pushes the parent back. left = 0, right = 1.</div>
+
+            <div class="pg-section-label">Min-heap (current forest roots, smallest first)</div>
+            <div class="heap-row" id="heapRow"></div>
+
+            <div class="pg-section-label">Forest / final tree</div>
+            <div class="forest-area">
+                <svg id="huffSvg"></svg>
+            </div>
+
+            <div id="codesWrap"></div>
+
+            <div class="pg-status" id="status">Press "Next Step ▶" to pop the two smallest nodes and merge them.</div>
+
+            <div class="pg-controls">
+                <button class="btn btn-primary" id="stepBtn" onclick="huffStep()">Next Step ▶</button>
+                <button class="btn btn-primary" id="autoBtn" onclick="huffAuto()">Auto Play</button>
+                <button class="btn btn-ghost" onclick="huffReset()">↺ Reset</button>
+                <div class="pg-cost">Total merge cost: <span id="cost">0</span></div>
+            </div>
+            <div class="pg-controls">
+                <label>Frequencies or text:</label>
+                <input type="text" id="freqInput" value="A:5,B:9,C:12,D:13,E:16,F:45" placeholder="A:5,B:9,...  or  abracadabra">
+                <button class="btn btn-ghost" onclick="huffApply()">Apply</button>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Greedy + heap only works when the local choice is provably optimal.</strong>
+            <ul>
+                <li>Huffman and Connect Ropes are <em>provably</em> optimal (exchange argument) — taking the two smallest now never hurts. But many greedy attempts are <strong>not</strong> optimal; do not assume "grab the best now" works without proving it or recognizing a known pattern (e.g. coin change with arbitrary denominations breaks greedy).</li>
+                <li><strong>Task Scheduler bug:</strong> the classic mistake is forgetting to <em>re-push</em> a task into the max-heap after its cooldown expires. Drop that step and counts vanish, the heap empties early, and you report too short a time. Always stamp the cooldown and re-insert when it's up.</li>
+            </ul>
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <table>
+            <tr><th>Problem</th><th>Heap used</th><th>Time Complexity</th></tr>
+            <tr><td>Huffman Coding</td><td>min-heap of nodes</td><td>O(n log n)</td></tr>
+            <tr><td>Connect Ropes</td><td>min-heap of lengths</td><td>O(n log n)</td></tr>
+            <tr><td>Task Scheduler</td><td>max-heap of counts</td><td>O(n log n) — O(n) with counting</td></tr>
+            <tr><td>Reorganize String</td><td>max-heap of counts</td><td>O(n log A)</td></tr>
+            <tr><td>Meeting Rooms II</td><td>min-heap of end times</td><td>O(n log n)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">A is the alphabet size (distinct characters). For Reorganize String that's at most 26, so the heap operations are effectively constant and the algorithm is near-linear in practice.</p>
+
+        <div class="note">
+            <strong>Pattern to remember:</strong> when a problem repeatedly needs the smallest, largest, most-frequent, cheapest, or soonest item next, a heap is almost always the engine. Decide your greedy rule first (what makes one choice "best"), then let the heap deliver that choice in O(log n) and re-balance itself for the next round.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Huffman coding step-through ----
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        let busy = false;
+
+        const DEFAULT_INPUT = 'A:5,B:9,C:12,D:13,E:16,F:45';
+        let heap = [];        // array of node objects, kept sorted ascending by freq
+        let cost = 0;
+        let nextId = 0;
+        let lastMerged = null; // id of the most recently created parent (for highlight)
+        let finished = false;
+
+        // node: { id, freq, label, left, right }  (label only for leaves)
+
+        function makeLeaf(label, freq) {
+            return { id: nextId++, freq, label, left: null, right: null };
+        }
+
+        // keep heap sorted ascending; ties broken by id for stability
+        function heapSort() {
+            heap.sort((a, b) => a.freq - b.freq || a.id - b.id);
+        }
+
+        function parseInput(raw) {
+            raw = raw.trim();
+            if (raw === '') return null;
+            // form 1: comma-separated label:freq pairs
+            if (raw.includes(':')) {
+                const out = [];
+                for (const part of raw.split(',')) {
+                    const seg = part.trim();
+                    if (seg === '') continue;
+                    const [lab, f] = seg.split(':');
+                    const freq = parseInt((f || '').trim(), 10);
+                    const label = (lab || '').trim();
+                    if (label === '' || isNaN(freq) || freq <= 0) return null;
+                    out.push([label, freq]);
+                }
+                return out.length ? out : null;
+            }
+            // form 2: a text string -> count letter frequencies (ignore whitespace)
+            const counts = {};
+            for (const ch of raw) {
+                if (/\s/.test(ch)) continue;
+                counts[ch] = (counts[ch] || 0) + 1;
+            }
+            const out = Object.keys(counts).map(k => [k, counts[k]]);
+            return out.length ? out : null;
+        }
+
+        function initFrom(pairs) {
+            nextId = 0;
+            heap = pairs.map(([lab, f]) => makeLeaf(lab, f));
+            heapSort();
+            cost = 0;
+            lastMerged = null;
+            finished = false;
+        }
+
+        function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+        // --- rendering the heap row ---
+        function renderHeap(selIds) {
+            selIds = selIds || new Set();
+            const row = document.getElementById('heapRow');
+            row.innerHTML = '';
+            if (heap.length === 0) {
+                const e = document.createElement('div');
+                e.className = 'heap-empty';
+                e.textContent = '(heap is empty)';
+                row.appendChild(e);
+                return;
+            }
+            heap.forEach(node => {
+                const el = document.createElement('div');
+                el.className = 'heap-node' + (selIds.has(node.id) ? ' sel' : '');
+                const lab = document.createElement('div');
+                lab.className = 'hn-label';
+                lab.textContent = node.label !== null ? node.label : '•';
+                const fr = document.createElement('div');
+                fr.className = 'hn-freq';
+                fr.textContent = node.freq;
+                el.appendChild(lab);
+                el.appendChild(fr);
+                row.appendChild(el);
+            });
+        }
+
+        // --- rendering the forest / final tree as SVG ---
+        // Lay out every current root tree side by side.
+        function renderForest() {
+            const svg = document.getElementById('huffSvg');
+            const roots = heap.slice();
+            if (roots.length === 0) { svg.innerHTML = ''; svg.setAttribute('viewBox', '0 0 200 60'); return; }
+
+            const R = 18, vGap = 64, hGap = 44, topPad = 26, gapBetweenTrees = 30;
+            let leafCursor = 0;   // x-slot counter across all trees
+            const pos = {};       // id -> {x, y, node}
+            let maxDepth = 0;
+
+            // assign x by in-order leaf position, y by depth
+            function layout(node, depth) {
+                if (!node) return;
+                maxDepth = Math.max(maxDepth, depth);
+                if (!node.left && !node.right) {
+                    pos[node.id] = { x: leafCursor * hGap, y: topPad + depth * vGap, node };
+                    leafCursor++;
+                    return;
+                }
+                layout(node.left, depth + 1);
+                const lx = pos[node.left.id].x;
+                layout(node.right, depth + 1);
+                const rx = pos[node.right.id].x;
+                pos[node.id] = { x: (lx + rx) / 2, y: topPad + depth * vGap, node };
+            }
+
+            roots.forEach(root => {
+                const before = leafCursor;
+                layout(root, 0);
+                // add a visual gap before the next tree by nudging the cursor
+                if (leafCursor > before) leafCursor += gapBetweenTrees / hGap;
+            });
+
+            const width = Math.max(leafCursor * hGap, 200);
+            const height = topPad + maxDepth * vGap + R + 16;
+
+            let edges = '', nodes = '';
+            for (const id in pos) {
+                const p = pos[id];
+                const nd = p.node;
+                ['left', 'right'].forEach(side => {
+                    const c = nd[side];
+                    if (c && pos[c.id]) {
+                        const cp = pos[c.id];
+                        const mx = (p.x + cp.x) / 2, my = (p.y + cp.y) / 2;
+                        const bit = side === 'left' ? '0' : '1';
+                        edges += `<line x1="${p.x}" y1="${p.y}" x2="${cp.x}" y2="${cp.y}" stroke="#cbd5e1" stroke-width="2"/>`;
+                        edges += `<text x="${mx}" y="${my - 3}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#94a3b8" style="pointer-events:none">${bit}</text>`;
+                    }
+                });
+            }
+            for (const id in pos) {
+                const p = pos[id];
+                const nd = p.node;
+                const isLeaf = !nd.left && !nd.right;
+                let fill = isLeaf ? '#ffffff' : '#f5f3ff';
+                let stroke = '#cbd5e1';
+                if (parseInt(id, 10) === lastMerged) { fill = '#ede9fe'; stroke = '#7c3aed'; }
+                nodes += `<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="${fill}" stroke="${stroke}" stroke-width="${parseInt(id,10)===lastMerged?3.5:2.5}"/>`;
+                const main = isLeaf ? nd.label : nd.freq;
+                nodes += `<text x="${p.x}" y="${p.y + (isLeaf ? -1 : 4)}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="#0f172a" style="pointer-events:none">${main}</text>`;
+                if (isLeaf) {
+                    nodes += `<text x="${p.x}" y="${p.y + 11}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#94a3b8" style="pointer-events:none">${nd.freq}</text>`;
+                }
+            }
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.setAttribute('width', '100%');
+            svg.style.maxHeight = (height + 10) + 'px';
+            svg.innerHTML = edges + nodes;
+        }
+
+        // collect codes by walking the final root: left=0, right=1
+        function computeCodes(root) {
+            const codes = [];
+            (function walk(node, path) {
+                if (!node) return;
+                if (!node.left && !node.right) {
+                    codes.push([node.label, path || '0', node.freq]); // single-node edge case -> '0'
+                    return;
+                }
+                walk(node.left, path + '0');
+                walk(node.right, path + '1');
+            })(root, '');
+            codes.sort((a, b) => a[0] < b[0] ? -1 : 1);
+            return codes;
+        }
+
+        function renderCodes() {
+            const wrap = document.getElementById('codesWrap');
+            if (!finished || heap.length !== 1) { wrap.innerHTML = ''; return; }
+            const codes = computeCodes(heap[0]);
+            let html = '<div class="pg-section-label">Resulting Huffman codes</div>';
+            html += '<table class="codes-table"><tr><th>Symbol</th><th>Freq</th><th>Code</th><th>Bits</th></tr>';
+            for (const [lab, code, freq] of codes) {
+                html += `<tr><td>${lab}</td><td>${freq}</td><td>${code}</td><td>${code.length}</td></tr>`;
+            }
+            html += '</table>';
+            wrap.innerHTML = html;
+        }
+
+        function renderAll(selIds) {
+            renderHeap(selIds);
+            renderForest();
+            renderCodes();
+            document.getElementById('cost').textContent = cost;
+            const done = finished || heap.length <= 1;
+            document.getElementById('stepBtn').disabled = done;
+            document.getElementById('autoBtn').disabled = done;
+        }
+
+        function huffStep() {
+            if (busy) return false;
+            if (heap.length <= 1) {
+                finished = true;
+                renderAll();
+                setStatus('Done — one node remains, the root of the optimal Huffman tree. Codes shown below.');
+                return false;
+            }
+            heapSort();
+            const a = heap.shift();   // smallest
+            const b = heap.shift();   // second smallest
+            const sum = a.freq + b.freq;
+            const parent = { id: nextId++, freq: sum, label: null, left: a, right: b };
+            heap.push(parent);
+            heapSort();
+            cost += sum;
+            lastMerged = parent.id;
+
+            const la = a.label !== null ? a.label : 'node(' + a.freq + ')';
+            const lb = b.label !== null ? b.label : 'node(' + b.freq + ')';
+            renderAll();
+            if (heap.length === 1) {
+                finished = true;
+                setStatus(`Pop ${la}(${a.freq}) and ${lb}(${b.freq}). Merge → node(${sum}). One node left — the tree is complete. Total cost ${cost}.`);
+            } else {
+                setStatus(`Pop ${la}(${a.freq}) and ${lb}(${b.freq}). Merge → node(${sum}). Push back. Heap now has ${heap.length} node${heap.length === 1 ? '' : 's'}.`);
+            }
+            return true;
+        }
+
+        async function huffAuto() {
+            if (busy) return;
+            busy = true;
+            document.getElementById('stepBtn').disabled = true;
+            document.getElementById('autoBtn').disabled = true;
+            while (heap.length > 1) {
+                // run one merge inline (bypass busy guard which we hold)
+                heapSort();
+                const a = heap.shift();
+                const b = heap.shift();
+                const sum = a.freq + b.freq;
+                const parent = { id: nextId++, freq: sum, label: null, left: a, right: b };
+                heap.push(parent);
+                heapSort();
+                cost += sum;
+                lastMerged = parent.id;
+                const la = a.label !== null ? a.label : 'node(' + a.freq + ')';
+                const lb = b.label !== null ? b.label : 'node(' + b.freq + ')';
+                renderAll();
+                setStatus(`Pop ${la}(${a.freq}) and ${lb}(${b.freq}). Merge → node(${sum}). Push back. Heap now has ${heap.length} node${heap.length === 1 ? '' : 's'}.`);
+                await sleep(900);
+            }
+            finished = true;
+            renderAll();
+            setStatus(`Done — one node remains, the root of the optimal Huffman tree. Total merge cost ${cost}. Codes shown below.`);
+            busy = false;
+        }
+
+        function huffApply() {
+            if (busy) return;
+            const pairs = parseInput(document.getElementById('freqInput').value);
+            if (!pairs) {
+                setStatus('Could not parse. Use "A:5,B:9,..." (positive integers) or a short text like "abracadabra".');
+                return;
+            }
+            initFrom(pairs.slice(0, 12)); // keep the tree readable
+            renderAll();
+            setStatus(`Loaded ${heap.length} symbols. Press "Next Step ▶" to start merging.`);
+        }
+
+        function huffReset() {
+            if (busy) return;
+            document.getElementById('freqInput').value = DEFAULT_INPUT;
+            const pairs = parseInput(DEFAULT_INPUT);
+            initFrom(pairs);
+            renderAll();
+            setStatus('Reset. Press "Next Step ▶" to pop the two smallest nodes and merge them.');
+        }
+
+        // initial load
+        initFrom(parseInput(DEFAULT_INPUT));
+        renderAll();
+    </script>
+</body>
+</html>

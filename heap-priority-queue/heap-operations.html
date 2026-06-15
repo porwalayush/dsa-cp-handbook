@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert, Extract & Heapify - DSA Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #7c3aed; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #f5f3ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #7c3aed; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #7c3aed; }
+        .code-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .preproc { color: #7c3aed; }
+        .note { background: #f5f3ff; border-left: 4px solid #7c3aed; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; } .warn li:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 16px; border: 1px solid #e2e8f0; text-align: left; font-size: 0.9em; }
+        th { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        /* Interactive playground */
+        .playground { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .pg-title { font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .pg-sub { color: #64748b; font-size: 0.82em; margin-bottom: 18px; }
+        .pg-status { margin-top: 14px; padding: 12px 14px; background: #f8fafc; border-radius: 8px; font-size: 0.85em; color: #475569; min-height: 44px; display: flex; align-items: center; border: 1px solid #e2e8f0; line-height: 1.5; }
+        .pg-array { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; justify-content: center; }
+        .pg-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .pg-cell .box {
+            min-width: 38px; padding: 8px 6px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85em; text-align: center; background: white; color: #1e293b; font-weight: 600;
+        }
+        .pg-cell .idx { font-size: 0.68em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+
+        .pg-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+        .pg-controls input {
+            width: 70px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9em;
+        }
+        .pg-controls input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+            cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s ease;
+        }
+        .btn-primary { background: #7c3aed; color: white; }
+        .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-ghost { background: #f1f5f9; color: #475569; }
+        .btn-ghost:hover { background: #e2e8f0; }
+        .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+        .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .footer {
+            text-align: center; padding: 32px 20px; color: #94a3b8;
+            font-size: 0.85em; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .footer span { color: #7c3aed; }
+
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Heaps &amp; Priority Queues</a>
+        <h1>Insert, Extract &amp; Heapify</h1>
+        <p>You already know the shape: a heap is a <strong>complete binary tree</strong> packed into a flat array, where every parent is smaller than (or equal to) its children. We'll use a <strong>min-heap</strong> throughout, so the smallest value always sits at the root.</p>
+        <p>But a data structure is only as good as the things you can <em>do</em> with it. There are really just two moving parts here — <strong>sift-up</strong> and <strong>sift-down</strong> — and once you've seen an element bubble up or sink down, every heap operation becomes obvious. Let's watch them happen.</p>
+
+        <p>Quick reminder of the index math (0-indexed) — we lean on it constantly below:</p>
+        <ul>
+            <li><strong>parent(i)</strong> = <code>(i - 1) / 2</code> (integer division)</li>
+            <li><strong>left(i)</strong> = <code>2i + 1</code> &nbsp;&middot;&nbsp; <strong>right(i)</strong> = <code>2i + 2</code></li>
+        </ul>
+
+        <h2>Insert: drop it at the end, then bubble up</h2>
+        <p>Imagine a new person joining a line where everyone is ordered shortest-at-front. The fair, lazy thing to do is put them at the <em>very back</em> first — then let them step forward past anyone taller than them, one swap at a time, until they're in the right spot.</p>
+        <p>That's exactly <strong>insert</strong>. We put the new value in the <strong>next free array slot</strong> (the end). This keeps the tree complete — no gaps. But it probably violates the heap property, so we <strong>sift it up</strong>: while the new element is <em>smaller</em> than its parent, swap them. Stop when it's <code>&ge;</code> its parent, or when it reaches the root.</p>
+        <p>Because the tree's height is <code>log n</code>, the worst case is one swap per level — <strong>O(log n)</strong>.</p>
+
+        <div class="note">
+            <strong>Why "the end"?</strong> The end of the array is always the next available leaf in level-order — the only spot that keeps the tree complete. Sift-up then fixes the ordering without ever breaking the shape.
+        </div>
+
+        <h2>Extract-min: the root is the answer — now refill the hole</h2>
+        <p>The whole reason we built a min-heap is to grab the smallest element fast. It's sitting right there at the <strong>root</strong>. So <strong>extract-min</strong> returns the root — but now there's a hole at the top.</p>
+        <p>The trick: take the <strong>last</strong> element in the array and move it up to the root. (Why the last? Because removing the last slot is the only deletion that keeps the tree complete.) That last element is almost certainly too big to be the minimum, so we <strong>sift it down</strong>: while it's <em>bigger</em> than its smaller child, swap it with that smaller child. Stop when it's <code>&le;</code> both children, or when it becomes a leaf.</p>
+        <p>Again, one swap per level at most — <strong>O(log n)</strong>.</p>
+
+        <h2>Peek: just look at the root — O(1)</h2>
+        <p>No bubbling, no swapping. The minimum is always at index <code>0</code>. Reading it is a single array lookup, so <strong>peek is O(1)</strong>. (This is exactly why heaps power priority queues — the "best" item is always one glance away.)</p>
+
+        <h2>Try It: A Live Min-Heap</h2>
+        <p>Insert a value and watch it <strong>bubble up</strong>. Extract the min and watch the last element <strong>sink down</strong>. Each swap is narrated below the tree. The moving node pulses <span style="color:#7c3aed;font-weight:700">violet</span>; the node it's comparing against glows <span style="color:#16a34a;font-weight:700">green</span>.</p>
+
+        <div class="playground">
+            <div class="pg-title">&#9968;&#65039; Min-Heap Playground</div>
+            <div class="pg-sub">Insert appends then sifts up. Extract Min moves the last element to the root then sifts down. Build Heap runs bottom-up heapify on whatever is in the array right now.</div>
+            <svg id="heapSvg" style="display:block;margin:auto;max-width:100%"></svg>
+            <div class="pg-array" id="arrView"></div>
+            <div class="pg-status" id="status">Min-heap starts as [1, 3, 6, 5, 9, 8]. The minimum, 1, is at the root.</div>
+            <div class="pg-controls">
+                <input type="number" id="valInput" placeholder="value" value="2">
+                <button class="btn btn-primary" id="insertBtn" onclick="doInsert()">&#8593; Insert</button>
+                <button class="btn btn-danger" id="extractBtn" onclick="doExtract()">&#8595; Extract Min</button>
+                <button class="btn btn-ghost" id="buildBtn" onclick="doBuild()">&#9881; Build Heap</button>
+                <button class="btn btn-ghost" id="resetBtn" onclick="doReset()">&#8634; Reset</button>
+            </div>
+        </div>
+
+        <div class="warn">
+            <strong>Two classic sift-down bugs:</strong>
+            <ul>
+                <li>For a min-heap you must compare against the <strong>smaller</strong> child. If you blindly swap with the left child, you can push a value below something even smaller and silently break the heap. Always pick <code>min(left, right)</code> first, then compare.</li>
+                <li>On extract, move the <strong>last element to the root</strong> — don't shift every element down by one. Shifting is O(n) <em>and</em> destroys the heap shape. The move-last-then-sift-down trick is what keeps it O(log n).</li>
+            </ul>
+        </div>
+
+        <h2>Build-heap: turn a raw array into a heap in O(n)</h2>
+        <p>Say you're handed an unordered array and told "make this a heap." The naive way is to insert all <code>n</code> elements one at a time — that's <code>n</code> sift-ups, costing <strong>O(n log n)</strong>.</p>
+        <p>There's a better way. Notice that <strong>leaves are already valid heaps</strong> (a single node trivially satisfies the heap property). So we only need to fix the <em>internal</em> nodes. We start at the <strong>last non-leaf node</strong> — index <code>n/2 - 1</code> — and call <strong>sift-down</strong> on each node walking backward down to index <code>0</code>. By the time we reach a node, both of its subtrees are already heaps, so a single sift-down fixes it.</p>
+
+        <div class="note">
+            <strong>The pleasant surprise: this is O(n), not O(n log n).</strong> Here's the intuition. Most of the nodes live near the <em>bottom</em> of the tree, and a node near the bottom can only sift down a tiny distance. Only the handful of nodes near the top can sift far. When you add up "number of nodes at each height &times; how far each can fall," the sum converges to a constant times <code>n</code> — so bottom-up heapify beats inserting <code>n</code> times. Same goal, strictly better cost.
+        </div>
+
+        <h2>The Code</h2>
+        <p>Everything below is built from two helpers — <code>siftUp</code> and <code>siftDown</code>. <code>insert</code>, <code>extractMin</code>, and <code>buildHeap</code> are just thin wrappers around them. All 0-indexed.</p>
+
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cppHeap')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'javaHeap')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'pyHeap')">Python</button>
+            </div>
+            <div id="cppHeap" class="code-content active">
+<pre>
+<span class="preproc">#include</span> <span class="string">&lt;vector&gt;</span>
+<span class="preproc">#include</span> <span class="string">&lt;utility&gt;</span>   <span class="comment">// std::swap</span>
+std::vector&lt;<span class="keyword">int</span>&gt; h;          <span class="comment">// our min-heap, 0-indexed</span>
+
+<span class="comment">// bubble element at i up while it's smaller than its parent</span>
+<span class="keyword">void</span> siftUp(<span class="keyword">int</span> i) {
+    <span class="keyword">while</span> (i &gt; <span class="number">0</span>) {
+        <span class="keyword">int</span> parent = (i - <span class="number">1</span>) / <span class="number">2</span>;
+        <span class="keyword">if</span> (h[i] &gt;= h[parent]) <span class="keyword">break</span>;   <span class="comment">// in place -> stop</span>
+        std::swap(h[i], h[parent]);
+        i = parent;
+    }
+}
+
+<span class="comment">// sink element at i down while it's bigger than its SMALLER child</span>
+<span class="keyword">void</span> siftDown(<span class="keyword">int</span> i) {
+    <span class="keyword">int</span> n = h.size();
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="keyword">int</span> left = <span class="number">2</span>*i + <span class="number">1</span>, right = <span class="number">2</span>*i + <span class="number">2</span>, smallest = i;
+        <span class="keyword">if</span> (left  &lt; n &amp;&amp; h[left]  &lt; h[smallest]) smallest = left;
+        <span class="keyword">if</span> (right &lt; n &amp;&amp; h[right] &lt; h[smallest]) smallest = right;
+        <span class="keyword">if</span> (smallest == i) <span class="keyword">break</span>;          <span class="comment">// already &le; both children</span>
+        std::swap(h[i], h[smallest]);
+        i = smallest;
+    }
+}
+
+<span class="keyword">void</span> insert(<span class="keyword">int</span> x) {
+    h.push_back(x);              <span class="comment">// drop at the end (keeps tree complete)</span>
+    siftUp(h.size() - <span class="number">1</span>);        <span class="comment">// bubble it up to its spot</span>
+}
+
+<span class="keyword">int</span> extractMin() {
+    <span class="keyword">int</span> root = h[<span class="number">0</span>];               <span class="comment">// the answer</span>
+    h[<span class="number">0</span>] = h.back();              <span class="comment">// move LAST element to the root</span>
+    h.pop_back();
+    <span class="keyword">if</span> (!h.empty()) siftDown(<span class="number">0</span>);  <span class="comment">// sink it down</span>
+    <span class="keyword">return</span> root;
+}
+
+<span class="keyword">int</span> peek() { <span class="keyword">return</span> h[<span class="number">0</span>]; }      <span class="comment">// O(1)</span>
+
+<span class="keyword">void</span> buildHeap() {              <span class="comment">// O(n) bottom-up heapify</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = h.size()/<span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i)
+        siftDown(i);             <span class="comment">// last non-leaf down to root</span>
+}
+</pre>
+            </div>
+            <div id="javaHeap" class="code-content">
+<pre>
+<span class="keyword">int</span>[] h;          <span class="comment">// backing array</span>
+<span class="keyword">int</span> n;            <span class="comment">// current heap size (number of valid elements)</span>
+
+<span class="keyword">void</span> swap(<span class="keyword">int</span> a, <span class="keyword">int</span> b) { <span class="keyword">int</span> t = h[a]; h[a] = h[b]; h[b] = t; }
+
+<span class="comment">// bubble element at i up while it's smaller than its parent</span>
+<span class="keyword">void</span> siftUp(<span class="keyword">int</span> i) {
+    <span class="keyword">while</span> (i &gt; <span class="number">0</span>) {
+        <span class="keyword">int</span> parent = (i - <span class="number">1</span>) / <span class="number">2</span>;
+        <span class="keyword">if</span> (h[i] &gt;= h[parent]) <span class="keyword">break</span>;   <span class="comment">// in place -> stop</span>
+        swap(i, parent);
+        i = parent;
+    }
+}
+
+<span class="comment">// sink element at i down while it's bigger than its SMALLER child</span>
+<span class="keyword">void</span> siftDown(<span class="keyword">int</span> i) {
+    <span class="keyword">while</span> (<span class="keyword">true</span>) {
+        <span class="keyword">int</span> left = <span class="number">2</span>*i + <span class="number">1</span>, right = <span class="number">2</span>*i + <span class="number">2</span>, smallest = i;
+        <span class="keyword">if</span> (left  &lt; n &amp;&amp; h[left]  &lt; h[smallest]) smallest = left;
+        <span class="keyword">if</span> (right &lt; n &amp;&amp; h[right] &lt; h[smallest]) smallest = right;
+        <span class="keyword">if</span> (smallest == i) <span class="keyword">break</span>;          <span class="comment">// already &le; both children</span>
+        swap(i, smallest);
+        i = smallest;
+    }
+}
+
+<span class="keyword">void</span> insert(<span class="keyword">int</span> x) {
+    h[n++] = x;                  <span class="comment">// drop at the end (keeps tree complete)</span>
+    siftUp(n - <span class="number">1</span>);              <span class="comment">// bubble it up to its spot</span>
+}
+
+<span class="keyword">int</span> extractMin() {
+    <span class="keyword">int</span> root = h[<span class="number">0</span>];               <span class="comment">// the answer</span>
+    h[<span class="number">0</span>] = h[--n];               <span class="comment">// move LAST element to the root</span>
+    <span class="keyword">if</span> (n &gt; <span class="number">0</span>) siftDown(<span class="number">0</span>);       <span class="comment">// sink it down</span>
+    <span class="keyword">return</span> root;
+}
+
+<span class="keyword">int</span> peek() { <span class="keyword">return</span> h[<span class="number">0</span>]; }      <span class="comment">// O(1)</span>
+
+<span class="keyword">void</span> buildHeap() {              <span class="comment">// O(n) bottom-up heapify</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = n/<span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--)
+        siftDown(i);             <span class="comment">// last non-leaf down to root</span>
+}
+</pre>
+            </div>
+            <div id="pyHeap" class="code-content">
+<pre>
+h = []          <span class="comment"># our min-heap, a plain list (0-indexed)</span>
+
+<span class="comment"># bubble element at i up while it's smaller than its parent</span>
+<span class="keyword">def</span> sift_up(i):
+    <span class="keyword">while</span> i &gt; <span class="number">0</span>:
+        parent = (i - <span class="number">1</span>) // <span class="number">2</span>
+        <span class="keyword">if</span> h[i] &gt;= h[parent]:          <span class="comment"># in place -> stop</span>
+            <span class="keyword">break</span>
+        h[i], h[parent] = h[parent], h[i]
+        i = parent
+
+<span class="comment"># sink element at i down while it's bigger than its SMALLER child</span>
+<span class="keyword">def</span> sift_down(i):
+    n = len(h)
+    <span class="keyword">while</span> <span class="keyword">True</span>:
+        left, right, smallest = <span class="number">2</span>*i + <span class="number">1</span>, <span class="number">2</span>*i + <span class="number">2</span>, i
+        <span class="keyword">if</span> left  &lt; n <span class="keyword">and</span> h[left]  &lt; h[smallest]: smallest = left
+        <span class="keyword">if</span> right &lt; n <span class="keyword">and</span> h[right] &lt; h[smallest]: smallest = right
+        <span class="keyword">if</span> smallest == i:             <span class="comment"># already &le; both children</span>
+            <span class="keyword">break</span>
+        h[i], h[smallest] = h[smallest], h[i]
+        i = smallest
+
+<span class="keyword">def</span> insert(x):
+    h.append(x)                   <span class="comment"># drop at the end (keeps tree complete)</span>
+    sift_up(len(h) - <span class="number">1</span>)           <span class="comment"># bubble it up to its spot</span>
+
+<span class="keyword">def</span> extract_min():
+    root = h[<span class="number">0</span>]                    <span class="comment"># the answer</span>
+    last = h.pop()                <span class="comment"># take LAST element off</span>
+    <span class="keyword">if</span> h:                         <span class="comment"># if anything remains...</span>
+        h[<span class="number">0</span>] = last                <span class="comment"># ...move it to the root</span>
+        sift_down(<span class="number">0</span>)              <span class="comment"># and sink it down</span>
+    <span class="keyword">return</span> root
+
+<span class="keyword">def</span> peek():
+    <span class="keyword">return</span> h[<span class="number">0</span>]                   <span class="comment"># O(1)</span>
+
+<span class="keyword">def</span> build_heap():                <span class="comment"># O(n) bottom-up heapify</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(h)//<span class="number">2</span> - <span class="number">1</span>, -<span class="number">1</span>, -<span class="number">1</span>):
+        sift_down(i)              <span class="comment"># last non-leaf down to root</span>
+</pre>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>You rarely write this by hand.</strong> Every language ships a heap: C++ <code>std::priority_queue</code> (and <code>std::make_heap</code> for O(n) build), Java <code>PriorityQueue</code>, Python <code>heapq</code> (with <code>heapq.heapify</code> for the O(n) build). Learn the mechanics here, reach for the library in practice — the next lesson covers exactly that.
+        </div>
+
+        <h2>Complexity at a Glance</h2>
+        <p>Every operation that reorders the heap costs at most one swap per level, and the tree is only <code>log n</code> tall. Peek touches nothing, and build-heap is the surprise winner.</p>
+
+        <table>
+            <tr><th>Operation</th><th>Time Complexity</th></tr>
+            <tr><td>insert (append + sift-up)</td><td>O(log n)</td></tr>
+            <tr><td>extract-min (remove root + sift-down)</td><td>O(log n)</td></tr>
+            <tr><td>peek (read root)</td><td>O(1)</td></tr>
+            <tr><td>heapify-down (sift-down one node)</td><td>O(log n)</td></tr>
+            <tr><td>build-heap (heapify whole array)</td><td>O(n)</td></tr>
+        </table>
+        <p style="font-size:0.82em;color:#94a3b8">Build-heap is O(n) even though it calls an O(log n) routine n/2 times — because most nodes are near the bottom and barely move. The naive "insert n times" approach is O(n log n).</p>
+
+        <div class="note">
+            <strong>Pattern to remember:</strong> insert = <em>append, then sift up</em>. Extract = <em>save the root, move the last element to the top, then sift down</em>. Two helpers, and you've got the entire heap.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Heaps &amp; Priority Queues Visualized | <span>C++, Java &amp; Python</span> | Interactive Learning</p>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const container = btn.closest('.code-container');
+            container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            container.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ---- Min-heap playground ----
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const INITIAL = [1, 3, 6, 5, 9, 8];
+        let heap = INITIAL.slice();
+        let busy = false;
+
+        function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+        // Draw the heap array as a level-order binary tree into the SVG.
+        // active = index pulsing violet; compare = index glowing green.
+        function render(active, compare) {
+            const svg = document.getElementById('heapSvg');
+            const n = heap.length;
+            if (n === 0) {
+                svg.setAttribute('viewBox', '0 0 320 80');
+                svg.setAttribute('width', '100%');
+                svg.innerHTML = '<text x="160" y="45" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#94a3b8">Heap is empty</text>';
+                renderArray(active, compare);
+                return;
+            }
+            const R = 20, vGap = 76;
+            const depth = i => Math.floor(Math.log2(i + 1));
+            const maxDepth = depth(n - 1);
+            const levelW = 320; // base width unit per slot at deepest level
+            // width = number of slots possible at deepest level
+            const leafSlots = Math.pow(2, maxDepth);
+            const hUnit = 56;
+            const w = Math.max(leafSlots * hUnit, 280);
+            const h = (maxDepth + 1) * vGap + 24;
+            const pos = {};
+            for (let i = 0; i < n; i++) {
+                const d = depth(i);
+                const firstAtLevel = Math.pow(2, d) - 1;
+                const posInLevel = i - firstAtLevel;
+                const slots = Math.pow(2, d);
+                const x = w * (posInLevel + 0.5) / slots;
+                const y = d * vGap + 28;
+                pos[i] = { x, y };
+            }
+            let edges = '', circles = '';
+            for (let i = 0; i < n; i++) {
+                [2*i+1, 2*i+2].forEach(c => {
+                    if (c < n) {
+                        edges += '<line x1="' + pos[i].x + '" y1="' + pos[i].y + '" x2="' + pos[c].x + '" y2="' + pos[c].y + '" stroke="#cbd5e1" stroke-width="2"/>';
+                    }
+                });
+            }
+            for (let i = 0; i < n; i++) {
+                const p = pos[i];
+                let fill = '#ffffff', stroke = '#7c3aed', tcol = '#0f172a', sw = 2.5;
+                if (i === 0) { fill = '#f5f3ff'; }
+                if (i === compare) { fill = '#ecfdf5'; stroke = '#16a34a'; sw = 3; }
+                if (i === active) { fill = '#ede9fe'; stroke = '#7c3aed'; sw = 3.8; }
+                circles += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + R + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
+                circles += '<text x="' + p.x + '" y="' + (p.y + 5) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="' + tcol + '">' + heap[i] + '</text>';
+            }
+            svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+            svg.setAttribute('width', '100%');
+            svg.style.maxHeight = (h + 10) + 'px';
+            svg.innerHTML = edges + circles;
+            renderArray(active, compare);
+        }
+
+        function renderArray(active, compare) {
+            const av = document.getElementById('arrView');
+            av.innerHTML = '';
+            heap.forEach((v, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'pg-cell';
+                const box = document.createElement('div');
+                box.className = 'box';
+                box.textContent = v;
+                if (i === 0) box.style.background = '#f5f3ff';
+                if (i === compare) { box.style.borderColor = '#16a34a'; box.style.color = '#16a34a'; box.style.background = '#ecfdf5'; }
+                if (i === active) { box.style.borderColor = '#7c3aed'; box.style.color = '#7c3aed'; box.style.background = '#ede9fe'; }
+                const idx = document.createElement('div');
+                idx.className = 'idx';
+                idx.textContent = i;
+                cell.appendChild(box);
+                cell.appendChild(idx);
+                av.appendChild(cell);
+            });
+        }
+
+        function setBusy(b) {
+            busy = b;
+            ['insertBtn', 'extractBtn', 'buildBtn', 'resetBtn'].forEach(id => {
+                document.getElementById(id).disabled = b;
+            });
+        }
+
+        function readVal() {
+            const raw = document.getElementById('valInput').value;
+            const v = parseInt(raw, 10);
+            return isNaN(v) ? Math.floor(Math.random() * 90 + 1) : v;
+        }
+
+        async function siftUpAnim(i) {
+            while (i > 0) {
+                const parent = Math.floor((i - 1) / 2);
+                render(i, parent);
+                await sleep(750);
+                if (heap[i] >= heap[parent]) {
+                    setStatus(heap[i] + ' ≥ parent ' + heap[parent] + ' → stop. The heap is valid.');
+                    render(i, null);
+                    return;
+                }
+                setStatus(heap[i] + ' < parent ' + heap[parent] + ' → swap.');
+                [heap[i], heap[parent]] = [heap[parent], heap[i]];
+                i = parent;
+                render(i, null);
+                await sleep(550);
+            }
+            setStatus(heap[0] + ' reached the root — it is the new minimum.');
+            render(0, null);
+        }
+
+        async function siftDownAnim(i) {
+            const n = heap.length;
+            while (true) {
+                let left = 2*i + 1, right = 2*i + 2, smallest = i;
+                if (left  < n && heap[left]  < heap[smallest]) smallest = left;
+                if (right < n && heap[right] < heap[smallest]) smallest = right;
+                if (smallest === i) {
+                    render(i, null);
+                    setStatus(heap[i] + ' is ≤ both its children → stop. The heap is valid.');
+                    return;
+                }
+                render(i, smallest);
+                setStatus(heap[i] + ' > smaller child ' + heap[smallest] + ' → swap.');
+                await sleep(750);
+                [heap[i], heap[smallest]] = [heap[smallest], heap[i]];
+                i = smallest;
+                render(i, null);
+                await sleep(550);
+            }
+        }
+
+        async function doInsert() {
+            if (busy) return;
+            setBusy(true);
+            const v = readVal();
+            heap.push(v);
+            const i = heap.length - 1;
+            render(i, null);
+            setStatus('Inserted ' + v + ' at index ' + i + ' (the end). Now bubble it up...');
+            await sleep(750);
+            await siftUpAnim(i);
+            setBusy(false);
+        }
+
+        async function doExtract() {
+            if (busy) return;
+            if (heap.length === 0) { setStatus('Heap is empty — nothing to extract.'); return; }
+            setBusy(true);
+            const root = heap[0];
+            if (heap.length === 1) {
+                heap.pop();
+                render(null, null);
+                setStatus('Extracted min ' + root + '. The heap is now empty.');
+                setBusy(false);
+                return;
+            }
+            const last = heap[heap.length - 1];
+            render(heap.length - 1, 0);
+            setStatus('Extracted min ' + root + '. Move last element ' + last + ' to the root, then sink it down...');
+            await sleep(900);
+            heap[0] = heap.pop();
+            render(0, null);
+            await sleep(600);
+            await siftDownAnim(0);
+            setBusy(false);
+        }
+
+        async function doBuild() {
+            if (busy) return;
+            setBusy(true);
+            setStatus('Build-heap: sift-down every node from the last non-leaf (index ' + (Math.floor(heap.length/2) - 1) + ') down to 0...');
+            render(null, null);
+            await sleep(900);
+            for (let i = Math.floor(heap.length / 2) - 1; i >= 0; i--) {
+                setStatus('Heapifying node at index ' + i + ' (value ' + heap[i] + ')...');
+                render(i, null);
+                await sleep(650);
+                await siftDownAnim(i);
+                await sleep(350);
+            }
+            setStatus('Done. The array is now a valid min-heap — all in O(n).');
+            render(0, null);
+            setBusy(false);
+        }
+
+        function doReset() {
+            if (busy) return;
+            heap = INITIAL.slice();
+            render(null, null);
+            setStatus('Reset. Min-heap is back to [1, 3, 6, 5, 9, 8]. The minimum, 1, is at the root.');
+        }
+
+        render(null, null);
+    </script>
+</body>
+</html>
