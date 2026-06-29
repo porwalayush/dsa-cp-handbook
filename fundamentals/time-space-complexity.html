@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time &amp; Space Complexity - Fundamentals Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fffbeb; border-left: 4px solid #d97706; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); font-size: 0.88em; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; color: #0f172a; }
+        td { color: #475569; } tr:last-child td { border-bottom: none; }
+        .tag-o { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-slider { flex: 1; min-width: 160px; accent-color: #6366f1; }
+        .bars { display: flex; align-items: flex-end; gap: 10px; height: 220px; padding: 12px 0; border-bottom: 2px solid #e2e8f0; }
+        .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+        .bar { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.4s cubic-bezier(0.4,0,0.2,1); min-height: 2px; }
+        .bar-label { font-size: 0.68em; color: #64748b; margin-top: 6px; font-family: 'JetBrains Mono', monospace; text-align: center; }
+        .bar-val { font-size: 0.66em; color: #0f172a; font-weight: 600; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; white-space: nowrap; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Fundamentals</a>
+        <h1>Time &amp; Space Complexity</h1>
+        <p>Before you write a single line, you should be able to answer one question: <strong>"Will this be fast enough?"</strong> Complexity analysis is how we answer it — without ever running the code.</p>
+
+        <h2>The Big Idea (in plain words)</h2>
+        <p>Big-O describes <strong>how the work grows as the input grows</strong>. We don't care about exact seconds — those change with the computer. We care about the <em>shape</em> of the growth.</p>
+        <div class="note">
+            <ul>
+                <li>Think of input size as <code>n</code> (array length, number of nodes, etc.).</li>
+                <li>Big-O answers: "if <code>n</code> doubles, how much more work do I do?"</li>
+                <li>We always drop constants and smaller terms: <code>3n + 5</code> → <code>O(n)</code>.</li>
+            </ul>
+        </div>
+
+        <h2>The Three Notations</h2>
+        <div class="visual">
+<pre>
+   Big-O    (O)  →  upper bound   →  "no worse than"   →  worst case
+   Big-Theta (Θ) →  tight bound   →  "exactly this"    →  typical case
+   Big-Omega (Ω) →  lower bound   →  "no better than"  →  best case
+
+   Example: linear search in an array of n items
+     best  case: item is first   → Ω(1)
+     worst case: item is last     → O(n)
+     we usually quote the worst case → O(n)
+</pre>
+        </div>
+
+        <h2>Interactive: Watch the Curves Explode</h2>
+        <p>Drag the slider to grow <code>n</code>. Each bar is the number of operations for that complexity class. Notice how <code>O(n!)</code> and <code>O(2ⁿ)</code> leave everything else in the dust almost immediately.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <span style="font-size:0.82em; font-weight:600; color:#475569;">n =</span>
+                <span id="nLabel" style="font-family:'JetBrains Mono',monospace; font-weight:700; color:#6366f1; min-width:28px;">8</span>
+                <input type="range" min="1" max="20" value="8" class="viz-slider" id="nSlider" oninput="drawBars()">
+                <button class="viz-btn" onclick="document.getElementById('nSlider').value=8; drawBars();">Reset</button>
+            </div>
+            <div class="bars" id="bars"></div>
+            <p style="font-size:0.75em; color:#94a3b8; margin-top:12px; margin-bottom:0;">Bars are capped in height &amp; values shown in real terms. Anything past ~10⁸ ops is usually too slow for a 1-second limit.</p>
+        </div>
+
+        <h2>The Complexity Cheat Sheet</h2>
+        <table>
+            <tr><th>Big-O</th><th>Name</th><th>Example</th><th>n=10</th><th>n=1000</th></tr>
+            <tr><td class="tag-o">O(1)</td><td>Constant</td><td>Array index, hash lookup</td><td>1</td><td>1</td></tr>
+            <tr><td class="tag-o">O(log n)</td><td>Logarithmic</td><td>Binary search</td><td>~3</td><td>~10</td></tr>
+            <tr><td class="tag-o">O(n)</td><td>Linear</td><td>Single loop</td><td>10</td><td>1,000</td></tr>
+            <tr><td class="tag-o">O(n log n)</td><td>Linearithmic</td><td>Merge sort</td><td>~33</td><td>~10,000</td></tr>
+            <tr><td class="tag-o">O(n²)</td><td>Quadratic</td><td>Nested loops</td><td>100</td><td>1,000,000</td></tr>
+            <tr><td class="tag-o">O(2ⁿ)</td><td>Exponential</td><td>Subsets, naive recursion</td><td>1,024</td><td>astronomical</td></tr>
+            <tr><td class="tag-o">O(n!)</td><td>Factorial</td><td>All permutations</td><td>3,628,800</td><td>impossible</td></tr>
+        </table>
+
+        <h2>How to Read Code &amp; Spot the Big-O</h2>
+        <div class="step-box">
+            <strong>1. A single loop over n</strong> → O(n)<br><br>
+            <strong>2. A loop inside a loop</strong> → O(n²)<br><br>
+            <strong>3. Halving each step</strong> (i = i / 2) → O(log n)<br><br>
+            <strong>4. Two separate loops</strong> → O(n) + O(n) = O(n), not O(n²)<br><br>
+            <strong>5. Recursion that splits in half and does O(n) work</strong> → O(n log n)
+        </div>
+
+        <h2>Code: Spotting Complexity</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// O(1) - constant: one operation no matter the size</span>
+<span class="keyword">int</span> first = arr[<span class="number">0</span>];
+
+<span class="comment">// O(n) - linear: touch every element once</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) sum += arr[i];
+
+<span class="comment">// O(n^2) - quadratic: every pair</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; n; j++)
+        check(arr[i], arr[j]);
+
+<span class="comment">// O(log n) - logarithmic: halve the range each step</span>
+<span class="keyword">while</span> (lo &lt; hi) { <span class="keyword">int</span> mid = (lo + hi) / <span class="number">2</span>; <span class="comment">/* ... */</span> }</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="comment">// O(1) - constant</span>
+<span class="keyword">int</span> first = arr[<span class="number">0</span>];
+
+<span class="comment">// O(n) - linear</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) sum += arr[i];
+
+<span class="comment">// O(n^2) - quadratic</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; n; j++)
+        check(arr[i], arr[j]);
+
+<span class="comment">// O(log n) - logarithmic</span>
+<span class="keyword">while</span> (lo &lt; hi) { <span class="keyword">int</span> mid = (lo + hi) / <span class="number">2</span>; <span class="comment">/* ... */</span> }</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="comment"># O(1) - constant</span>
+first = arr[<span class="number">0</span>]
+
+<span class="comment"># O(n) - linear</span>
+<span class="keyword">for</span> x <span class="keyword">in</span> arr:
+    total += x
+
+<span class="comment"># O(n^2) - quadratic</span>
+<span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+    <span class="keyword">for</span> j <span class="keyword">in</span> range(n):
+        check(arr[i], arr[j])
+
+<span class="comment"># O(log n) - logarithmic</span>
+<span class="keyword">while</span> lo &lt; hi:
+    mid = (lo + hi) // <span class="number">2</span>  <span class="comment"># ...</span></pre>
+            </div>
+        </div>
+
+        <h2>Space Complexity</h2>
+        <p>Same idea, but for <strong>memory</strong> instead of time. Count the extra space your algorithm allocates as <code>n</code> grows — not counting the input itself.</p>
+        <div class="compare">
+            <div>
+                <h3>O(1) space</h3>
+                <ul>
+                    <li>A few variables (counters, pointers)</li>
+                    <li>In-place swaps</li>
+                    <li>Two-pointer techniques</li>
+                </ul>
+            </div>
+            <div>
+                <h3>O(n) space</h3>
+                <ul>
+                    <li>A copy of the array</li>
+                    <li>A hash map of all elements</li>
+                    <li>Recursion depth of n (call stack!)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>Amortized Analysis (the "average over many ops" trick)</h2>
+        <p>Some operations are <em>usually</em> cheap but <em>occasionally</em> expensive. Amortized analysis spreads the rare expensive cost across all the cheap ones.</p>
+        <div class="note">
+            <ul>
+                <li><strong>Dynamic array push:</strong> usually O(1). When full, it doubles and copies — O(n) that once. Averaged out → <strong>O(1) amortized</strong>.</li>
+                <li>Because doubling happens rarely, the total cost of n pushes is still O(n).</li>
+            </ul>
+        </div>
+
+        <h2>The Practical Rule of Thumb</h2>
+        <div class="warn">
+            <ul>
+                <li>A typical judge allows ~<strong>10⁸ simple operations per second</strong>.</li>
+                <li><code>n ≤ 10</code> → even O(n!) is fine. &nbsp; <code>n ≤ 20</code> → O(2ⁿ) ok.</li>
+                <li><code>n ≤ 5000</code> → O(n²) ok. &nbsp; <code>n ≤ 10⁶</code> → need O(n) or O(n log n).</li>
+                <li><code>n ≤ 10⁹</code> → need O(log n) or O(1).</li>
+            </ul>
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Hidden loops:</strong> <code>s.find()</code>, <code>list.contains()</code>, string concatenation in a loop can each be O(n).<br><br>
+            <strong>2. Recursion stack:</strong> deep recursion uses O(depth) memory — easy to forget.<br><br>
+            <strong>3. Average vs worst:</strong> hash maps are O(1) average but O(n) worst case on collisions.<br><br>
+            <strong>4. Dropping the wrong term:</strong> O(n + m) is NOT always O(n) — keep both if n and m are independent.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const classes = [
+            { name: 'O(1)',       color: '#10b981', f: n => 1 },
+            { name: 'O(log n)',   color: '#22c55e', f: n => Math.max(1, Math.log2(n)) },
+            { name: 'O(n)',       color: '#6366f1', f: n => n },
+            { name: 'O(n log n)', color: '#8b5cf6', f: n => n * Math.max(1, Math.log2(n)) },
+            { name: 'O(n²)',      color: '#f59e0b', f: n => n * n },
+            { name: 'O(2ⁿ)',      color: '#ef4444', f: n => Math.pow(2, n) },
+            { name: 'O(n!)',      color: '#be123c', f: n => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; } },
+        ];
+
+        function fmt(v) {
+            if (v < 1000) return Math.round(v).toString();
+            if (v < 1e6) return (v/1e3).toFixed(1) + 'K';
+            if (v < 1e9) return (v/1e6).toFixed(1) + 'M';
+            if (v < 1e12) return (v/1e9).toFixed(1) + 'B';
+            return v.toExponential(1);
+        }
+
+        function drawBars() {
+            const n = +document.getElementById('nSlider').value;
+            document.getElementById('nLabel').textContent = n;
+            const vals = classes.map(c => c.f(n));
+            const maxLog = Math.max(...vals.map(v => Math.log10(v + 1)));
+            let html = '';
+            classes.forEach((c, i) => {
+                const h = Math.max(2, (Math.log10(vals[i] + 1) / maxLog) * 100);
+                html += `<div class="bar-col">
+                    <div class="bar-val">${fmt(vals[i])}</div>
+                    <div class="bar" style="height:${h}%; background:${c.color};"></div>
+                    <div class="bar-label">${c.name}</div>
+                </div>`;
+            });
+            document.getElementById('bars').innerHTML = html;
+        }
+        drawBars();
+    </script>
+</body>
+</html>

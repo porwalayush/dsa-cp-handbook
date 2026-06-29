@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursion &amp; Backtracking - Fundamentals Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .board { display: inline-grid; gap: 0; margin: 0 auto; border: 2px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+        .cell { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 1.4em; transition: background 0.2s ease; }
+        .cell.light { background: #f8fafc; } .cell.dark { background: #e2e8f0; }
+        .cell.try { background: #fde68a !important; } .cell.placed { background: #c7d2fe !important; }
+        .cell.conflict { background: #fecaca !important; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .cell { width: 38px; height: 38px; font-size: 1.1em; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Fundamentals</a>
+        <h1>Recursion &amp; Backtracking</h1>
+        <p>Recursion is a function that <strong>calls itself</strong> on a smaller version of the problem. Backtracking adds one move: when a choice leads to a dead end, <strong>undo it and try the next one</strong>.</p>
+
+        <h2>Recursion in Plain Words</h2>
+        <p>Every recursive function needs exactly two things:</p>
+        <ol>
+            <li><strong>Base case:</strong> the smallest problem you can answer immediately (stops the recursion).</li>
+            <li><strong>Recursive case:</strong> solve a smaller piece, then build on it.</li>
+        </ol>
+        <div class="note">
+            <ul>
+                <li>Missing base case → infinite recursion → <strong>stack overflow</strong>.</li>
+                <li>Each call gets its own copy of local variables, stacked on the <strong>call stack</strong>.</li>
+            </ul>
+        </div>
+
+        <h2>The Call Stack: factorial(4)</h2>
+        <div class="visual">
+<pre>
+   Calls go DOWN (push), results come back UP (pop):
+
+   factorial(4)                      returns 4 * 6 = 24
+     └─ factorial(3)                 returns 3 * 2 = 6
+          └─ factorial(2)            returns 2 * 1 = 2
+               └─ factorial(1)       returns 1  (BASE CASE)
+
+   The stack unwinds bottom-to-top, multiplying as it returns.
+</pre>
+        </div>
+
+        <h2>Backtracking = Recursion + Undo</h2>
+        <p>The template is always the same three steps, repeated for each choice:</p>
+        <div class="visual">
+<pre>
+   for each choice:
+       1. CHOOSE   → make the move
+       2. EXPLORE  → recurse deeper
+       3. UNDO     → take the move back (backtrack!)
+
+   "Try it. If it doesn't work out, pretend it never happened."
+</pre>
+        </div>
+
+        <h2>Interactive: N-Queens Backtracking</h2>
+        <p>Place N queens on an N×N board so none attack each other. Watch the solver <span style="color:#d97706;font-weight:600;">try</span> a square, <span style="color:#6366f1;font-weight:600;">place</span> it if safe, hit a <span style="color:#dc2626;font-weight:600;">dead end</span>, and <strong>backtrack</strong>.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <button class="viz-btn" onclick="setN(4)" id="b4">4 × 4</button>
+                <button class="viz-btn" onclick="setN(5)" id="b5">5 × 5</button>
+                <button class="viz-btn" onclick="setN(6)" id="b6">6 × 6</button>
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Solve</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetBoard()">Reset</button>
+            </div>
+            <div style="text-align:center;"><div class="board" id="board"></div></div>
+            <div id="vizLog" style="margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px; max-height:150px; overflow-y:auto;"></div>
+        </div>
+
+        <h2>Code: N-Queens</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="keyword">bool</span> safe(vector&lt;<span class="keyword">int</span>&gt;&amp; pos, <span class="keyword">int</span> row, <span class="keyword">int</span> col) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> r = <span class="number">0</span>; r &lt; row; r++) {
+        <span class="keyword">int</span> c = pos[r];
+        <span class="keyword">if</span> (c == col) <span class="keyword">return</span> <span class="keyword">false</span>;              <span class="comment">// same column</span>
+        <span class="keyword">if</span> (abs(c - col) == abs(r - row)) <span class="keyword">return</span> <span class="keyword">false</span>; <span class="comment">// diagonal</span>
+    }
+    <span class="keyword">return</span> <span class="keyword">true</span>;
+}
+<span class="keyword">void</span> solve(vector&lt;<span class="keyword">int</span>&gt;&amp; pos, <span class="keyword">int</span> row, <span class="keyword">int</span> n, <span class="keyword">int</span>&amp; count) {
+    <span class="keyword">if</span> (row == n) { count++; <span class="keyword">return</span>; }     <span class="comment">// BASE: all placed</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> col = <span class="number">0</span>; col &lt; n; col++) {
+        <span class="keyword">if</span> (safe(pos, row, col)) {
+            pos[row] = col;             <span class="comment">// 1. CHOOSE</span>
+            solve(pos, row + <span class="number">1</span>, n, count); <span class="comment">// 2. EXPLORE</span>
+            pos[row] = -<span class="number">1</span>;            <span class="comment">// 3. UNDO (backtrack)</span>
+        }
+    }
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">boolean</span> safe(<span class="keyword">int</span>[] pos, <span class="keyword">int</span> row, <span class="keyword">int</span> col) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> r = <span class="number">0</span>; r &lt; row; r++) {
+        <span class="keyword">int</span> c = pos[r];
+        <span class="keyword">if</span> (c == col) <span class="keyword">return</span> <span class="keyword">false</span>;
+        <span class="keyword">if</span> (Math.abs(c - col) == Math.abs(r - row)) <span class="keyword">return</span> <span class="keyword">false</span>;
+    }
+    <span class="keyword">return</span> <span class="keyword">true</span>;
+}
+<span class="keyword">void</span> solve(<span class="keyword">int</span>[] pos, <span class="keyword">int</span> row, <span class="keyword">int</span> n) {
+    <span class="keyword">if</span> (row == n) { count++; <span class="keyword">return</span>; }  <span class="comment">// BASE</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> col = <span class="number">0</span>; col &lt; n; col++) {
+        <span class="keyword">if</span> (safe(pos, row, col)) {
+            pos[row] = col;           <span class="comment">// CHOOSE</span>
+            solve(pos, row + <span class="number">1</span>, n);   <span class="comment">// EXPLORE</span>
+            pos[row] = -<span class="number">1</span>;          <span class="comment">// UNDO</span>
+        }
+    }
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">def</span> safe(pos, row, col):
+    <span class="keyword">for</span> r <span class="keyword">in</span> range(row):
+        c = pos[r]
+        <span class="keyword">if</span> c == col: <span class="keyword">return</span> <span class="keyword">False</span>            <span class="comment"># same column</span>
+        <span class="keyword">if</span> abs(c - col) == abs(r - row): <span class="keyword">return</span> <span class="keyword">False</span>  <span class="comment"># diagonal</span>
+    <span class="keyword">return</span> <span class="keyword">True</span>
+
+<span class="keyword">def</span> solve(pos, row, n):
+    <span class="keyword">if</span> row == n:                  <span class="comment"># BASE: all placed</span>
+        <span class="keyword">return</span> <span class="number">1</span>
+    total = <span class="number">0</span>
+    <span class="keyword">for</span> col <span class="keyword">in</span> range(n):
+        <span class="keyword">if</span> safe(pos, row, col):
+            pos[row] = col          <span class="comment"># CHOOSE</span>
+            total += solve(pos, row + <span class="number">1</span>, n)  <span class="comment"># EXPLORE</span>
+            pos[row] = -<span class="number">1</span>         <span class="comment"># UNDO (backtrack)</span>
+    <span class="keyword">return</span> total</pre>
+            </div>
+        </div>
+
+        <h2>Recursion vs Iteration</h2>
+        <div class="compare">
+            <div>
+                <h3>Recursion shines when</h3>
+                <ul>
+                    <li>The problem is naturally nested (trees, grids)</li>
+                    <li>You need to explore many branches</li>
+                    <li>"Try all possibilities" / generate combinations</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Watch out for</h3>
+                <ul>
+                    <li>Deep recursion → stack overflow (n &gt; ~10⁴)</li>
+                    <li>Repeated subproblems → add memoization (that's DP!)</li>
+                    <li>Function-call overhead vs a simple loop</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>Classic Backtracking Problems</h2>
+        <div class="step-box">
+            <strong>Permutations &amp; Combinations</strong> — generate every arrangement / subset.<br><br>
+            <strong>N-Queens</strong> — place non-attacking queens (shown above).<br><br>
+            <strong>Sudoku Solver</strong> — fill cells, backtrack on contradictions.<br><br>
+            <strong>Word Search / Maze</strong> — explore paths, undo when blocked.<br><br>
+            <strong>Subset Sum / Partition</strong> — include or exclude each element.
+        </div>
+
+        <h2>Pruning: Making Backtracking Fast</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Prune early:</strong> abandon a branch the moment it can't possibly succeed (like <code>safe()</code> rejecting a square before recursing).</li>
+                <li><strong>Order choices smartly:</strong> try the most constrained option first.</li>
+                <li>Good pruning can turn an impossible search into an instant one.</li>
+            </ul>
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Forgetting to undo:</strong> if you CHOOSE but never UNDO, later branches see stale state.<br><br>
+            <strong>2. No base case:</strong> infinite recursion → crash.<br><br>
+            <strong>3. Sharing mutable state wrong:</strong> be careful passing lists/arrays by reference.<br><br>
+            <strong>4. Not pruning:</strong> exploring obviously-dead branches makes it exponentially slow.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        let N = 4, steps = [], stepIdx = 0, timer = null;
+
+        function buildSteps(n) {
+            const frames = [];
+            const pos = new Array(n).fill(-1);
+            function safe(row, col) {
+                for (let r = 0; r < row; r++) {
+                    if (pos[r] === col) return false;
+                    if (Math.abs(pos[r] - col) === Math.abs(r - row)) return false;
+                }
+                return true;
+            }
+            let solved = false;
+            function solve(row) {
+                if (solved) return;
+                if (row === n) { frames.push({ pos: pos.slice(), row: -1, col: -1, msg: '✅ Solution found!', kind: 'done' }); solved = true; return; }
+                for (let col = 0; col < n && !solved; col++) {
+                    frames.push({ pos: pos.slice(), row, col, msg: `Try row ${row}, col ${col}…`, kind: 'try' });
+                    if (safe(row, col)) {
+                        pos[row] = col;
+                        frames.push({ pos: pos.slice(), row, col, msg: `Safe → place queen at (${row}, ${col})`, kind: 'placed' });
+                        solve(row + 1);
+                        if (!solved) {
+                            pos[row] = -1;
+                            frames.push({ pos: pos.slice(), row, col, msg: `Dead end below → backtrack from (${row}, ${col})`, kind: 'back' });
+                        }
+                    } else {
+                        frames.push({ pos: pos.slice(), row, col, msg: `Conflict at (${row}, ${col}) ✗`, kind: 'conflict' });
+                    }
+                }
+            }
+            solve(0);
+            return frames;
+        }
+
+        function setN(n) {
+            N = n; resetBoard();
+        }
+
+        function resetBoard() {
+            clearInterval(timer); timer = null;
+            steps = buildSteps(N); stepIdx = 0;
+            document.getElementById('playBtn').textContent = '▶ Solve';
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('stepBtn').disabled = false;
+            renderFrame({ pos: new Array(N).fill(-1), row: -1, col: -1, msg: `${N}×${N} board ready. Press Solve or Step.`, kind: 'idle' });
+        }
+
+        function renderFrame(f) {
+            const board = document.getElementById('board');
+            board.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+            let html = '';
+            for (let r = 0; r < N; r++) {
+                for (let c = 0; c < N; c++) {
+                    const shade = (r + c) % 2 === 0 ? 'light' : 'dark';
+                    let extra = '', glyph = '';
+                    if (f.pos[r] === c) { extra = 'placed'; glyph = '♛'; }
+                    if (f.row === r && f.col === c) {
+                        if (f.kind === 'try') extra = 'try';
+                        else if (f.kind === 'conflict') { extra = 'conflict'; glyph = '✗'; }
+                        else if (f.kind === 'placed') { extra = 'placed'; glyph = '♛'; }
+                        else if (f.kind === 'back') extra = 'conflict';
+                    }
+                    html += `<div class="cell ${shade} ${extra}">${glyph}</div>`;
+                }
+            }
+            board.innerHTML = html;
+            const log = document.getElementById('vizLog');
+            const color = f.kind === 'done' ? '#10b981' : f.kind === 'conflict' || f.kind === 'back' ? '#dc2626' : f.kind === 'placed' ? '#6366f1' : '#475569';
+            log.innerHTML = `<span style="color:${color};">${f.msg}</span>`;
+        }
+
+        function stepOnce() {
+            if (stepIdx >= steps.length) return;
+            renderFrame(steps[stepIdx]);
+            stepIdx++;
+            if (stepIdx >= steps.length) { document.getElementById('stepBtn').disabled = true; }
+        }
+
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) {
+                clearInterval(timer); timer = null; btn.textContent = '▶ Solve';
+                document.getElementById('stepBtn').disabled = false;
+                return;
+            }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (stepIdx >= steps.length) {
+                    clearInterval(timer); timer = null; btn.textContent = '▶ Solve';
+                    return;
+                }
+                stepOnce();
+            }, 420);
+        }
+
+        resetBoard();
+    </script>
+</body>
+</html>

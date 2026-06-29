@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet in the Middle - Fundamentals Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fffbeb; border-left: 4px solid #d97706; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .halves { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+        .half { border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; background: #f8fafc; }
+        .half h4 { font-size: 0.8em; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .half.left h4 { color: #6366f1; } .half.right h4 { color: #a855f7; }
+        .subset-chip { display: inline-block; margin: 3px; padding: 4px 9px; border-radius: 7px; font-size: 0.72em; font-family: 'JetBrains Mono', monospace; background: white; border: 1px solid #e2e8f0; color: #475569; transition: all 0.25s ease; }
+        .subset-chip.left { border-color: #c7d2fe; } .subset-chip.right { border-color: #e9d5ff; }
+        .subset-chip.hit { background: #d1fae5; border-color: #059669; color: #065f46; font-weight: 700; transform: scale(1.08); }
+        .subset-chip.scan { background: #fef3c7; border-color: #f59e0b; }
+        @media (max-width: 600px) { .compare, .halves { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Fundamentals</a>
+        <h1>Meet in the Middle</h1>
+        <p>A clever trick for problems where brute force is <code>O(2ⁿ)</code> — too slow for <code>n ≈ 40</code>. Split the items into two halves, brute-force each half separately, then <strong>combine</strong>. The exponent gets cut in half: <code>O(2^(n/2))</code>.</p>
+
+        <h2>Why Halving the Exponent is Huge</h2>
+        <div class="visual">
+<pre>
+   n = 40
+
+   Brute force:   2^40  ≈ 1,000,000,000,000   (a trillion — too slow)
+
+   Meet in middle:
+       2^20 + 2^20 ≈ 2,000,000   (two million — instant!)
+
+   Splitting in half doesn't halve the work… it SQUARE-ROOTs it.
+   2^40 = (2^20)²  →  we replace a product with a sum.
+</pre>
+        </div>
+        <div class="note">
+            <ul>
+                <li>Sweet spot: <code>n</code> roughly <strong>30–45</strong> — too big for <code>2ⁿ</code>, too small/unstructured for DP.</li>
+                <li>Works when the problem <strong>splits cleanly</strong> and partial results can be <strong>combined</strong> (often via sorting + binary search or a hash map).</li>
+            </ul>
+        </div>
+
+        <h2>The Recipe (Subset-Sum example)</h2>
+        <div class="visual">
+<pre>
+   Question: is there a subset of the array summing to TARGET?
+
+   1. SPLIT    array into left half L and right half R
+   2. ENUMERATE all 2^(n/2) subset sums of L  → list A
+                all 2^(n/2) subset sums of R  → list B
+   3. SORT     list B
+   4. COMBINE  for each sum a in A, binary-search B
+               for (TARGET − a). Found a pair? → YES.
+</pre>
+        </div>
+
+        <h2>Interactive: Subset Sum via Meet in the Middle</h2>
+        <p>Array <code>[3, 5, 8, 2]</code> split into a left and right half. We enumerate every subset sum on each side, then look for a left sum + right sum that equals the target.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <span style="font-size:0.82em;font-weight:600;color:#475569;">Target:</span>
+                <button class="viz-btn target-btn" data-t="10" onclick="setT(10)">10</button>
+                <button class="viz-btn target-btn" data-t="13" onclick="setT(13)">13</button>
+                <button class="viz-btn target-btn" data-t="18" onclick="setT(18)">18</button>
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Solve</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+            </div>
+            <div class="halves">
+                <div class="half left"><h4>Left {3, 5} → sums</h4><div id="leftChips"></div></div>
+                <div class="half right"><h4>Right {8, 2} → sums</h4><div id="rightChips"></div></div>
+            </div>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px; max-height:140px; overflow-y:auto;"></div>
+        </div>
+
+        <h2>Code: Subset Sum (Meet in the Middle)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// all subset sums of a[lo..hi)</span>
+vector&lt;<span class="keyword">long long</span>&gt; subsetSums(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">int</span> k = hi - lo;
+    vector&lt;<span class="keyword">long long</span>&gt; sums;
+    <span class="keyword">for</span> (<span class="keyword">int</span> mask = <span class="number">0</span>; mask &lt; (<span class="number">1</span> &lt;&lt; k); mask++) {
+        <span class="keyword">long long</span> s = <span class="number">0</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; k; i++)
+            <span class="keyword">if</span> (mask &amp; (<span class="number">1</span> &lt;&lt; i)) s += a[lo + i];
+        sums.push_back(s);
+    }
+    <span class="keyword">return</span> sums;
+}
+<span class="keyword">bool</span> hasSubsetSum(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">long long</span> target) {
+    <span class="keyword">int</span> n = a.size(), mid = n / <span class="number">2</span>;
+    <span class="keyword">auto</span> A = subsetSums(a, <span class="number">0</span>, mid);
+    <span class="keyword">auto</span> B = subsetSums(a, mid, n);
+    sort(B.begin(), B.end());
+    <span class="keyword">for</span> (<span class="keyword">long long</span> x : A)              <span class="comment">// COMBINE</span>
+        <span class="keyword">if</span> (binary_search(B.begin(), B.end(), target - x))
+            <span class="keyword">return</span> <span class="keyword">true</span>;
+    <span class="keyword">return</span> <span class="keyword">false</span>;
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">long</span>[] subsetSums(<span class="keyword">int</span>[] a, <span class="keyword">int</span> lo, <span class="keyword">int</span> hi) {
+    <span class="keyword">int</span> k = hi - lo;
+    <span class="keyword">long</span>[] sums = <span class="keyword">new long</span>[<span class="number">1</span> &lt;&lt; k];
+    <span class="keyword">for</span> (<span class="keyword">int</span> mask = <span class="number">0</span>; mask &lt; (<span class="number">1</span> &lt;&lt; k); mask++) {
+        <span class="keyword">long</span> s = <span class="number">0</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; k; i++)
+            <span class="keyword">if</span> ((mask &amp; (<span class="number">1</span> &lt;&lt; i)) != <span class="number">0</span>) s += a[lo + i];
+        sums[mask] = s;
+    }
+    <span class="keyword">return</span> sums;
+}
+<span class="keyword">boolean</span> hasSubsetSum(<span class="keyword">int</span>[] a, <span class="keyword">long</span> target) {
+    <span class="keyword">int</span> n = a.length, mid = n / <span class="number">2</span>;
+    <span class="keyword">long</span>[] A = subsetSums(a, <span class="number">0</span>, mid);
+    <span class="keyword">long</span>[] B = subsetSums(a, mid, n);
+    Arrays.sort(B);
+    <span class="keyword">for</span> (<span class="keyword">long</span> x : A)
+        <span class="keyword">if</span> (Arrays.binarySearch(B, target - x) &gt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="keyword">true</span>;
+    <span class="keyword">return</span> <span class="keyword">false</span>;
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">from</span> itertools <span class="keyword">import</span> combinations
+<span class="keyword">import</span> bisect
+
+<span class="keyword">def</span> subset_sums(part):
+    sums = []
+    <span class="keyword">for</span> r <span class="keyword">in</span> range(len(part) + <span class="number">1</span>):
+        <span class="keyword">for</span> combo <span class="keyword">in</span> combinations(part, r):
+            sums.append(sum(combo))
+    <span class="keyword">return</span> sums
+
+<span class="keyword">def</span> has_subset_sum(a, target):
+    mid = len(a) // <span class="number">2</span>
+    A = subset_sums(a[:mid])
+    B = sorted(subset_sums(a[mid:]))
+    <span class="keyword">for</span> x <span class="keyword">in</span> A:                         <span class="comment"># COMBINE</span>
+        need = target - x
+        i = bisect.bisect_left(B, need)
+        <span class="keyword">if</span> i &lt; len(B) <span class="keyword">and</span> B[i] == need:
+            <span class="keyword">return</span> <span class="keyword">True</span>
+    <span class="keyword">return</span> <span class="keyword">False</span></pre>
+            </div>
+        </div>
+
+        <h2>Brute Force vs Meet in the Middle</h2>
+        <div class="compare">
+            <div>
+                <h3>Brute Force</h3>
+                <ul>
+                    <li>Try all 2ⁿ subsets</li>
+                    <li>Dies around n &gt; 25</li>
+                    <li><strong>O(2ⁿ)</strong></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Meet in the Middle</h3>
+                <ul>
+                    <li>2 × 2^(n/2), then combine</li>
+                    <li>Comfortable up to n ≈ 40</li>
+                    <li><strong>O(2^(n/2) · n)</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>Where It Shows Up</h2>
+        <div class="step-box">
+            <strong>Subset Sum / Count subsets</strong> with sum = target (shown above).<br><br>
+            <strong>Closest subset sum</strong> to a target — combine with two pointers.<br><br>
+            <strong>4-SUM</strong> — split pairs, hash all pair-sums of each half.<br><br>
+            <strong>Discrete log / baby-step giant-step</strong> — the number-theory cousin.<br><br>
+            <strong>Knapsack with huge capacity</strong> but small n (~40).
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Memory blowup:</strong> 2^(n/2) lists can still be millions of entries — watch RAM.<br><br>
+            <strong>2. Forgetting to sort</strong> the second half before binary searching it.<br><br>
+            <strong>3. Overflow:</strong> subset sums add up fast — use 64-bit integers.<br><br>
+            <strong>4. Using it when n is small:</strong> if n ≤ 20, plain brute force is simpler and fast enough.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const leftItems = [3, 5], rightItems = [8, 2];
+        // build labelled subset sums
+        function buildSubsets(items) {
+            const res = [];
+            for (let mask = 0; mask < (1 << items.length); mask++) {
+                let s = 0, parts = [];
+                for (let i = 0; i < items.length; i++) if (mask & (1 << i)) { s += items[i]; parts.push(items[i]); }
+                res.push({ sum: s, label: parts.length ? parts.join('+') : '∅', val: s });
+            }
+            return res;
+        }
+        const L = buildSubsets(leftItems);
+        const R = buildSubsets(rightItems).sort((a, b) => a.sum - b.sum);
+        let target = 10, frames = [], idx = 0, timer = null;
+
+        function setT(t) {
+            target = t;
+            document.querySelectorAll('.target-btn').forEach(b => b.classList.toggle('target', +b.dataset.t === t));
+            resetViz();
+        }
+
+        function buildFrames() {
+            const f = [];
+            f.push({ scanL: -1, hitL: -1, hitR: -1, msg: `Goal: pick one LEFT sum + one RIGHT sum = ${target}.` });
+            let solved = false;
+            for (let i = 0; i < L.length && !solved; i++) {
+                const need = target - L[i].sum;
+                f.push({ scanL: i, hitL: -1, hitR: -1, need, msg: `Left = ${L[i].sum} (${L[i].label}) → need ${need} from right.` });
+                const j = R.findIndex(r => r.sum === need);
+                if (j !== -1) {
+                    f.push({ scanL: i, hitL: i, hitR: j, need, msg: `✅ Found ${need} (${R[j].label}) on the right! ${L[i].sum} + ${need} = ${target}.` });
+                    solved = true;
+                } else {
+                    f.push({ scanL: i, hitL: -1, hitR: -1, need, miss: need, msg: `No ${need} on the right. Try next left subset.` });
+                }
+            }
+            if (!solved) f.push({ scanL: -1, hitL: -1, hitR: -1, msg: `No combination reaches ${target}. → NO subset sums to ${target}.` });
+            return f;
+        }
+
+        function chip(item, cls) { return `<span class="subset-chip ${cls}">${item.label}=${item.sum}</span>`; }
+
+        function render(fr) {
+            let lh = '';
+            L.forEach((it, i) => {
+                let c = 'left';
+                if (fr.hitL === i) c += ' hit'; else if (fr.scanL === i) c += ' scan';
+                lh += chip(it, c);
+            });
+            let rh = '';
+            R.forEach((it, j) => {
+                let c = 'right';
+                if (fr.hitR === j) c += ' hit';
+                else if (fr.need !== undefined && it.sum === fr.need && fr.hitR === -1) c += ' scan';
+                rh += chip(it, c);
+            });
+            document.getElementById('leftChips').innerHTML = lh;
+            document.getElementById('rightChips').innerHTML = rh;
+            const ok = fr.msg.startsWith('✅'), no = fr.msg.startsWith('No combination');
+            document.getElementById('vizLog').innerHTML = `<span style="color:${ok ? '#059669' : no ? '#dc2626' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Solve';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Solve'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Solve'; return; }
+                stepOnce();
+            }, 1000);
+        }
+        resetViz();
+    </script>
+</body>
+</html>

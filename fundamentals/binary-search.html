@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Search - Fundamentals Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .warn { background: #fffbeb; border-left: 4px solid #d97706; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .warn ul { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .viz-btn.target { background: #6366f1; color: white; border-color: #6366f1; }
+        .bs-array { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 20px 0; }
+        .bs-cell { width: 46px; height: 52px; border-radius: 10px; border: 2px solid #e2e8f0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s ease; position: relative; }
+        .bs-cell .val { font-size: 0.9em; font-weight: 700; color: #1e293b; font-family: 'JetBrains Mono', monospace; }
+        .bs-cell .ix { font-size: 0.6em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+        .bs-cell.out { opacity: 0.3; background: #f1f5f9; }
+        .bs-cell.range { border-color: #c7d2fe; background: #eef2ff; }
+        .bs-cell.mid { border-color: #f59e0b; background: #fef3c7; transform: scale(1.12); }
+        .bs-cell.found { border-color: #059669; background: #d1fae5; transform: scale(1.12); }
+        .ptr { position: absolute; top: -20px; font-size: 0.6em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .bs-cell { width: 36px; height: 44px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Fundamentals</a>
+        <h1>Binary Search</h1>
+        <p>The fastest way to find something in <strong>sorted</strong> data. Each guess throws away <strong>half</strong> the remaining candidates — so a million items take only ~20 steps.</p>
+
+        <h2>The Core Idea</h2>
+        <div class="visual">
+<pre>
+   Look at the MIDDLE element:
+     • equal to target?  → found it!
+     • target smaller?   → throw away the right half
+     • target bigger?    → throw away the left half
+   Repeat on what's left.
+
+   n → n/2 → n/4 → … → 1   means  O(log₂ n) steps.
+   1,000,000 items? Just ~20 guesses.
+</pre>
+        </div>
+        <div class="warn">
+            <ul>
+                <li><strong>Precondition:</strong> the data must be sorted (or have some monotonic property).</li>
+                <li>No sorted order, no binary search.</li>
+            </ul>
+        </div>
+
+        <h2>Interactive: Find the Target</h2>
+        <p>Pick a target, then step through. Greyed cells are <span style="color:#94a3b8;font-weight:600;">discarded</span>, blue is the <span style="color:#6366f1;font-weight:600;">active range</span>, amber is the <span style="color:#d97706;font-weight:600;">middle</span> we're checking.</p>
+        <div class="viz-container">
+            <div class="viz-controls" id="targetBtns"></div>
+            <div class="viz-controls">
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Search</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+            </div>
+            <div class="bs-array" id="bsArray"></div>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px; max-height:140px; overflow-y:auto;"></div>
+        </div>
+
+        <h2>Code: Classic Binary Search</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="keyword">int</span> binarySearch(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">int</span> target) {
+    <span class="keyword">int</span> lo = <span class="number">0</span>, hi = a.size() - <span class="number">1</span>;
+    <span class="keyword">while</span> (lo &lt;= hi) {
+        <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>; <span class="comment">// avoids overflow</span>
+        <span class="keyword">if</span> (a[mid] == target) <span class="keyword">return</span> mid;
+        <span class="keyword">else if</span> (a[mid] &lt; target) lo = mid + <span class="number">1</span>; <span class="comment">// go right</span>
+        <span class="keyword">else</span> hi = mid - <span class="number">1</span>;                  <span class="comment">// go left</span>
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>; <span class="comment">// not found</span>
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">int</span> binarySearch(<span class="keyword">int</span>[] a, <span class="keyword">int</span> target) {
+    <span class="keyword">int</span> lo = <span class="number">0</span>, hi = a.length - <span class="number">1</span>;
+    <span class="keyword">while</span> (lo &lt;= hi) {
+        <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>; <span class="comment">// avoids overflow</span>
+        <span class="keyword">if</span> (a[mid] == target) <span class="keyword">return</span> mid;
+        <span class="keyword">else if</span> (a[mid] &lt; target) lo = mid + <span class="number">1</span>;
+        <span class="keyword">else</span> hi = mid - <span class="number">1</span>;
+    }
+    <span class="keyword">return</span> -<span class="number">1</span>;
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">def</span> binary_search(a, target):
+    lo, hi = <span class="number">0</span>, len(a) - <span class="number">1</span>
+    <span class="keyword">while</span> lo &lt;= hi:
+        mid = (lo + hi) // <span class="number">2</span>
+        <span class="keyword">if</span> a[mid] == target:
+            <span class="keyword">return</span> mid
+        <span class="keyword">elif</span> a[mid] &lt; target:
+            lo = mid + <span class="number">1</span>      <span class="comment"># go right</span>
+        <span class="keyword">else</span>:
+            hi = mid - <span class="number">1</span>      <span class="comment"># go left</span>
+    <span class="keyword">return</span> -<span class="number">1</span>             <span class="comment"># not found</span>
+
+<span class="comment"># or just: import bisect; bisect.bisect_left(a, target)</span></pre>
+            </div>
+        </div>
+
+        <h2>The Real Superpower: "Binary Search on the Answer"</h2>
+        <p>Binary search isn't only for arrays. If a question has a <strong>monotonic yes/no boundary</strong> — once it becomes true, it stays true — you can binary search the <em>answer itself</em>.</p>
+        <div class="visual">
+<pre>
+   Predicate p(x): "is x a feasible answer?"
+   If p looks like:   NO NO NO NO YES YES YES
+                                  ↑ first YES = the answer
+
+   Binary search for that boundary in O(log range).
+
+   Example: "minimum capacity to ship all packages in D days"
+     • too small capacity → NO (can't finish in time)
+     • big enough         → YES
+     • find the smallest YES.
+</pre>
+        </div>
+
+        <h2>Code: Search on the Answer (template)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp2')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java2')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py2')">Python</button>
+            </div>
+            <div id="cpp2" class="code-content active">
+<pre><span class="comment">// find the smallest x in [lo, hi] with feasible(x) == true</span>
+<span class="keyword">int</span> lo = minPossible, hi = maxPossible, ans = hi;
+<span class="keyword">while</span> (lo &lt;= hi) {
+    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;
+    <span class="keyword">if</span> (feasible(mid)) { ans = mid; hi = mid - <span class="number">1</span>; } <span class="comment">// try smaller</span>
+    <span class="keyword">else</span> lo = mid + <span class="number">1</span>;                            <span class="comment">// need bigger</span>
+}
+<span class="comment">// ans = smallest feasible value</span></pre>
+            </div>
+            <div id="java2" class="code-content">
+<pre><span class="comment">// smallest x with feasible(x) == true</span>
+<span class="keyword">int</span> lo = minPossible, hi = maxPossible, ans = hi;
+<span class="keyword">while</span> (lo &lt;= hi) {
+    <span class="keyword">int</span> mid = lo + (hi - lo) / <span class="number">2</span>;
+    <span class="keyword">if</span> (feasible(mid)) { ans = mid; hi = mid - <span class="number">1</span>; }
+    <span class="keyword">else</span> lo = mid + <span class="number">1</span>;
+}</pre>
+            </div>
+            <div id="py2" class="code-content">
+<pre><span class="comment"># smallest x with feasible(x) == True</span>
+lo, hi, ans = min_possible, max_possible, max_possible
+<span class="keyword">while</span> lo &lt;= hi:
+    mid = (lo + hi) // <span class="number">2</span>
+    <span class="keyword">if</span> feasible(mid):
+        ans = mid
+        hi = mid - <span class="number">1</span>   <span class="comment"># try smaller</span>
+    <span class="keyword">else</span>:
+        lo = mid + <span class="number">1</span>   <span class="comment"># need bigger</span></pre>
+            </div>
+        </div>
+
+        <h2>lower_bound vs upper_bound</h2>
+        <div class="compare">
+            <div>
+                <h3>lower_bound(x)</h3>
+                <ul>
+                    <li>First index with value <strong>≥ x</strong></li>
+                    <li>Where x would be inserted (left)</li>
+                    <li>Python: <code>bisect_left</code></li>
+                </ul>
+            </div>
+            <div>
+                <h3>upper_bound(x)</h3>
+                <ul>
+                    <li>First index with value <strong>&gt; x</strong></li>
+                    <li>Insert position (right)</li>
+                    <li>Python: <code>bisect_right</code></li>
+                </ul>
+            </div>
+        </div>
+        <div class="note">
+            <ul>
+                <li>Count of x in a sorted array = <code>upper_bound(x) − lower_bound(x)</code>.</li>
+            </ul>
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Overflow:</strong> use <code>mid = lo + (hi - lo) / 2</code>, not <code>(lo + hi) / 2</code> in C++/Java.<br><br>
+            <strong>2. Infinite loop:</strong> make sure <code>lo</code> or <code>hi</code> actually moves each iteration.<br><br>
+            <strong>3. Wrong boundary:</strong> decide <code>&lt;=</code> vs <code>&lt;</code> and <code>mid±1</code> carefully — pick one template and reuse it.<br><br>
+            <strong>4. Forgetting sorted-ness:</strong> binary search on unsorted data silently returns garbage.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const arr = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+        const targets = [23, 12, 91, 2, 40];
+        let target = 23, frames = [], idx = 0, timer = null;
+
+        function buildTargetBtns() {
+            let html = '<span style="font-size:0.82em;font-weight:600;color:#475569;">Target:</span>';
+            targets.forEach(t => {
+                html += `<button class="viz-btn ${t === target ? 'target' : ''}" onclick="setTarget(${t})">${t}</button>`;
+            });
+            document.getElementById('targetBtns').innerHTML = html;
+        }
+
+        function setTarget(t) { target = t; buildTargetBtns(); resetViz(); }
+
+        function buildFrames() {
+            const f = [];
+            let lo = 0, hi = arr.length - 1, found = -1;
+            f.push({ lo, hi, mid: -1, found: -1, msg: `Searching for ${target} in the full array.` });
+            while (lo <= hi) {
+                const mid = lo + ((hi - lo) >> 1);
+                if (arr[mid] === target) {
+                    f.push({ lo, hi, mid, found: mid, msg: `a[${mid}] = ${arr[mid]} = target → found at index ${mid}! 🎯` });
+                    found = mid; break;
+                } else if (arr[mid] < target) {
+                    f.push({ lo, hi, mid, found: -1, msg: `a[${mid}] = ${arr[mid]} < ${target} → discard left half, go right.` });
+                    lo = mid + 1;
+                } else {
+                    f.push({ lo, hi, mid, found: -1, msg: `a[${mid}] = ${arr[mid]} > ${target} → discard right half, go left.` });
+                    hi = mid - 1;
+                }
+            }
+            if (found === -1) f.push({ lo, hi, mid: -1, found: -1, msg: `Range empty → ${target} is not in the array.` });
+            return f;
+        }
+
+        function render(fr) {
+            let html = '';
+            arr.forEach((v, i) => {
+                let cls = 'bs-cell';
+                if (fr.found === i) cls += ' found';
+                else if (fr.mid === i) cls += ' mid';
+                else if (i >= fr.lo && i <= fr.hi) cls += ' range';
+                else cls += ' out';
+                let ptr = '';
+                if (i === fr.lo && fr.found === -1) ptr += `<span class="ptr" style="left:2px;color:#6366f1;">lo</span>`;
+                if (i === fr.hi && fr.found === -1) ptr += `<span class="ptr" style="right:2px;color:#a855f7;">hi</span>`;
+                html += `<div class="${cls}">${ptr}<span class="val">${v}</span><span class="ix">${i}</span></div>`;
+            });
+            document.getElementById('bsArray').innerHTML = html;
+            const done = fr.msg.includes('🎯') || fr.msg.includes('not in');
+            document.getElementById('vizLog').innerHTML = `<span style="color:${fr.msg.includes('🎯') ? '#059669' : fr.msg.includes('not in') ? '#dc2626' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Search';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Search'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Search'; return; }
+                stepOnce();
+            }, 900);
+        }
+
+        buildTargetBtns();
+        resetViz();
+    </script>
+</body>
+</html>
