@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>String Hashing - Strings Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .viz-input { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .strcells { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin: 16px 0; }
+        .ch { width: 40px; height: 50px; border-radius: 8px; border: 2px solid #e2e8f0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; transition: all 0.3s ease; }
+        .ch .c { font-size: 1.05em; font-weight: 700; color: #1e293b; }
+        .ch .i { font-size: 0.56em; color: #94a3b8; }
+        .ch.win { border-color: #6366f1; background: #eef2ff; }
+        .ch.match { border-color: #059669; background: #d1fae5; }
+        .readout { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.86em; color: #475569; margin-top: 10px; }
+        .readout b { color: #6366f1; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .ch { width: 30px; height: 42px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>String Hashing</h1>
+        <p>Turn any string into a single number (its <strong>hash</strong>) so you can compare substrings in <code>O(1)</code> instead of character-by-character. The backbone of Rabin-Karp pattern matching and countless substring problems.</p>
+
+        <h2>Polynomial Hashing</h2>
+        <div class="visual">
+<pre>
+   Treat the string like a number in base p:
+
+   hash(s) = s[0]·p⁰ + s[1]·p¹ + s[2]·p² + … (mod M)
+
+   • p = a prime bigger than the alphabet (e.g. 31 or 131)
+   • M = a big prime modulus (e.g. 1e9+7 or 2⁶¹−1)
+
+   Two strings with the same hash are *almost certainly* equal.
+</pre>
+        </div>
+
+        <h2>The Magic: Substring Hash in O(1)</h2>
+        <p>Precompute prefix hashes once. Then the hash of any substring <code>s[l..r]</code> comes out with one subtraction and one multiply — so two substrings can be compared instantly.</p>
+        <div class="note">
+            <ul>
+                <li><code>prefix[i]</code> = hash of the first <code>i</code> characters.</li>
+                <li><code>hash(l, r) = prefix[r+1] − prefix[l]·p^(r−l+1)</code> (all mod M).</li>
+                <li>Precompute powers of <code>p</code> so the formula is truly O(1).</li>
+            </ul>
+        </div>
+
+        <h2>Interactive: Rabin-Karp Pattern Search</h2>
+        <p>We slide a window the size of the pattern across the text, comparing <strong>hashes</strong> instead of characters. A hash match (green) is then a real match. Type your own text/pattern.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <label style="font-size:0.82em;font-weight:600;color:#475569;">text</label>
+                <input class="viz-input" id="inText" value="abracadabra" style="width:150px;">
+                <label style="font-size:0.82em;font-weight:600;color:#475569;">pattern</label>
+                <input class="viz-input" id="inPat" value="abra" style="width:90px;">
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Search</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+            </div>
+            <div class="strcells" id="strCells"></div>
+            <div class="readout" id="readout"></div>
+            <div id="vizLog" style="margin-top:10px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Code: Polynomial Hash + Rabin-Karp</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="keyword">const long long</span> P = <span class="number">131</span>, MOD = <span class="number">1000000007</span>;
+
+<span class="keyword">struct</span> Hash {
+    vector&lt;<span class="keyword">long long</span>&gt; h, pw;
+    Hash(<span class="keyword">const</span> string&amp; s) {
+        <span class="keyword">int</span> n = s.size();
+        h.assign(n + <span class="number">1</span>, <span class="number">0</span>); pw.assign(n + <span class="number">1</span>, <span class="number">1</span>);
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) {
+            h[i+<span class="number">1</span>] = (h[i] * P + s[i]) % MOD;
+            pw[i+<span class="number">1</span>] = pw[i] * P % MOD;
+        }
+    }
+    <span class="comment">// hash of s[l..r] (0-indexed, inclusive)</span>
+    <span class="keyword">long long</span> get(<span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+        <span class="keyword">return</span> ((h[r+<span class="number">1</span>] - h[l] * pw[r-l+<span class="number">1</span>]) % MOD + MOD) % MOD;
+    }
+};
+
+<span class="comment">// find all occurrences of pat in txt</span>
+vector&lt;<span class="keyword">int</span>&gt; rabinKarp(<span class="keyword">const</span> string&amp; txt, <span class="keyword">const</span> string&amp; pat) {
+    Hash H(txt); Hash P2(pat);
+    <span class="keyword">long long</span> target = P2.get(<span class="number">0</span>, pat.size()-<span class="number">1</span>);
+    vector&lt;<span class="keyword">int</span>&gt; res;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i + pat.size() &lt;= txt.size(); i++)
+        <span class="keyword">if</span> (H.get(i, i + pat.size() - <span class="number">1</span>) == target) res.push_back(i);
+    <span class="keyword">return</span> res;
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">static final long</span> P = <span class="number">131</span>, MOD = <span class="number">1_000_000_007L</span>;
+
+<span class="keyword">static long</span>[] prefixHash(String s) {
+    <span class="keyword">int</span> n = s.length();
+    <span class="keyword">long</span>[] h = <span class="keyword">new long</span>[n + <span class="number">1</span>];
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+        h[i+<span class="number">1</span>] = (h[i] * P + s.charAt(i)) % MOD;
+    <span class="keyword">return</span> h;
+}
+<span class="keyword">static long</span>[] powers(<span class="keyword">int</span> n) {
+    <span class="keyword">long</span>[] pw = <span class="keyword">new long</span>[n + <span class="number">1</span>]; pw[<span class="number">0</span>] = <span class="number">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n; i++) pw[i] = pw[i-<span class="number">1</span>] * P % MOD;
+    <span class="keyword">return</span> pw;
+}
+<span class="keyword">static long</span> sub(<span class="keyword">long</span>[] h, <span class="keyword">long</span>[] pw, <span class="keyword">int</span> l, <span class="keyword">int</span> r) {
+    <span class="keyword">return</span> ((h[r+<span class="number">1</span>] - h[l] * pw[r-l+<span class="number">1</span>]) % MOD + MOD) % MOD;
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre>P, MOD = <span class="number">131</span>, <span class="number">10</span>**<span class="number">9</span> + <span class="number">7</span>
+
+<span class="keyword">def</span> build(s):
+    n = len(s)
+    h = [<span class="number">0</span>] * (n + <span class="number">1</span>)
+    pw = [<span class="number">1</span>] * (n + <span class="number">1</span>)
+    <span class="keyword">for</span> i, ch <span class="keyword">in</span> enumerate(s):
+        h[i+<span class="number">1</span>] = (h[i] * P + ord(ch)) % MOD
+        pw[i+<span class="number">1</span>] = pw[i] * P % MOD
+    <span class="keyword">return</span> h, pw
+
+<span class="keyword">def</span> sub_hash(h, pw, l, r):       <span class="comment"># s[l..r] inclusive</span>
+    <span class="keyword">return</span> (h[r+<span class="number">1</span>] - h[l] * pw[r-l+<span class="number">1</span>]) % MOD
+
+<span class="keyword">def</span> rabin_karp(txt, pat):
+    h, pw = build(txt)
+    hp, _ = build(pat)
+    target = hp[len(pat)]
+    m = len(pat)
+    <span class="keyword">return</span> [i <span class="keyword">for</span> i <span class="keyword">in</span> range(len(txt) - m + <span class="number">1</span>)
+            <span class="keyword">if</span> sub_hash(h, pw, i, i + m - <span class="number">1</span>) == target]</pre>
+            </div>
+        </div>
+
+        <h2>Avoiding Collisions</h2>
+        <div class="step-box">
+            <strong>Double hashing:</strong> use two different (p, M) pairs; collision only if BOTH match — odds become astronomically small.<br><br>
+            <strong>Big modulus:</strong> 2⁶¹−1 with 128-bit multiply resists anti-hash test cases.<br><br>
+            <strong>Random base:</strong> pick p randomly at runtime so adversaries can't craft collisions.<br><br>
+            <strong>Verify on match:</strong> when correctness is critical, do a real character compare after a hash hit.
+        </div>
+
+        <h2>What It Unlocks</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Pattern matching</strong> (Rabin-Karp) in O(n + m) average.</li>
+                <li><strong>Compare any two substrings</strong> in O(1) → longest common prefix via binary search.</li>
+                <li><strong>Count distinct substrings</strong>, find repeats, detect palindromes.</li>
+                <li><strong>2D hashing</strong> for grid/pattern matching.</li>
+            </ul>
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Single hash on hard problems:</strong> a known modulus invites anti-hash tests — use double or random.<br><br>
+            <strong>2. Overflow:</strong> <code>h[i]*P</code> can overflow 64 bits near large M — reduce carefully or use __int128.<br><br>
+            <strong>3. Negative after subtraction:</strong> add M before the final mod.<br><br>
+            <strong>4. Mapping 'a' to 0:</strong> use <code>s[i] - 'a' + 1</code> so leading characters don't vanish ("a" vs "aa").
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const P = 131n, MOD = 1000000007n;
+        let text = 'abracadabra', pat = 'abra', frames = [], idx = 0, timer = null;
+
+        function strHash(s) {
+            let h = 0n;
+            for (const ch of s) h = (h * P + BigInt(ch.charCodeAt(0))) % MOD;
+            return h;
+        }
+
+        function buildFrames() {
+            text = document.getElementById('inText').value || '';
+            pat = document.getElementById('inPat').value || '';
+            const m = pat.length, n = text.length;
+            const target = strHash(pat);
+            const f = [];
+            f.push({ pos: -1, match: -1, kind: 'start', msg: `Pattern hash = ${target}. Slide a window of size ${m}.` });
+            if (m === 0 || m > n) { f.push({ pos: -1, match: -1, kind: 'done', msg: 'Pattern empty or longer than text.' }); return f; }
+            for (let i = 0; i + m <= n; i++) {
+                const sub = text.substr(i, m);
+                const h = strHash(sub);
+                if (h === target) f.push({ pos: i, match: i, kind: 'match', hash: h.toString(), target: target.toString(), msg: `Window "${sub}" hash = ${h} = pattern hash → MATCH at index ${i}! ✅` });
+                else f.push({ pos: i, match: -1, kind: 'try', hash: h.toString(), target: target.toString(), msg: `Window "${sub}" hash = ${h} ≠ ${target} → skip.` });
+            }
+            f.push({ pos: -1, match: -1, kind: 'done', msg: '🎉 Scan complete.' });
+            return f;
+        }
+
+        function render(fr) {
+            const m = pat.length;
+            let html = '';
+            for (let i = 0; i < text.length; i++) {
+                let cls = 'ch';
+                if (fr.match >= 0 && i >= fr.match && i < fr.match + m) cls += ' match';
+                else if (fr.pos >= 0 && i >= fr.pos && i < fr.pos + m) cls += ' win';
+                html += `<div class="${cls}"><span class="c">${text[i]}</span><span class="i">${i}</span></div>`;
+            }
+            document.getElementById('strCells').innerHTML = html;
+            document.getElementById('readout').innerHTML = fr.hash != null ? `window hash <b>${fr.hash}</b> vs pattern hash <b>${fr.target}</b>` : '';
+            const done = fr.kind === 'done', ok = fr.kind === 'match';
+            document.getElementById('vizLog').innerHTML = `<span style="color:${ok ? '#059669' : done ? '#10b981' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Search';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Search'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Search'; return; }
+                stepOnce();
+            }, 750);
+        }
+        document.getElementById('inText').addEventListener('change', resetViz);
+        document.getElementById('inPat').addEventListener('change', resetViz);
+        resetViz();
+    </script>
+</body>
+</html>

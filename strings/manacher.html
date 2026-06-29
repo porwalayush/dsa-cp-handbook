@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manacher's Algorithm - Strings Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .viz-input { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .row-label { font-size: 0.7em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; margin: 10px 0 4px; }
+        .strcells { display: flex; gap: 3px; flex-wrap: wrap; }
+        .ch { width: 34px; height: 44px; border-radius: 7px; border: 2px solid #e2e8f0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; transition: all 0.25s ease; }
+        .ch .c { font-size: 0.9em; font-weight: 700; color: #1e293b; }
+        .ch .i { font-size: 0.5em; color: #94a3b8; }
+        .ch.center { border-color: #f59e0b; background: #fef3c7; }
+        .ch.span { border-color: #c7d2fe; background: #eef2ff; }
+        .ch.sep { color: #cbd5e1; }
+        .ch.pval { border-color: #059669; background: #d1fae5; color: #065f46; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .ch { width: 24px; height: 36px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Manacher's Algorithm</h1>
+        <p>Finds the <strong>longest palindromic substring in O(n)</strong> — and in fact the palindrome radius at every center. It reuses symmetry the same way Z-algorithm reuses a prefix box, avoiding the O(n²) of expand-around-center.</p>
+
+        <h2>The Odd/Even Trick</h2>
+        <p>Palindromes come in odd (<code>"aba"</code>) and even (<code>"abba"</code>) lengths. Manacher unifies them by inserting separators so <strong>every</strong> palindrome becomes odd-length.</p>
+        <div class="visual">
+<pre>
+   original:  a  b  a  b  a
+   transform: ^ # a # b # a # b # a # $
+
+   Now we only handle ODD palindromes around each position.
+   p[i] = radius of the palindrome centered at transformed index i.
+   The real longest = max(p[i]); its length = p[i].
+</pre>
+        </div>
+
+        <h2>Reusing Symmetry</h2>
+        <div class="note">
+            <ul>
+                <li>Track the rightmost palindrome <code>[center − p, center + p]</code> seen so far.</li>
+                <li>If <code>i</code> is inside it, mirror across the center to get a free starting radius <code>p[mirror]</code>.</li>
+                <li>Only expand by character comparison past the right edge — keeping it linear.</li>
+            </ul>
+        </div>
+
+        <h2>Interactive: Palindrome Radii</h2>
+        <p>Step through the transformed string. <span style="color:#d97706;font-weight:600;">Amber</span> is the current center, <span style="color:#6366f1;font-weight:600;">blue</span> is its palindrome span, and the bottom row fills in each radius <code>p[i]</code> in <span style="color:#059669;font-weight:600;">green</span>.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <label style="font-size:0.82em;font-weight:600;color:#475569;">string</label>
+                <input class="viz-input" id="inStr" value="abacabad" style="width:180px;">
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Build</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+            </div>
+            <div class="row-label">TRANSFORMED</div>
+            <div class="strcells" id="strRow"></div>
+            <div class="row-label">RADIUS p[i]</div>
+            <div class="strcells" id="pRow"></div>
+            <div id="vizLog" style="margin-top:12px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Code: Manacher's Algorithm</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// Longest palindromic substring in O(n)</span>
+string longestPalindrome(<span class="keyword">const</span> string&amp; s) {
+    string t = <span class="string">"^"</span>;
+    <span class="keyword">for</span> (<span class="keyword">char</span> c : s) { t += <span class="string">"#"</span>; t += c; }
+    t += <span class="string">"#$"</span>;
+    <span class="keyword">int</span> n = t.size();
+    vector&lt;<span class="keyword">int</span>&gt; p(n, <span class="number">0</span>);
+    <span class="keyword">int</span> center = <span class="number">0</span>, right = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; n - <span class="number">1</span>; i++) {
+        <span class="keyword">if</span> (i &lt; right) p[i] = min(right - i, p[<span class="number">2</span>*center - i]);
+        <span class="keyword">while</span> (t[i + p[i] + <span class="number">1</span>] == t[i - p[i] - <span class="number">1</span>]) p[i]++;
+        <span class="keyword">if</span> (i + p[i] &gt; right) { center = i; right = i + p[i]; }
+    }
+    <span class="keyword">int</span> maxLen = <span class="number">0</span>, centerIdx = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; n - <span class="number">1</span>; i++)
+        <span class="keyword">if</span> (p[i] &gt; maxLen) { maxLen = p[i]; centerIdx = i; }
+    <span class="keyword">int</span> start = (centerIdx - maxLen) / <span class="number">2</span>;
+    <span class="keyword">return</span> s.substr(start, maxLen);
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">static</span> String longestPalindrome(String s) {
+    StringBuilder sb = <span class="keyword">new</span> StringBuilder(<span class="string">"^"</span>);
+    <span class="keyword">for</span> (<span class="keyword">char</span> c : s.toCharArray()) sb.append(<span class="string">'#'</span>).append(c);
+    sb.append(<span class="string">"#$"</span>);
+    String t = sb.toString();
+    <span class="keyword">int</span> n = t.length();
+    <span class="keyword">int</span>[] p = <span class="keyword">new int</span>[n];
+    <span class="keyword">int</span> center = <span class="number">0</span>, right = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; n - <span class="number">1</span>; i++) {
+        <span class="keyword">if</span> (i &lt; right) p[i] = Math.min(right - i, p[<span class="number">2</span>*center - i]);
+        <span class="keyword">while</span> (t.charAt(i + p[i] + <span class="number">1</span>) == t.charAt(i - p[i] - <span class="number">1</span>)) p[i]++;
+        <span class="keyword">if</span> (i + p[i] &gt; right) { center = i; right = i + p[i]; }
+    }
+    <span class="keyword">int</span> maxLen = <span class="number">0</span>, c = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; n - <span class="number">1</span>; i++) <span class="keyword">if</span> (p[i] &gt; maxLen) { maxLen = p[i]; c = i; }
+    <span class="keyword">return</span> s.substring((c - maxLen) / <span class="number">2</span>, (c - maxLen) / <span class="number">2</span> + maxLen);
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">def</span> longest_palindrome(s):
+    t = <span class="string">'^#'</span> + <span class="string">'#'</span>.join(s) + <span class="string">'#$'</span>
+    n = len(t)
+    p = [<span class="number">0</span>] * n
+    center = right = <span class="number">0</span>
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, n - <span class="number">1</span>):
+        <span class="keyword">if</span> i &lt; right:
+            p[i] = min(right - i, p[<span class="number">2</span>*center - i])
+        <span class="keyword">while</span> t[i + p[i] + <span class="number">1</span>] == t[i - p[i] - <span class="number">1</span>]:
+            p[i] += <span class="number">1</span>
+        <span class="keyword">if</span> i + p[i] &gt; right:
+            center, right = i, i + p[i]
+    max_len = max(p)
+    c = p.index(max_len)
+    start = (c - max_len) // <span class="number">2</span>
+    <span class="keyword">return</span> s[start:start + max_len]</pre>
+            </div>
+        </div>
+
+        <h2>What It Computes</h2>
+        <div class="step-box">
+            <strong>Longest palindromic substring</strong> in O(n) (vs O(n²) brute / O(n log n) hashing).<br><br>
+            <strong>Count all palindromic substrings:</strong> sum of <code>⌈p[i]/2⌉</code> over centers.<br><br>
+            <strong>Is s[l..r] a palindrome?</strong> answerable in O(1) after preprocessing.<br><br>
+            <strong>Palindromic prefixes/suffixes</strong> for string-building problems.
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Sentinels matter:</strong> the <code>^</code> and <code>$</code> guards stop the inner <code>while</code> from running off the ends — don't omit them.<br><br>
+            <strong>2. The mirror cap:</strong> <code>min(right − i, p[mirror])</code> is essential for both correctness and O(n).<br><br>
+            <strong>3. Index mapping back:</strong> transformed length p[i] equals the real palindrome length; <code>start = (i − p[i]) / 2</code>.<br><br>
+            <strong>4. Even palindromes:</strong> only the <code>#</code>-padding makes them appear — without it you miss them.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        let t = '', frames = [], idx = 0, timer = null;
+
+        function buildFrames() {
+            const s = document.getElementById('inStr').value || '';
+            t = '^#' + s.split('').join('#') + '#$';
+            const n = t.length, p = new Array(n).fill(0);
+            const f = [];
+            f.push({ p: p.slice(), i: -1, center: 0, right: 0, done: 0, msg: `Transformed to "${t}". Compute radius at each center.` });
+            let center = 0, right = 0;
+            for (let i = 1; i < n - 1; i++) {
+                if (i < right) p[i] = Math.min(right - i, p[2 * center - i]);
+                f.push({ p: p.slice(), i, center, right, done: i - 1, msg: `Center ${i} ('${t[i]}'): ${i < right ? `inside box → mirror gives start radius ${p[i]}` : 'fresh expand'}.` });
+                while (t[i + p[i] + 1] === t[i - p[i] - 1]) p[i]++;
+                if (i + p[i] > right) { center = i; right = i + p[i]; }
+                f.push({ p: p.slice(), i, center, right, done: i, msg: `p[${i}] = ${p[i]} → palindrome radius ${p[i]}. Box right edge = ${right}.` });
+            }
+            let maxLen = 0, c = 0;
+            for (let i = 1; i < n - 1; i++) if (p[i] > maxLen) { maxLen = p[i]; c = i; }
+            const start = (c - maxLen) / 2;
+            f.push({ p: p.slice(), i: -1, center, right, done: n - 1, msg: `🎉 Longest palindrome = "${s.substr(start, maxLen)}" (length ${maxLen}).` });
+            return f;
+        }
+
+        function render(fr) {
+            let sh = '';
+            for (let k = 0; k < t.length; k++) {
+                let cls = 'ch';
+                if (t[k] === '#' || t[k] === '^' || t[k] === '$') cls += ' sep';
+                if (k === fr.i) cls += ' center';
+                else if (fr.i >= 0 && k >= fr.i - fr.p[fr.i] && k <= fr.i + fr.p[fr.i] && fr.p[fr.i] > 0) cls += ' span';
+                sh += `<div class="${cls}"><span class="c">${t[k]}</span><span class="i">${k}</span></div>`;
+            }
+            document.getElementById('strRow').innerHTML = sh;
+            let ph = '';
+            for (let k = 0; k < t.length; k++) {
+                let cls = 'ch';
+                if (k <= fr.done && k >= 1 && k < t.length - 1) cls += ' pval';
+                else if (k === fr.i) cls += ' center';
+                const show = (k <= fr.done || k === fr.i) && k >= 1 && k < t.length - 1;
+                ph += `<div class="${cls}"><span class="c">${show ? fr.p[k] : '·'}</span><span class="i">${k}</span></div>`;
+            }
+            document.getElementById('pRow').innerHTML = ph;
+            const done = fr.msg.startsWith('🎉');
+            document.getElementById('vizLog').innerHTML = `<span style="color:${done ? '#10b981' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Build';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Build'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Build'; return; }
+                stepOnce();
+            }, 650);
+        }
+        document.getElementById('inStr').addEventListener('change', resetViz);
+        resetViz();
+    </script>
+</body>
+</html>

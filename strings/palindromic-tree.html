@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palindromic Tree (Eertree) - Strings Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .viz-input { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .built { display: flex; gap: 4px; justify-content: center; margin: 4px 0 12px; }
+        .bch { width: 34px; height: 42px; border-radius: 7px; border: 2px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .bch.cur { border-color: #f59e0b; background: #fef3c7; }
+        .bch.done { border-color: #6366f1; background: #eef2ff; color: #6366f1; }
+        .pals { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 10px 0; }
+        .pal { padding: 5px 11px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; font-weight: 700; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; transition: all 0.25s ease; }
+        .pal.fresh { background: #d1fae5; color: #065f46; border-color: #059669; transform: scale(1.1); }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Palindromic Tree (Eertree)</h1>
+        <p>A data structure that stores every <strong>distinct palindromic substring</strong> of a string — and there are at most <code>n</code> of them! Built online in O(n), it makes palindrome counting and analysis almost trivial.</p>
+
+        <h2>The Key Fact</h2>
+        <div class="note">
+            <ul>
+                <li>A string of length <code>n</code> has at most <code>n</code> <strong>distinct</strong> palindromic substrings (each new character adds at most one new palindrome).</li>
+                <li>The Eertree has two roots: an <strong>imaginary</strong> node of length −1 and an <strong>empty</strong> node of length 0. Every other node is one distinct palindrome.</li>
+                <li>Each node stores a <strong>suffix link</strong> to the longest proper palindromic suffix of itself.</li>
+            </ul>
+        </div>
+
+        <h2>How a New Character Extends It</h2>
+        <div class="visual">
+<pre>
+   To add character c at position i:
+   1. From the last palindrome, follow suffix links until
+      s[i − len − 1] == c  (so c·...·c forms a palindrome).
+   2. If that palindrome+c already exists → just move there.
+   3. Otherwise create a NEW node (a brand-new palindrome),
+      and set its suffix link by continuing to follow links.
+
+   Each step adds ≤ 1 new node → total O(n) nodes.
+</pre>
+        </div>
+
+        <h2>Interactive: Grow the Eertree</h2>
+        <p>Add each character and watch distinct palindromes appear. A <span style="color:#059669;font-weight:600;">green</span> badge marks the palindrome newly created at this step.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <label style="font-size:0.82em;font-weight:600;color:#475569;">string</label>
+                <input class="viz-input" id="inStr" value="ababa" style="width:160px;">
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Build</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+                <span id="palCount" style="font-size:0.78em; color:#64748b; margin-left:auto; font-family:'JetBrains Mono',monospace;"></span>
+            </div>
+            <div class="built" id="builtRow"></div>
+            <div class="pals" id="palsRow"></div>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Code: Palindromic Tree</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="keyword">struct</span> Eertree {
+    <span class="keyword">struct</span> Node { <span class="keyword">int</span> len, link, cnt; map&lt;<span class="keyword">char</span>,<span class="keyword">int</span>&gt; next; };
+    vector&lt;Node&gt; t;
+    string s;
+    <span class="keyword">int</span> last;
+    Eertree() {
+        t.push_back({-<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, {}}); <span class="comment">// imaginary root (len -1)</span>
+        t.push_back({ <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, {}}); <span class="comment">// empty root (len 0)</span>
+        last = <span class="number">1</span>;
+    }
+    <span class="keyword">int</span> getLink(<span class="keyword">int</span> v, <span class="keyword">int</span> i) {
+        <span class="keyword">while</span> (i - t[v].len - <span class="number">1</span> &lt; <span class="number">0</span> || s[i - t[v].len - <span class="number">1</span>] != s[i])
+            v = t[v].link;
+        <span class="keyword">return</span> v;
+    }
+    <span class="keyword">void</span> add(<span class="keyword">char</span> c) {
+        s += c;
+        <span class="keyword">int</span> i = s.size() - <span class="number">1</span>;
+        <span class="keyword">int</span> cur = getLink(last, i);
+        <span class="keyword">if</span> (!t[cur].next.count(c)) {
+            <span class="keyword">int</span> now = t.size();
+            t.push_back({t[cur].len + <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, {}});
+            <span class="keyword">if</span> (t[now].len == <span class="number">1</span>) t[now].link = <span class="number">1</span>;
+            <span class="keyword">else</span> t[now].link = t[getLink(t[cur].link, i)].next[c];
+            t[cur].next[c] = now;
+        }
+        last = t[cur].next[c];
+        t[last].cnt++;
+    }
+};
+<span class="comment">// distinct palindromes = t.size() - 2 (minus the two roots)</span></pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">class</span> Eertree {
+    <span class="keyword">int</span>[] len, link, cnt;
+    Map&lt;Character,Integer&gt;[] next;
+    StringBuilder s = <span class="keyword">new</span> StringBuilder();
+    <span class="keyword">int</span> sz, last;
+    Eertree(<span class="keyword">int</span> n) {
+        len = <span class="keyword">new int</span>[n+<span class="number">3</span>]; link = <span class="keyword">new int</span>[n+<span class="number">3</span>]; cnt = <span class="keyword">new int</span>[n+<span class="number">3</span>];
+        next = <span class="keyword">new</span> HashMap[n+<span class="number">3</span>];
+        len[<span class="number">0</span>] = -<span class="number">1</span>; link[<span class="number">0</span>] = <span class="number">0</span>; next[<span class="number">0</span>] = <span class="keyword">new</span> HashMap&lt;&gt;();
+        len[<span class="number">1</span>] = <span class="number">0</span>;  link[<span class="number">1</span>] = <span class="number">0</span>; next[<span class="number">1</span>] = <span class="keyword">new</span> HashMap&lt;&gt;();
+        sz = <span class="number">2</span>; last = <span class="number">1</span>;
+    }
+    <span class="keyword">int</span> getLink(<span class="keyword">int</span> v, <span class="keyword">int</span> i) {
+        <span class="keyword">while</span> (i - len[v] - <span class="number">1</span> &lt; <span class="number">0</span> || s.charAt(i - len[v] - <span class="number">1</span>) != s.charAt(i)) v = link[v];
+        <span class="keyword">return</span> v;
+    }
+    <span class="keyword">void</span> add(<span class="keyword">char</span> c) {
+        s.append(c);
+        <span class="keyword">int</span> i = s.length() - <span class="number">1</span>;
+        <span class="keyword">int</span> cur = getLink(last, i);
+        <span class="keyword">if</span> (!next[cur].containsKey(c)) {
+            <span class="keyword">int</span> now = sz++; next[now] = <span class="keyword">new</span> HashMap&lt;&gt;();
+            len[now] = len[cur] + <span class="number">2</span>;
+            link[now] = (len[now] == <span class="number">1</span>) ? <span class="number">1</span> : next[getLink(link[cur], i)].get(c);
+            next[cur].put(c, now);
+        }
+        last = next[cur].get(c);
+        cnt[last]++;
+    }
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">class</span> Eertree:
+    <span class="keyword">def</span> __init__(self):
+        self.len = [-<span class="number">1</span>, <span class="number">0</span>]; self.link = [<span class="number">0</span>, <span class="number">0</span>]
+        self.cnt = [<span class="number">0</span>, <span class="number">0</span>]; self.next = [{}, {}]
+        self.s = []; self.last = <span class="number">1</span>
+
+    <span class="keyword">def</span> get_link(self, v, i):
+        <span class="keyword">while</span> i - self.len[v] - <span class="number">1</span> &lt; <span class="number">0</span> <span class="keyword">or</span> self.s[i - self.len[v] - <span class="number">1</span>] != self.s[i]:
+            v = self.link[v]
+        <span class="keyword">return</span> v
+
+    <span class="keyword">def</span> add(self, c):
+        self.s.append(c)
+        i = len(self.s) - <span class="number">1</span>
+        cur = self.get_link(self.last, i)
+        <span class="keyword">if</span> c <span class="keyword">not in</span> self.next[cur]:
+            now = len(self.len)
+            self.len.append(self.len[cur] + <span class="number">2</span>)
+            self.next.append({}); self.cnt.append(<span class="number">0</span>)
+            <span class="keyword">if</span> self.len[now] == <span class="number">1</span>:
+                self.link.append(<span class="number">1</span>)
+            <span class="keyword">else</span>:
+                self.link.append(self.next[self.get_link(self.link[cur], i)][c])
+            self.next[cur][c] = now
+        self.last = self.next[cur][c]
+        self.cnt[self.last] += <span class="number">1</span>
+
+<span class="comment"># distinct palindromes = len(tree) - 2  (exclude the two roots)</span></pre>
+            </div>
+        </div>
+
+        <h2>What It Computes</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Number of distinct palindromic substrings</strong> = node count − 2.</li>
+                <li><strong>Count occurrences</strong> of each palindrome (propagate <code>cnt</code> down suffix links at the end).</li>
+                <li><strong>Palindromes ending at each position</strong> — directly from the suffix-link chain of <code>last</code>.</li>
+                <li><strong>Longest palindromic suffix/prefix</strong>, palindromic factorization DP.</li>
+            </ul>
+        </div>
+
+        <h2>Eertree vs Manacher</h2>
+        <div class="step-box">
+            <strong>Manacher</strong> — finds the longest palindrome / radius at every center, O(n), but doesn't enumerate distinct palindromes.<br><br>
+            <strong>Eertree</strong> — stores all distinct palindromes as a tree, enabling counting, occurrence stats, and palindrome DP.<br><br>
+            Use Manacher for "longest / is-palindrome" questions; reach for Eertree when you need the <em>set</em> of palindromes and their counts.
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Two roots:</strong> the imaginary root has length −1; it's what makes adding single characters work. Don't drop it.<br><br>
+            <strong>2. getLink condition:</strong> <code>s[i − len − 1] == s[i]</code> is the exact test for "can extend into a palindrome".<br><br>
+            <strong>3. Length-1 suffix link:</strong> a new palindrome of length 1 links to the empty root (node 1), not the imaginary one.<br><br>
+            <strong>4. Occurrence counts:</strong> the raw <code>cnt</code> only counts the longest palindrome ending there — propagate along suffix links to get true totals.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        let s = 'ababa', frames = [], idx = 0, timer = null;
+
+        function buildFrames() {
+            s = (document.getElementById('inStr').value || '').slice(0, 12);
+            // eertree
+            const len = [-1, 0], link = [0, 0], next = [{}, {}], palStr = ['', ''];
+            let last = 1;
+            const str = [];
+            const f = [];
+            const distinctList = () => palStr.slice(2);
+            const snap = (msg, fresh, builtTo) => f.push({ pals: distinctList(), fresh: fresh || '', builtTo, msg });
+            snap('Two roots created (imaginary len −1, empty len 0). No palindromes yet.', '', -1);
+
+            function getLink(v, i) {
+                while (i - len[v] - 1 < 0 || str[i - len[v] - 1] !== str[i]) v = link[v];
+                return v;
+            }
+            for (let i = 0; i < s.length; i++) {
+                const c = s[i];
+                str.push(c);
+                const cur = getLink(last, i);
+                let fresh = '';
+                if (!(c in next[cur])) {
+                    const now = len.length;
+                    len.push(len[cur] + 2);
+                    next.push({});
+                    if (len[now] === 1) link.push(1);
+                    else link.push(next[getLink(link[cur], i)][c]);
+                    // reconstruct palindrome string: it's str[i-len+1 .. i]
+                    const L = len[now];
+                    fresh = str.slice(i - L + 1, i + 1).join('');
+                    palStr.push(fresh);
+                    next[cur][c] = now;
+                }
+                last = next[cur][c];
+                snap(fresh ? `Add '${c}' → new palindrome "${fresh}" (length ${len[last]}).` : `Add '${c}' → palindrome "${palStr[last]}" already existed, just revisited.`, fresh, i);
+            }
+            snap(`🎉 Done. ${len.length - 2} distinct palindromic substrings.`, '', s.length - 1);
+            return f;
+        }
+
+        function render(fr) {
+            let bh = '';
+            for (let k = 0; k < s.length; k++) bh += `<div class="bch ${k === fr.builtTo ? 'cur' : (k < fr.builtTo ? 'done' : '')}">${s[k]}</div>`;
+            document.getElementById('builtRow').innerHTML = bh;
+            let ph = '';
+            fr.pals.forEach(p => { ph += `<div class="pal ${p === fr.fresh && fr.fresh ? 'fresh' : ''}">${p}</div>`; });
+            document.getElementById('palsRow').innerHTML = ph || '<span style="color:#94a3b8;font-size:0.8em;">no palindromes yet</span>';
+            document.getElementById('palCount').textContent = `distinct: ${fr.pals.length}`;
+            const done = fr.msg.startsWith('🎉');
+            document.getElementById('vizLog').innerHTML = `<span style="color:${done ? '#10b981' : fr.fresh ? '#059669' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Build';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Build'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Build'; return; }
+                stepOnce();
+            }, 900);
+        }
+        document.getElementById('inStr').addEventListener('change', resetViz);
+        resetViz();
+    </script>
+</body>
+</html>
