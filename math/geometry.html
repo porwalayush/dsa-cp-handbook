@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry - Math Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        canvas { background: #fafbff; border: 1px solid #e2e8f0; border-radius: 12px; display: block; margin: 0 auto; max-width: 100%; cursor: crosshair; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Computational Geometry</h1>
+        <p>Geometry problems hinge on one tiny primitive: the <strong>cross product</strong>, which tells you whether you turn left, right, or go straight. Get that right and convex hulls, polygon area, and intersection tests all fall into place.</p>
+
+        <h2>The Cross Product = Orientation</h2>
+        <div class="visual">
+<pre>
+   cross(O, A, B) = (A−O) × (B−O)
+                  = (Ax−Ox)(By−Oy) − (Ay−Oy)(Bx−Ox)
+
+   &gt; 0  → counter-clockwise (left turn)
+   &lt; 0  → clockwise         (right turn)
+   = 0  → collinear         (straight)
+
+   This one sign powers almost every 2D geometry algorithm.
+</pre>
+        </div>
+
+        <h2>Interactive: Convex Hull</h2>
+        <p>Click in the box to drop points (or use random). We build the <strong>convex hull</strong> — the smallest convex polygon wrapping them all — with Andrew's monotone chain. Think of stretching a rubber band around the outermost points.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <button class="viz-btn" onclick="randomPts()">🎲 Random Points</button>
+                <button class="viz-btn" onclick="clearPts()">Clear</button>
+                <button class="viz-btn" id="hullBtn" onclick="toggleHull()">Show Hull</button>
+            </div>
+            <canvas id="cv" width="780" height="380"></canvas>
+            <div id="vizLog" style="margin-top:12px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;">Click inside the canvas to add points.</div>
+        </div>
+
+        <h2>Code: Geometry Primitives + Convex Hull</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="keyword">struct</span> P { <span class="keyword">long long</span> x, y; };
+
+<span class="comment">// cross product of OA and OB</span>
+<span class="keyword">long long</span> cross(P O, P A, P B) {
+    <span class="keyword">return</span> (A.x-O.x)*(B.y-O.y) - (A.y-O.y)*(B.x-O.x);
+}
+
+<span class="comment">// Andrew's monotone chain convex hull</span>
+vector&lt;P&gt; convexHull(vector&lt;P&gt; pts) {
+    sort(pts.begin(), pts.end(), [](P a, P b){
+        <span class="keyword">return</span> a.x &lt; b.x || (a.x == b.x &amp;&amp; a.y &lt; b.y); });
+    <span class="keyword">int</span> n = pts.size(), k = <span class="number">0</span>;
+    vector&lt;P&gt; h(<span class="number">2</span>*n);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) {            <span class="comment">// lower hull</span>
+        <span class="keyword">while</span> (k &gt;= <span class="number">2</span> &amp;&amp; cross(h[k-<span class="number">2</span>], h[k-<span class="number">1</span>], pts[i]) &lt;= <span class="number">0</span>) k--;
+        h[k++] = pts[i];
+    }
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = n-<span class="number">2</span>, t = k+<span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) { <span class="comment">// upper hull</span>
+        <span class="keyword">while</span> (k &gt;= t &amp;&amp; cross(h[k-<span class="number">2</span>], h[k-<span class="number">1</span>], pts[i]) &lt;= <span class="number">0</span>) k--;
+        h[k++] = pts[i];
+    }
+    h.resize(k-<span class="number">1</span>);
+    <span class="keyword">return</span> h;
+}
+
+<span class="comment">// Polygon area (shoelace) x2</span>
+<span class="keyword">long long</span> area2(vector&lt;P&gt;&amp; p) {
+    <span class="keyword">long long</span> s = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, n = p.size(); i &lt; n; i++)
+        s += p[i].x*p[(i+<span class="number">1</span>)%n].y - p[(i+<span class="number">1</span>)%n].x*p[i].y;
+    <span class="keyword">return</span> abs(s); <span class="comment">// real area = s/2</span>
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">static long</span> cross(<span class="keyword">long</span>[] O, <span class="keyword">long</span>[] A, <span class="keyword">long</span>[] B) {
+    <span class="keyword">return</span> (A[<span class="number">0</span>]-O[<span class="number">0</span>])*(B[<span class="number">1</span>]-O[<span class="number">1</span>]) - (A[<span class="number">1</span>]-O[<span class="number">1</span>])*(B[<span class="number">0</span>]-O[<span class="number">0</span>]);
+}
+
+<span class="comment">// Shoelace polygon area x2</span>
+<span class="keyword">static long</span> area2(<span class="keyword">long</span>[][] p) {
+    <span class="keyword">long</span> s = <span class="number">0</span>; <span class="keyword">int</span> n = p.length;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+        s += p[i][<span class="number">0</span>]*p[(i+<span class="number">1</span>)%n][<span class="number">1</span>] - p[(i+<span class="number">1</span>)%n][<span class="number">0</span>]*p[i][<span class="number">1</span>];
+    <span class="keyword">return</span> Math.abs(s);
+}
+
+<span class="comment">// orientation: +1 ccw, -1 cw, 0 collinear</span>
+<span class="keyword">static int</span> orient(<span class="keyword">long</span>[] a, <span class="keyword">long</span>[] b, <span class="keyword">long</span>[] c) {
+    <span class="keyword">long</span> v = cross(a, b, c);
+    <span class="keyword">return</span> Long.signum(v);
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">def</span> cross(o, a, b):
+    <span class="keyword">return</span> (a[<span class="number">0</span>]-o[<span class="number">0</span>])*(b[<span class="number">1</span>]-o[<span class="number">1</span>]) - (a[<span class="number">1</span>]-o[<span class="number">1</span>])*(b[<span class="number">0</span>]-o[<span class="number">0</span>])
+
+<span class="comment"># Andrew's monotone chain convex hull</span>
+<span class="keyword">def</span> convex_hull(pts):
+    pts = sorted(set(map(tuple, pts)))
+    <span class="keyword">if</span> len(pts) &lt;= <span class="number">2</span>: <span class="keyword">return</span> pts
+    lower = []
+    <span class="keyword">for</span> p <span class="keyword">in</span> pts:
+        <span class="keyword">while</span> len(lower) &gt;= <span class="number">2</span> <span class="keyword">and</span> cross(lower[-<span class="number">2</span>], lower[-<span class="number">1</span>], p) &lt;= <span class="number">0</span>:
+            lower.pop()
+        lower.append(p)
+    upper = []
+    <span class="keyword">for</span> p <span class="keyword">in</span> reversed(pts):
+        <span class="keyword">while</span> len(upper) &gt;= <span class="number">2</span> <span class="keyword">and</span> cross(upper[-<span class="number">2</span>], upper[-<span class="number">1</span>], p) &lt;= <span class="number">0</span>:
+            upper.pop()
+        upper.append(p)
+    <span class="keyword">return</span> lower[:-<span class="number">1</span>] + upper[:-<span class="number">1</span>]
+
+<span class="comment"># Shoelace area</span>
+<span class="keyword">def</span> area(p):
+    n = len(p)
+    s = sum(p[i][<span class="number">0</span>]*p[(i+<span class="number">1</span>)%n][<span class="number">1</span>] - p[(i+<span class="number">1</span>)%n][<span class="number">0</span>]*p[i][<span class="number">1</span>] <span class="keyword">for</span> i <span class="keyword">in</span> range(n))
+    <span class="keyword">return</span> abs(s) / <span class="number">2</span></pre>
+            </div>
+        </div>
+
+        <h2>The Geometry Toolkit</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Orientation test</strong> (cross sign): left / right / collinear — the workhorse.</li>
+                <li><strong>Segment intersection:</strong> two segments cross if their endpoints straddle each other (opposite orientations).</li>
+                <li><strong>Point in polygon:</strong> ray casting (count crossings) or winding number.</li>
+                <li><strong>Shoelace formula:</strong> polygon area from vertex coordinates.</li>
+                <li><strong>Convex hull:</strong> O(n log n) wrap; basis for diameter, width, rotating calipers.</li>
+            </ul>
+        </div>
+
+        <h2>Why Integers Beat Floats</h2>
+        <div class="step-box">
+            <strong>Keep coordinates as integers</strong> whenever possible — the cross product stays exact, no rounding.<br><br>
+            <strong>Avoid division &amp; sqrt:</strong> compare squared distances instead of distances; compare cross products instead of angles.<br><br>
+            <strong>Watch overflow:</strong> cross products multiply coordinates — use 64-bit (or 128-bit) if values are large.
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Float precision:</strong> equality and orientation with doubles need an epsilon; integers avoid the problem entirely.<br><br>
+            <strong>2. Collinear points on the hull:</strong> decide whether to keep them (<code>&lt;= 0</code> vs <code>&lt; 0</code> in the cross test).<br><br>
+            <strong>3. Degenerate cases:</strong> duplicate points, all-collinear input, fewer than 3 points.<br><br>
+            <strong>4. Angle sorting bugs:</strong> use <code>atan2</code> carefully, or better, sort by cross product to dodge precision issues.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const cv = document.getElementById('cv');
+        const ctx = cv.getContext('2d');
+        let pts = [], showHull = false, seed = 98765;
+        function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+
+        function cross(o, a, b) { return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x); }
+
+        function hull(points) {
+            if (points.length <= 2) return points.slice();
+            const p = points.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+            const lower = [];
+            for (const pt of p) {
+                while (lower.length >= 2 && cross(lower[lower.length-2], lower[lower.length-1], pt) <= 0) lower.pop();
+                lower.push(pt);
+            }
+            const upper = [];
+            for (let i = p.length - 1; i >= 0; i--) {
+                const pt = p[i];
+                while (upper.length >= 2 && cross(upper[upper.length-2], upper[upper.length-1], pt) <= 0) upper.pop();
+                upper.push(pt);
+            }
+            return lower.slice(0, -1).concat(upper.slice(0, -1));
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            if (showHull && pts.length >= 3) {
+                const h = hull(pts);
+                ctx.beginPath();
+                ctx.moveTo(h[0].x, h[0].y);
+                for (let i = 1; i < h.length; i++) ctx.lineTo(h[i].x, h[i].y);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(99,102,241,0.10)';
+                ctx.fill();
+                ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 2.5; ctx.stroke();
+                // hull vertices
+                h.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, 7); ctx.fillStyle = '#6366f1'; ctx.fill(); });
+            }
+            // all points
+            pts.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7);
+                ctx.fillStyle = '#0f172a'; ctx.fill();
+                ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5; ctx.stroke();
+            });
+        }
+
+        function log(m) { document.getElementById('vizLog').innerHTML = `<span style="color:#475569;">${m}</span>`; }
+
+        cv.addEventListener('click', e => {
+            const r = cv.getBoundingClientRect();
+            const scaleX = cv.width / r.width, scaleY = cv.height / r.height;
+            pts.push({ x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY });
+            draw();
+            log(`${pts.length} point(s). ${showHull && pts.length >= 3 ? 'Hull has ' + hull(pts).length + ' vertices.' : 'Add at least 3, then Show Hull.'}`);
+        });
+
+        function randomPts() {
+            pts = [];
+            const n = 12;
+            for (let i = 0; i < n; i++) pts.push({ x: 60 + rnd() * (cv.width - 120), y: 50 + rnd() * (cv.height - 100) });
+            draw();
+            log(`${n} random points placed.` + (showHull ? ` Hull: ${hull(pts).length} vertices.` : ''));
+        }
+        function clearPts() { pts = []; draw(); log('Cleared. Click to add points.'); }
+        function toggleHull() {
+            showHull = !showHull;
+            document.getElementById('hullBtn').textContent = showHull ? 'Hide Hull' : 'Show Hull';
+            draw();
+            log(showHull ? (pts.length >= 3 ? `Convex hull drawn with ${hull(pts).length} vertices.` : 'Need at least 3 points.') : 'Hull hidden.');
+        }
+        randomPts();
+    </script>
+</body>
+</html>

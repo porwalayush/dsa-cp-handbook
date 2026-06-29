@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaussian Elimination - Math Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .matrix { display: flex; flex-direction: column; gap: 6px; align-items: center; margin: 16px 0; }
+        .mrow { display: flex; gap: 6px; padding: 4px; border-radius: 8px; transition: all 0.3s ease; }
+        .mrow.pivot { background: #eef2ff; }
+        .mrow.target { background: #fef3c7; }
+        .gcell { min-width: 56px; padding: 8px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; font-weight: 600; color: #1e293b; background: white; border: 1px solid #e2e8f0; border-radius: 6px; transition: all 0.3s ease; }
+        .gcell.aug { background: #f1f5f9; color: #6366f1; }
+        .gcell.pivotcell { background: #6366f1; color: white; border-color: #6366f1; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .gcell { min-width: 40px; font-size: 0.68em; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Gaussian Elimination</h1>
+        <p>A systematic way to solve a system of linear equations: use row operations to carve the matrix into a staircase (<strong>row echelon</strong> form), then back-substitute to read off the answers.</p>
+
+        <h2>The Three Legal Row Operations</h2>
+        <div class="visual">
+<pre>
+   1. SWAP two rows
+   2. SCALE a row by a non-zero constant
+   3. ADD a multiple of one row to another
+
+   Goal: make zeros below each pivot, forming a triangle:
+
+     [ 2  1 -1 |  8 ]        [ 2  1 -1 |  8 ]
+     [-3 -1  2 | -11] ──►    [ 0 ½  ½ |  1 ]
+     [-2  1  2 | -3 ]        [ 0  0 -1 |  1 ]
+</pre>
+        </div>
+
+        <h2>Interactive: Solve a 3×3 System</h2>
+        <p>Watch forward elimination create zeros below each <span style="color:#6366f1;font-weight:600;">pivot</span>, then back-substitution recover x, y, z. The last column (blue) is the right-hand side.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Solve</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+            </div>
+            <div class="matrix" id="matrix"></div>
+            <div id="vizLog" style="margin-top:12px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Code: Gaussian Elimination (with partial pivoting)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// Solve A x = b. aug = [A | b], size n x (n+1)</span>
+vector&lt;<span class="keyword">double</span>&gt; solve(vector&lt;vector&lt;<span class="keyword">double</span>&gt;&gt; a) {
+    <span class="keyword">int</span> n = a.size();
+    <span class="keyword">for</span> (<span class="keyword">int</span> col = <span class="number">0</span>, row = <span class="number">0</span>; col &lt; n &amp;&amp; row &lt; n; col++, row++) {
+        <span class="comment">// partial pivot: pick largest |value| for stability</span>
+        <span class="keyword">int</span> sel = row;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = row + <span class="number">1</span>; i &lt; n; i++)
+            <span class="keyword">if</span> (abs(a[i][col]) &gt; abs(a[sel][col])) sel = i;
+        swap(a[sel], a[row]);
+        <span class="comment">// eliminate below</span>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = row + <span class="number">1</span>; i &lt; n; i++) {
+            <span class="keyword">double</span> f = a[i][col] / a[row][col];
+            <span class="keyword">for</span> (<span class="keyword">int</span> j = col; j &lt;= n; j++)
+                a[i][j] -= f * a[row][j];
+        }
+    }
+    <span class="comment">// back-substitution</span>
+    vector&lt;<span class="keyword">double</span>&gt; x(n);
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = n - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) {
+        x[i] = a[i][n];
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = i + <span class="number">1</span>; j &lt; n; j++) x[i] -= a[i][j] * x[j];
+        x[i] /= a[i][i];
+    }
+    <span class="keyword">return</span> x;
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="comment">// Solve A x = b. a = [A | b], size n x (n+1)</span>
+<span class="keyword">static double</span>[] solve(<span class="keyword">double</span>[][] a) {
+    <span class="keyword">int</span> n = a.length;
+    <span class="keyword">for</span> (<span class="keyword">int</span> col = <span class="number">0</span>, row = <span class="number">0</span>; col &lt; n &amp;&amp; row &lt; n; col++, row++) {
+        <span class="keyword">int</span> sel = row;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = row + <span class="number">1</span>; i &lt; n; i++)
+            <span class="keyword">if</span> (Math.abs(a[i][col]) &gt; Math.abs(a[sel][col])) sel = i;
+        <span class="keyword">double</span>[] tmp = a[sel]; a[sel] = a[row]; a[row] = tmp;
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = row + <span class="number">1</span>; i &lt; n; i++) {
+            <span class="keyword">double</span> f = a[i][col] / a[row][col];
+            <span class="keyword">for</span> (<span class="keyword">int</span> j = col; j &lt;= n; j++) a[i][j] -= f * a[row][j];
+        }
+    }
+    <span class="keyword">double</span>[] x = <span class="keyword">new double</span>[n];
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = n - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) {
+        x[i] = a[i][n];
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = i + <span class="number">1</span>; j &lt; n; j++) x[i] -= a[i][j] * x[j];
+        x[i] /= a[i][i];
+    }
+    <span class="keyword">return</span> x;
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="comment"># Solve A x = b.  a = [A | b], size n x (n+1)</span>
+<span class="keyword">def</span> solve(a):
+    n = len(a)
+    <span class="keyword">for</span> col <span class="keyword">in</span> range(n):
+        <span class="comment"># partial pivot</span>
+        sel = max(range(col, n), key=<span class="keyword">lambda</span> i: abs(a[i][col]))
+        a[col], a[sel] = a[sel], a[col]
+        <span class="keyword">for</span> i <span class="keyword">in</span> range(col + <span class="number">1</span>, n):
+            f = a[i][col] / a[col][col]
+            <span class="keyword">for</span> j <span class="keyword">in</span> range(col, n + <span class="number">1</span>):
+                a[i][j] -= f * a[col][j]
+    <span class="comment"># back-substitution</span>
+    x = [<span class="number">0.0</span>] * n
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(n - <span class="number">1</span>, -<span class="number">1</span>, -<span class="number">1</span>):
+        x[i] = a[i][n] - sum(a[i][j]*x[j] <span class="keyword">for</span> j <span class="keyword">in</span> range(i+<span class="number">1</span>, n))
+        x[i] /= a[i][i]
+    <span class="keyword">return</span> x</pre>
+            </div>
+        </div>
+
+        <h2>Beyond Solving Systems</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Matrix rank:</strong> count non-zero pivot rows after elimination.</li>
+                <li><strong>Determinant:</strong> product of pivots (track sign flips from row swaps).</li>
+                <li><strong>XOR basis / linear basis over GF(2):</strong> Gaussian elimination on bits — max XOR subset, count distinct XORs.</li>
+                <li><strong>Inverse matrix:</strong> reduce <code>[A | I]</code> to <code>[I | A⁻¹]</code>.</li>
+            </ul>
+        </div>
+
+        <h2>XOR Basis (the CP favorite)</h2>
+        <div class="visual">
+<pre>
+   Insert numbers; keep a basis of independent bit-vectors.
+   Then you can: find the MAX XOR subset, test if a value is
+   reachable, or count how many distinct XORs exist (2^rank).
+
+   for each number x:
+       for b from high bit to low:
+           if x has bit b:
+               if basis[b]==0: basis[b]=x; break
+               else x ^= basis[b]
+</pre>
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Dividing by a tiny pivot:</strong> floating-point blows up — always partial-pivot (pick the largest magnitude).<br><br>
+            <strong>2. No unique solution:</strong> a zero pivot row means infinitely many or no solutions — detect it.<br><br>
+            <strong>3. Float precision:</strong> compare to an epsilon, not <code>== 0</code>. Use rationals/modular arithmetic when exactness matters.<br><br>
+            <strong>4. Over GF(2) use XOR:</strong> don't run float elimination on binary systems — use the XOR basis.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // System:  2x + y - z = 8 ; -3x - y + 2z = -11 ; -2x + y + 2z = -3
+        // Solution: x=2, y=3, z=-1
+        const base = [
+            [2, 1, -1, 8],
+            [-3, -1, 2, -11],
+            [-2, 1, 2, -3],
+        ];
+        let frames = [], idx = 0, timer = null;
+
+        function fmt(v) { const r = Math.round(v * 100) / 100; return Object.is(r, -0) ? '0' : '' + r; }
+
+        function buildFrames() {
+            const f = [];
+            const a = base.map(r => r.slice());
+            const snap = (pivot, target, msg, sol) => f.push({ a: a.map(r => r.slice()), pivot, target: target == null ? -1 : target, msg, sol: sol ? sol.slice() : null });
+            const n = 3;
+            snap(-1, -1, 'System of 3 equations in x, y, z. Last column is the RHS.');
+            for (let col = 0; col < n; col++) {
+                snap(col, -1, `Pivot on row ${col} (variable ${'xyz'[col]}). Make zeros below it.`);
+                for (let i = col + 1; i < n; i++) {
+                    const fct = a[i][col] / a[col][col];
+                    for (let j = col; j <= n; j++) a[i][j] -= fct * a[col][j];
+                    snap(col, i, `Row${i} -= (${fmt(fct)}) × Row${col} → zero in column ${col}.`);
+                }
+            }
+            // back-substitution
+            const x = [0, 0, 0];
+            for (let i = n - 1; i >= 0; i--) {
+                x[i] = a[i][n];
+                for (let j = i + 1; j < n; j++) x[i] -= a[i][j] * x[j];
+                x[i] /= a[i][i];
+                snap(i, -1, `Back-substitute row ${i}: ${'xyz'[i]} = ${fmt(x[i])}.`, x);
+            }
+            snap(-1, -1, `🎉 Solution: x = ${fmt(x[0])}, y = ${fmt(x[1])}, z = ${fmt(x[2])}.`, x);
+            return f;
+        }
+
+        function render(fr) {
+            let html = '';
+            fr.a.forEach((row, i) => {
+                let rcls = 'mrow';
+                if (i === fr.pivot) rcls += ' pivot';
+                else if (i === fr.target) rcls += ' target';
+                let cells = '';
+                row.forEach((v, j) => {
+                    let cls = 'gcell';
+                    if (j === row.length - 1) cls += ' aug';
+                    if (i === fr.pivot && j === fr.pivot) cls += ' pivotcell';
+                    cells += `<div class="${cls}">${fmt(v)}</div>`;
+                });
+                html += `<div class="${rcls}">${cells}</div>`;
+            });
+            document.getElementById('matrix').innerHTML = html;
+            const done = fr.msg.startsWith('🎉');
+            document.getElementById('vizLog').innerHTML = `<span style="color:${done ? '#059669' : fr.target >= 0 ? '#d97706' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Solve';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Solve'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Solve'; return; }
+                stepOnce();
+            }, 1100);
+        }
+        resetViz();
+    </script>
+</body>
+</html>
