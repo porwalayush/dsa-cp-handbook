@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit Manipulation - Techniques Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); font-size: 0.84em; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; color: #0f172a; }
+        td { color: #475569; } tr:last-child td { border-bottom: none; }
+        td.mono, th.mono { font-family: 'JetBrains Mono', monospace; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.8em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+        .bits { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 18px 0; }
+        .bit { width: 50px; height: 56px; border-radius: 10px; border: 2px solid #e2e8f0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+        .bit .b { font-size: 1.3em; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: #cbd5e1; }
+        .bit.on .b { color: #6366f1; }
+        .bit.on { border-color: #6366f1; background: #eef2ff; }
+        .bit .p { font-size: 0.58em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+        .bit.changed { transform: scale(1.12); border-color: #f59e0b; background: #fef3c7; }
+        .bit.changed .b { color: #d97706; }
+        .readout { text-align: center; font-family: 'JetBrains Mono', monospace; margin: 10px 0; }
+        .readout .big { font-size: 1.6em; font-weight: 800; color: #0f172a; }
+        .readout .sub { font-size: 0.8em; color: #64748b; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .bit { width: 38px; height: 46px; } .bit .b { font-size: 1em; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Bit Manipulation</h1>
+        <p>Numbers are stored as binary. By poking individual <strong>bits</strong> directly, you get blazing-fast tricks: test/set/flip flags, treat an integer as a tiny set, and count things in O(1) hardware instructions.</p>
+
+        <h2>The Operators</h2>
+        <table>
+            <tr><th>Op</th><th class="mono">Symbol</th><th>Does</th><th class="mono">Example (4-bit)</th></tr>
+            <tr><td>AND</td><td class="mono">&amp;</td><td>1 only if both bits 1</td><td class="mono">1100 &amp; 1010 = 1000</td></tr>
+            <tr><td>OR</td><td class="mono">|</td><td>1 if either bit 1</td><td class="mono">1100 | 1010 = 1110</td></tr>
+            <tr><td>XOR</td><td class="mono">^</td><td>1 if bits differ</td><td class="mono">1100 ^ 1010 = 0110</td></tr>
+            <tr><td>NOT</td><td class="mono">~</td><td>flips every bit</td><td class="mono">~1100 = …0011</td></tr>
+            <tr><td>Left shift</td><td class="mono">&lt;&lt;</td><td>×2 per shift</td><td class="mono">0011 &lt;&lt; 1 = 0110</td></tr>
+            <tr><td>Right shift</td><td class="mono">&gt;&gt;</td><td>÷2 per shift</td><td class="mono">0110 &gt;&gt; 1 = 0011</td></tr>
+        </table>
+
+        <h2>Interactive: Bit Playground</h2>
+        <p>Click any bit to toggle it. Or apply an operation and watch which bits <span style="color:#d97706;font-weight:600;">change</span>. This is an 8-bit number — see its decimal, binary, and popcount update live.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <button class="viz-btn" onclick="op('setLow')">set lowest 0-bit</button>
+                <button class="viz-btn" onclick="op('clearLow')">clear lowest 1-bit (n&amp;(n-1))</button>
+                <button class="viz-btn" onclick="op('isolateLow')">isolate lowest 1 (n&amp;-n)</button>
+                <button class="viz-btn" onclick="op('shl')">&lt;&lt; 1</button>
+                <button class="viz-btn" onclick="op('shr')">&gt;&gt; 1</button>
+                <button class="viz-btn" onclick="op('not')">~ (flip all)</button>
+                <button class="viz-btn" onclick="setVal(0)">clear</button>
+            </div>
+            <div class="bits" id="bits"></div>
+            <div class="readout">
+                <div class="big" id="dec">0</div>
+                <div class="sub">binary <span id="bin">00000000</span> &nbsp;•&nbsp; set bits (popcount): <span id="pop">0</span></div>
+            </div>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;">Click bits or apply an operation.</div>
+        </div>
+
+        <h2>Essential One-Liners</h2>
+        <div class="visual">
+<pre>
+   check bit i:        (n &gt;&gt; i) &amp; 1
+   set bit i:          n | (1 &lt;&lt; i)
+   clear bit i:        n &amp; ~(1 &lt;&lt; i)
+   toggle bit i:       n ^ (1 &lt;&lt; i)
+
+   is power of two:    n &gt; 0 &amp;&amp; (n &amp; (n - 1)) == 0
+   lowest set bit:     n &amp; (-n)
+   remove lowest set:  n &amp; (n - 1)
+   is odd:             n &amp; 1
+   count set bits:     __builtin_popcount(n)
+</pre>
+        </div>
+
+        <h2>XOR: the magic eraser</h2>
+        <div class="note">
+            <ul>
+                <li><code>x ^ x = 0</code> and <code>x ^ 0 = x</code>. So XOR-ing a value twice cancels it out.</li>
+                <li><strong>Find the single number</strong> where all others appear twice: XOR everything → pairs cancel, the loner survives. O(n) time, O(1) space.</li>
+                <li><strong>Swap without temp:</strong> <code>a ^= b; b ^= a; a ^= b;</code></li>
+            </ul>
+        </div>
+
+        <h2>Code: Bitmask as a Set + Subset Enumeration</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// Treat an int as a set of items {0..n-1}</span>
+<span class="keyword">int</span> s = <span class="number">0</span>;
+s |= (<span class="number">1</span> &lt;&lt; <span class="number">3</span>);            <span class="comment">// add item 3</span>
+<span class="keyword">bool</span> has = s &amp; (<span class="number">1</span> &lt;&lt; <span class="number">3</span>);  <span class="comment">// is item 3 in the set?</span>
+s &amp;= ~(<span class="number">1</span> &lt;&lt; <span class="number">3</span>);           <span class="comment">// remove item 3</span>
+
+<span class="comment">// Iterate over ALL subsets of n elements</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> mask = <span class="number">0</span>; mask &lt; (<span class="number">1</span> &lt;&lt; n); mask++) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+        <span class="keyword">if</span> (mask &amp; (<span class="number">1</span> &lt;&lt; i)) <span class="comment">/* item i is chosen */</span>;
+}
+
+<span class="comment">// Gosper's hack: iterate subsets of FIXED size k</span>
+<span class="keyword">int</span> sub = (<span class="number">1</span> &lt;&lt; k) - <span class="number">1</span>;
+<span class="keyword">while</span> (sub &lt; (<span class="number">1</span> &lt;&lt; n)) {
+    <span class="comment">// use sub ...</span>
+    <span class="keyword">int</span> c = sub &amp; -sub, r = sub + c;
+    sub = (((sub ^ r) &gt;&gt; <span class="number">2</span>) / c) | r;
+}
+
+<span class="comment">// Enumerate submasks of a given mask</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> sub = mask; sub; sub = (sub - <span class="number">1</span>) &amp; mask)
+    <span class="comment">// sub runs through every subset of mask</span>;</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="comment">// Treat an int as a set of items {0..n-1}</span>
+<span class="keyword">int</span> s = <span class="number">0</span>;
+s |= (<span class="number">1</span> &lt;&lt; <span class="number">3</span>);              <span class="comment">// add item 3</span>
+<span class="keyword">boolean</span> has = (s &amp; (<span class="number">1</span> &lt;&lt; <span class="number">3</span>)) != <span class="number">0</span>;
+s &amp;= ~(<span class="number">1</span> &lt;&lt; <span class="number">3</span>);             <span class="comment">// remove item 3</span>
+
+<span class="comment">// Iterate over ALL subsets</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> mask = <span class="number">0</span>; mask &lt; (<span class="number">1</span> &lt;&lt; n); mask++) {
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++)
+        <span class="keyword">if</span> ((mask &amp; (<span class="number">1</span> &lt;&lt; i)) != <span class="number">0</span>) { <span class="comment">/* item i chosen */</span> }
+}
+
+<span class="comment">// Handy built-ins</span>
+Integer.bitCount(n);             <span class="comment">// popcount</span>
+Integer.numberOfTrailingZeros(n);<span class="comment">// index of lowest set bit</span>
+
+<span class="comment">// Submask enumeration</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> sub = mask; sub &gt; <span class="number">0</span>; sub = (sub - <span class="number">1</span>) &amp; mask) { <span class="comment">/* ... */</span> }</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="comment"># Treat an int as a set of items {0..n-1}</span>
+s = <span class="number">0</span>
+s |= (<span class="number">1</span> &lt;&lt; <span class="number">3</span>)            <span class="comment"># add item 3</span>
+has = (s &gt;&gt; <span class="number">3</span>) &amp; <span class="number">1</span>         <span class="comment"># is item 3 present?</span>
+s &amp;= ~(<span class="number">1</span> &lt;&lt; <span class="number">3</span>)           <span class="comment"># remove item 3</span>
+
+<span class="comment"># Iterate over ALL subsets</span>
+<span class="keyword">for</span> mask <span class="keyword">in</span> range(<span class="number">1</span> &lt;&lt; n):
+    <span class="keyword">for</span> i <span class="keyword">in</span> range(n):
+        <span class="keyword">if</span> mask &amp; (<span class="number">1</span> &lt;&lt; i):
+            <span class="keyword">pass</span>  <span class="comment"># item i is chosen</span>
+
+<span class="comment"># popcount (Python 3.10+: int.bit_count)</span>
+bits = bin(n).count(<span class="string">'1'</span>)
+
+<span class="comment"># Submask enumeration</span>
+sub = mask
+<span class="keyword">while</span> sub:
+    <span class="comment"># use sub ...</span>
+    sub = (sub - <span class="number">1</span>) &amp; mask</pre>
+            </div>
+        </div>
+
+        <h2>Where It Shows Up</h2>
+        <div class="step-box">
+            <strong>Bitmask DP</strong> — represent visited sets in TSP / assignment problems.<br><br>
+            <strong>Single Number / Missing Number</strong> — XOR tricks.<br><br>
+            <strong>Subset generation</strong> — iterate <code>1&lt;&lt;n</code> masks.<br><br>
+            <strong>Fast flags</strong> — pack many booleans into one integer.<br><br>
+            <strong>Power-of-two checks</strong> — hashing, memory alignment, sizing.
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Operator precedence:</strong> <code>&amp;</code> is lower than <code>==</code> in C/Java — wrap in parens: <code>(n &amp; (1&lt;&lt;i)) != 0</code>.<br><br>
+            <strong>2. Signed shifts:</strong> shifting into the sign bit is undefined/surprising — use <code>unsigned</code> or <code>1L&lt;&lt;i</code> for big shifts.<br><br>
+            <strong>3. Overflow:</strong> <code>1 &lt;&lt; 31</code> overflows a 32-bit int; use <code>1LL &lt;&lt; k</code> in C++, <code>1L</code> in Java.<br><br>
+            <strong>4. Python ints are unbounded:</strong> <code>~n</code> won't behave like a fixed-width complement — mask with <code>&amp; 0xFF</code> if you need 8-bit wrap.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const BITS = 8;
+        let val = 0b00101100, changed = [];
+
+        function render() {
+            let html = '';
+            for (let i = BITS - 1; i >= 0; i--) {
+                const on = (val >> i) & 1;
+                const ch = changed.includes(i) ? ' changed' : '';
+                html += `<div class="bit ${on ? 'on' : ''}${ch}" onclick="toggle(${i})"><span class="b">${on}</span><span class="p">2^${i}</span></div>`;
+            }
+            document.getElementById('bits').innerHTML = html;
+            const masked = val & 0xFF;
+            document.getElementById('dec').textContent = masked;
+            document.getElementById('bin').textContent = masked.toString(2).padStart(BITS, '0');
+            let pop = 0; for (let i = 0; i < BITS; i++) if ((masked >> i) & 1) pop++;
+            document.getElementById('pop').textContent = pop;
+        }
+
+        function toggle(i) {
+            val ^= (1 << i); val &= 0xFF; changed = [i];
+            log(`Toggled bit ${i} → ${(1 << i)} place.`);
+            render();
+        }
+        function setVal(v) { val = v & 0xFF; changed = []; log('Cleared to 0.'); render(); }
+
+        function op(kind) {
+            const before = val & 0xFF;
+            let msg = '';
+            if (kind === 'setLow') { const low = (~before) & -(~before) & 0xFF; val = before | low; msg = 'Set the lowest 0-bit.'; }
+            else if (kind === 'clearLow') { val = before & (before - 1); msg = 'n & (n-1) clears the lowest set bit.'; }
+            else if (kind === 'isolateLow') { val = before & (-before); msg = 'n & -n isolates the lowest set bit.'; }
+            else if (kind === 'shl') { val = (before << 1) & 0xFF; msg = 'Left shift = multiply by 2.'; }
+            else if (kind === 'shr') { val = before >> 1; msg = 'Right shift = integer divide by 2.'; }
+            else if (kind === 'not') { val = (~before) & 0xFF; msg = '~ flips every bit (then masked to 8 bits).'; }
+            val &= 0xFF;
+            const after = val;
+            changed = [];
+            for (let i = 0; i < BITS; i++) if (((before >> i) & 1) !== ((after >> i) & 1)) changed.push(i);
+            log(msg);
+            render();
+        }
+        function log(m) { document.getElementById('vizLog').innerHTML = `<span style="color:#475569;">${m}</span>`; }
+        render();
+    </script>
+</body>
+</html>

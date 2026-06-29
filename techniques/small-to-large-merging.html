@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Small-to-Large Merging - Techniques Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sets-row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin: 18px 0; align-items: flex-start; }
+        .set-box { border: 2px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; background: white; min-width: 72px; transition: all 0.35s ease; }
+        .set-box .title { font-size: 0.66em; font-weight: 700; color: #94a3b8; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; text-align: center; }
+        .set-box .items { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+        .chip { padding: 3px 8px; border-radius: 6px; font-size: 0.72em; font-weight: 600; font-family: 'JetBrains Mono', monospace; background: #eef2ff; color: #4338ca; }
+        .set-box.small { border-color: #f59e0b; background: #fffbeb; }
+        .set-box.large { border-color: #6366f1; background: #eef2ff; }
+        .set-box.result { border-color: #059669; background: #d1fae5; }
+        .set-box .chip.moved { background: #fde68a; color: #92400e; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Small-to-Large Merging</h1>
+        <p>When you repeatedly merge sets together, <strong>always pour the smaller set into the larger one</strong>. This one rule drops the total cost from O(n²) to <strong>O(n log n)</strong> — because each element can only move into a set at least twice its size, and that can happen at most log n times.</p>
+
+        <h2>The Key Insight</h2>
+        <div class="note">
+            <ul>
+                <li>If you merge small → large, an element moves only when its new home is <strong>≥ 2×</strong> the size of its old one.</li>
+                <li>An element's set size can double at most <strong>log₂ n</strong> times before reaching n.</li>
+                <li>So across the whole process, each element is moved ≤ log n times → <strong>O(n log n)</strong> total moves.</li>
+            </ul>
+        </div>
+
+        <h2>Why Direction Matters</h2>
+        <div class="visual">
+<pre>
+   Merging set A (size a) and B (size b):
+
+   WRONG: always move B into A → could move a huge B every time → O(n²)
+
+   RIGHT: move the SMALLER into the LARGER
+          → each moved element lands in a set ≥ 2× its old size
+          → ≤ log n moves per element → O(n log n)
+
+   The merged result is the same; only the WORK differs.
+</pre>
+        </div>
+
+        <h2>Interactive: Merge Sets the Smart Way</h2>
+        <p>We merge sets left to right. At each step the <span style="color:#d97706;font-weight:600;">smaller</span> set's items are poured into the <span style="color:#6366f1;font-weight:600;">larger</span> one. Watch how few elements actually move.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Merge All</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+                <span id="moveCount" style="font-size:0.78em; color:#64748b; margin-left:auto; font-family:'JetBrains Mono',monospace;"></span>
+            </div>
+            <div class="sets-row" id="setsRow"></div>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Code: Small-to-Large (set merging)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// Merge set b into set a, keeping the larger as the target</span>
+<span class="keyword">void</span> mergeInto(set&lt;<span class="keyword">int</span>&gt;&amp; a, set&lt;<span class="keyword">int</span>&gt;&amp; b) {
+    <span class="keyword">if</span> (a.size() &lt; b.size()) swap(a, b);  <span class="comment">// ensure a is larger</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : b) a.insert(x);          <span class="comment">// pour small into large</span>
+    b.clear();
+}
+
+<span class="comment">// DSU on tree (small-to-large) sketch:</span>
+<span class="comment">// dfs returns the set of values in a subtree; merge children</span>
+set&lt;<span class="keyword">int</span>&gt; dfs(<span class="keyword">int</span> u, <span class="keyword">int</span> parent) {
+    set&lt;<span class="keyword">int</span>&gt; cur = { value[u] };
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != parent) {
+        set&lt;<span class="keyword">int</span>&gt; child = dfs(v, u);
+        <span class="keyword">if</span> (cur.size() &lt; child.size()) swap(cur, child);
+        <span class="keyword">for</span> (<span class="keyword">int</span> x : child) cur.insert(x);  <span class="comment">// small into large</span>
+    }
+    <span class="comment">// answer[u] = something about cur (e.g. cur.size())</span>
+    <span class="keyword">return</span> cur;
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="comment">// Merge set b into set a, keeping the larger as the target</span>
+Set&lt;Integer&gt; mergeInto(Set&lt;Integer&gt; a, Set&lt;Integer&gt; b) {
+    <span class="keyword">if</span> (a.size() &lt; b.size()) { Set&lt;Integer&gt; t = a; a = b; b = t; }
+    a.addAll(b);   <span class="comment">// pour small into large</span>
+    <span class="keyword">return</span> a;
+}
+
+<span class="comment">// DSU on tree (small-to-large) sketch</span>
+Set&lt;Integer&gt; dfs(<span class="keyword">int</span> u, <span class="keyword">int</span> parent) {
+    Set&lt;Integer&gt; cur = <span class="keyword">new</span> HashSet&lt;&gt;();
+    cur.add(value[u]);
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != parent) {
+        Set&lt;Integer&gt; child = dfs(v, u);
+        <span class="keyword">if</span> (cur.size() &lt; child.size()) { Set&lt;Integer&gt; t = cur; cur = child; child = t; }
+        cur.addAll(child);  <span class="comment">// small into large</span>
+    }
+    <span class="keyword">return</span> cur;
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="comment"># Merge set b into set a, keeping the larger as the target</span>
+<span class="keyword">def</span> merge_into(a, b):
+    <span class="keyword">if</span> len(a) &lt; len(b):
+        a, b = b, a          <span class="comment"># ensure a is larger</span>
+    a |= b                   <span class="comment"># pour small into large</span>
+    <span class="keyword">return</span> a
+
+<span class="comment"># DSU on tree (small-to-large)</span>
+<span class="keyword">def</span> dfs(u, parent):
+    cur = {value[u]}
+    <span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:
+        <span class="keyword">if</span> v != parent:
+            child = dfs(v, u)
+            <span class="keyword">if</span> len(cur) &lt; len(child):
+                cur, child = child, cur
+            cur |= child     <span class="comment"># small into large</span>
+    <span class="comment"># answer[u] = f(cur)</span>
+    <span class="keyword">return</span> cur</pre>
+            </div>
+        </div>
+
+        <h2>The Famous Use: DSU on Tree</h2>
+        <div class="visual">
+<pre>
+   "For every node, answer a query about its whole subtree."
+   (e.g. count distinct colors, most frequent value, etc.)
+
+   Naive: recompute each subtree → O(n²).
+
+   Small-to-large: each node returns its subtree's multiset;
+   a parent merges children by pouring small into large.
+   → O(n log n) or O(n log² n) with a balanced structure.
+</pre>
+        </div>
+
+        <h2>Where It Shows Up</h2>
+        <div class="step-box">
+            <strong>DSU on Tree</strong> — subtree queries (distinct count, dominant color).<br><br>
+            <strong>Merging components</strong> — when union-find isn't enough and you need the actual element sets.<br><br>
+            <strong>Auxiliary maps/sets per node</strong> — frequency maps merged up a tree.<br><br>
+            <strong>Offline connectivity</strong> — combining groups while answering queries.
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Merging large into small:</strong> the whole speedup is lost — always check sizes and swap.<br><br>
+            <strong>2. Swapping references, not copying:</strong> in C++ use <code>swap</code> (O(1)); never deep-copy the big set.<br><br>
+            <strong>3. Forgetting to clear the emptied set</strong> if you reuse storage.<br><br>
+            <strong>4. Heavy per-element cost:</strong> if each insert is O(log n) (a balanced set), total is O(n log² n) — fine, but know your factor.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // initial sets to merge left-to-right (accumulate into one)
+        const initial = [
+            { id: 'S1', items: [3] },
+            { id: 'S2', items: [7, 1, 9, 4] },
+            { id: 'S3', items: [5, 2] },
+            { id: 'S4', items: [8, 6, 0, 11, 10, 12] },
+        ];
+        let frames = [], idx = 0, timer = null;
+
+        function buildFrames() {
+            const f = [];
+            // deep copy
+            const sets = initial.map(s => ({ id: s.id, items: s.items.slice() }));
+            let totalMoves = 0;
+            f.push({ sets: snapshot(sets), acc: -1, src: -1, moved: [], totalMoves, msg: 'Four sets. We merge them one by one into an accumulator.' });
+            // accumulator = sets[0]
+            let acc = { id: 'ACC', items: sets[0].items.slice() };
+            f.push({ sets: snapshot([acc, ...sets.slice(1)]), acc: 0, src: -1, moved: [], totalMoves, msg: `Accumulator starts as ${sets[0].id} → {${acc.items.join(', ')}}.` });
+            for (let i = 1; i < sets.length; i++) {
+                const incoming = { id: sets[i].id, items: sets[i].items.slice() };
+                // decide direction
+                let large, small, smallLabel;
+                if (acc.items.length >= incoming.items.length) { large = acc; small = incoming; smallLabel = incoming.id; }
+                else { large = incoming; small = acc; smallLabel = 'ACC'; }
+                f.push({
+                    sets: snapshot([acc, ...sets.slice(i)]), acc: 0, src: i, moved: [], totalMoves,
+                    msg: `Merge ${incoming.id} (size ${incoming.items.length}) — pour the SMALLER (${small.items.length}) into the larger (${large.items.length}).`
+                });
+                // perform: result keeps large's storage, add small's items
+                const moved = small.items.slice();
+                totalMoves += moved.length;
+                const merged = large.items.slice();
+                for (const x of small.items) if (!merged.includes(x)) merged.push(x);
+                acc = { id: 'ACC', items: merged };
+                f.push({
+                    sets: snapshot([acc, ...sets.slice(i + 1)]), acc: 0, src: -1, moved, totalMoves,
+                    msg: `Moved ${moved.length} element(s): {${moved.join(', ')}}. Accumulator now size ${merged.length}. Total moves so far: ${totalMoves}.`
+                });
+            }
+            f.push({ sets: snapshot([acc]), acc: 0, src: -1, moved: [], totalMoves, done: true, msg: `🎉 Done. Final set size ${acc.items.length}, with only ${totalMoves} total element moves (not ${countNaive()}!).` });
+            return f;
+        }
+        function snapshot(arr) { return arr.map(s => ({ id: s.id, items: s.items.slice() })); }
+        function countNaive() {
+            // rough naive worst-case illustration: moving accumulator each time
+            let acc = initial[0].items.length, moves = 0;
+            for (let i = 1; i < initial.length; i++) { moves += acc; acc += initial[i].items.length; }
+            return moves;
+        }
+
+        function render(fr) {
+            let html = '';
+            fr.sets.forEach((s, i) => {
+                let cls = 'set-box';
+                if (fr.done) cls += ' result';
+                else if (i === fr.acc) cls += ' large';
+                else if (i === fr.src) cls += ' small';
+                let chips = s.items.map(x => `<span class="chip ${fr.moved.includes(x) ? 'moved' : ''}">${x}</span>`).join('');
+                html += `<div class="${cls}"><div class="title">${s.id} · ${s.items.length}</div><div class="items">${chips}</div></div>`;
+            });
+            document.getElementById('setsRow').innerHTML = html;
+            document.getElementById('moveCount').textContent = `total moves: ${fr.totalMoves}`;
+            document.getElementById('vizLog').innerHTML = `<span style="color:${fr.done ? '#10b981' : fr.moved.length ? '#d97706' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Merge All';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Merge All'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Merge All'; return; }
+                stepOnce();
+            }, 1100);
+        }
+        resetViz();
+    </script>
+</body>
+</html>

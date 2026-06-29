@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Pointers - Techniques Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn.target { background: #6366f1; color: white; border-color: #6366f1; }
+        .viz-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .tp-array { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 28px 0 12px; }
+        .tp-cell { width: 48px; height: 52px; border-radius: 10px; border: 2px solid #e2e8f0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s ease; position: relative; }
+        .tp-cell .val { font-size: 0.9em; font-weight: 700; color: #1e293b; font-family: 'JetBrains Mono', monospace; }
+        .tp-cell .ix { font-size: 0.6em; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+        .tp-cell.lp { border-color: #6366f1; background: #eef2ff; }
+        .tp-cell.rp { border-color: #a855f7; background: #faf5ff; }
+        .tp-cell.both { border-color: #059669; background: #d1fae5; transform: scale(1.1); }
+        .tp-cell.dim { opacity: 0.35; }
+        .ptr { position: absolute; top: -22px; font-size: 0.62em; font-weight: 700; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .tp-cell { width: 38px; height: 46px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Two Pointers</h1>
+        <p>Instead of a nested loop checking every pair (O(n²)), you keep <strong>two indices</strong> and move them cleverly — usually turning an O(n²) brute force into a single O(n) pass.</p>
+
+        <h2>The Three Flavors</h2>
+        <div class="visual">
+<pre>
+   1. OPPOSITE ENDS   →  ← left starts at 0, right at n-1, move inward
+                          (two-sum on sorted, palindrome check, reverse)
+
+   2. SAME DIRECTION  →→   both move forward at different speeds
+                          (remove duplicates, sliding window, merge)
+
+   3. FAST / SLOW     →→→  one moves 2×, one moves 1×
+                          (cycle detection, find middle of list)
+</pre>
+        </div>
+
+        <h2>Interactive: Two-Sum on a Sorted Array</h2>
+        <p>Find two numbers that add to the target. Start <span style="color:#6366f1;font-weight:600;">left</span> at the smallest, <span style="color:#a855f7;font-weight:600;">right</span> at the largest. Sum too small? Move left up. Too big? Move right down. This is the opposite-ends pattern.</p>
+        <div class="viz-container">
+            <div class="viz-controls" id="targetBtns"></div>
+            <div class="viz-controls">
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Run</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+            </div>
+            <div class="tp-array" id="tpArray"></div>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Why It Works</h2>
+        <div class="note">
+            <ul>
+                <li>Because the array is <strong>sorted</strong>, moving <code>left</code> right can only <em>increase</em> the sum, and moving <code>right</code> left can only <em>decrease</em> it.</li>
+                <li>So at every step we can safely discard one candidate — no need to recheck it. That's the O(n) magic.</li>
+            </ul>
+        </div>
+
+        <h2>Code: Common Two-Pointer Patterns</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// 1. Opposite ends: two-sum on sorted array</span>
+pair&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt; twoSum(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">int</span> target) {
+    <span class="keyword">int</span> l = <span class="number">0</span>, r = a.size() - <span class="number">1</span>;
+    <span class="keyword">while</span> (l &lt; r) {
+        <span class="keyword">int</span> s = a[l] + a[r];
+        <span class="keyword">if</span> (s == target) <span class="keyword">return</span> {l, r};
+        <span class="keyword">else if</span> (s &lt; target) l++;   <span class="comment">// need bigger</span>
+        <span class="keyword">else</span> r--;                    <span class="comment">// need smaller</span>
+    }
+    <span class="keyword">return</span> {-<span class="number">1</span>, -<span class="number">1</span>};
+}
+
+<span class="comment">// 2. Same direction: remove duplicates in-place</span>
+<span class="keyword">int</span> dedup(vector&lt;<span class="keyword">int</span>&gt;&amp; a) {
+    <span class="keyword">int</span> slow = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> fast = <span class="number">1</span>; fast &lt; a.size(); fast++)
+        <span class="keyword">if</span> (a[fast] != a[slow]) a[++slow] = a[fast];
+    <span class="keyword">return</span> slow + <span class="number">1</span>; <span class="comment">// new length</span>
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="comment">// 1. Opposite ends: two-sum on sorted array</span>
+<span class="keyword">int</span>[] twoSum(<span class="keyword">int</span>[] a, <span class="keyword">int</span> target) {
+    <span class="keyword">int</span> l = <span class="number">0</span>, r = a.length - <span class="number">1</span>;
+    <span class="keyword">while</span> (l &lt; r) {
+        <span class="keyword">int</span> s = a[l] + a[r];
+        <span class="keyword">if</span> (s == target) <span class="keyword">return</span> <span class="keyword">new int</span>[]{l, r};
+        <span class="keyword">else if</span> (s &lt; target) l++;
+        <span class="keyword">else</span> r--;
+    }
+    <span class="keyword">return</span> <span class="keyword">new int</span>[]{-<span class="number">1</span>, -<span class="number">1</span>};
+}
+
+<span class="comment">// 2. Same direction: remove duplicates in-place</span>
+<span class="keyword">int</span> dedup(<span class="keyword">int</span>[] a) {
+    <span class="keyword">int</span> slow = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> fast = <span class="number">1</span>; fast &lt; a.length; fast++)
+        <span class="keyword">if</span> (a[fast] != a[slow]) a[++slow] = a[fast];
+    <span class="keyword">return</span> slow + <span class="number">1</span>;
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="comment"># 1. Opposite ends: two-sum on sorted array</span>
+<span class="keyword">def</span> two_sum(a, target):
+    l, r = <span class="number">0</span>, len(a) - <span class="number">1</span>
+    <span class="keyword">while</span> l &lt; r:
+        s = a[l] + a[r]
+        <span class="keyword">if</span> s == target:
+            <span class="keyword">return</span> (l, r)
+        <span class="keyword">elif</span> s &lt; target:
+            l += <span class="number">1</span>          <span class="comment"># need bigger</span>
+        <span class="keyword">else</span>:
+            r -= <span class="number">1</span>          <span class="comment"># need smaller</span>
+    <span class="keyword">return</span> (-<span class="number">1</span>, -<span class="number">1</span>)
+
+<span class="comment"># 2. Same direction: remove duplicates in-place</span>
+<span class="keyword">def</span> dedup(a):
+    slow = <span class="number">0</span>
+    <span class="keyword">for</span> fast <span class="keyword">in</span> range(<span class="number">1</span>, len(a)):
+        <span class="keyword">if</span> a[fast] != a[slow]:
+            slow += <span class="number">1</span>
+            a[slow] = a[fast]
+    <span class="keyword">return</span> slow + <span class="number">1</span></pre>
+            </div>
+        </div>
+
+        <h2>Brute Force vs Two Pointers</h2>
+        <div class="compare">
+            <div>
+                <h3>Nested loops</h3>
+                <ul>
+                    <li>Check every pair (i, j)</li>
+                    <li><strong>O(n²)</strong> time</li>
+                    <li>Works on unsorted data</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Two pointers</h3>
+                <ul>
+                    <li>Single sweep, smart moves</li>
+                    <li><strong>O(n)</strong> time (after sorting)</li>
+                    <li>Needs sorted / monotonic structure</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>Classic Problems</h2>
+        <div class="step-box">
+            <strong>Two Sum / 3Sum / 4Sum</strong> — sort, then opposite-end sweeps.<br><br>
+            <strong>Container With Most Water</strong> — opposite ends, move the shorter wall.<br><br>
+            <strong>Valid Palindrome</strong> — compare from both ends inward.<br><br>
+            <strong>Remove Duplicates / Move Zeroes</strong> — slow/fast same-direction.<br><br>
+            <strong>Merge Two Sorted Arrays</strong> — one pointer per array.<br><br>
+            <strong>Linked List Cycle</strong> — fast/slow (Floyd's tortoise &amp; hare).
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Forgetting to sort:</strong> opposite-end logic only works on sorted data.<br><br>
+            <strong>2. Pointers crossing:</strong> use <code>while (l &lt; r)</code> and stop the moment they meet.<br><br>
+            <strong>3. Duplicates in 3Sum:</strong> skip equal neighbors to avoid duplicate triples.<br><br>
+            <strong>4. Off-by-one on the slow pointer:</strong> decide whether it points at the last kept item or the next free slot — and stay consistent.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const arr = [1, 3, 4, 6, 8, 11, 15];
+        const targets = [10, 14, 9, 19];
+        let target = 10, frames = [], idx = 0, timer = null;
+
+        function buildTargetBtns() {
+            let html = '<span style="font-size:0.82em;font-weight:600;color:#475569;">Target:</span>';
+            targets.forEach(t => html += `<button class="viz-btn ${t === target ? 'target' : ''}" onclick="setTarget(${t})">${t}</button>`);
+            document.getElementById('targetBtns').innerHTML = html;
+        }
+        function setTarget(t) { target = t; buildTargetBtns(); resetViz(); }
+
+        function buildFrames() {
+            const f = [];
+            let l = 0, r = arr.length - 1, done = false;
+            f.push({ l, r, found: false, msg: `Find two values summing to ${target}. Left at smallest, right at largest.` });
+            while (l < r) {
+                const s = arr[l] + arr[r];
+                if (s === target) { f.push({ l, r, found: true, msg: `${arr[l]} + ${arr[r]} = ${target} ✅ Found at indices ${l} and ${r}!` }); done = true; break; }
+                else if (s < target) { f.push({ l, r, found: false, msg: `${arr[l]} + ${arr[r]} = ${s} < ${target} → too small, move LEFT up.` }); l++; }
+                else { f.push({ l, r, found: false, msg: `${arr[l]} + ${arr[r]} = ${s} > ${target} → too big, move RIGHT down.` }); r--; }
+            }
+            if (!done) f.push({ l, r, found: false, ended: true, msg: `Pointers met → no pair sums to ${target}.` });
+            return f;
+        }
+
+        function render(fr) {
+            let html = '';
+            arr.forEach((v, i) => {
+                let cls = 'tp-cell';
+                if (fr.found && (i === fr.l || i === fr.r)) cls += ' both';
+                else if (i === fr.l && i === fr.r) cls += ' both';
+                else if (i === fr.l) cls += ' lp';
+                else if (i === fr.r) cls += ' rp';
+                else if (!fr.found && (i < fr.l || i > fr.r)) cls += ' dim';
+                let ptr = '';
+                if (!fr.ended && i === fr.l) ptr += `<span class="ptr" style="left:0;color:#6366f1;">L</span>`;
+                if (!fr.ended && i === fr.r) ptr += `<span class="ptr" style="right:0;color:#a855f7;">R</span>`;
+                html += `<div class="${cls}">${ptr}<span class="val">${v}</span><span class="ix">${i}</span></div>`;
+            });
+            document.getElementById('tpArray').innerHTML = html;
+            const ok = fr.msg.includes('✅'), no = fr.msg.includes('no pair');
+            document.getElementById('vizLog').innerHTML = `<span style="color:${ok ? '#059669' : no ? '#dc2626' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Run';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Run'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Run'; return; }
+                stepOnce();
+            }, 950);
+        }
+        buildTargetBtns();
+        resetViz();
+    </script>
+</body>
+</html>
