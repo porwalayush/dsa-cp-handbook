@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convex Hull Trick - Advanced Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        canvas { background: #fafbff; border: 1px solid #e2e8f0; border-radius: 12px; display: block; margin: 0 auto; max-width: 100%; }
+        .qslider { width: 100%; accent-color: #6366f1; margin-top: 8px; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Convex Hull Trick</h1>
+        <p>A DP optimization for transitions of the form <code>dp[i] = min(m·x + b)</code> over a set of lines. Instead of checking every line, keep only the ones forming the <strong>lower envelope</strong> — querying the minimum at any x becomes <code>O(log n)</code> (or O(1) amortized).</p>
+
+        <h2>The Setup</h2>
+        <div class="visual">
+<pre>
+   Each candidate transition is a LINE:  y = m·x + b
+   A query asks: "at x = q, which line gives the minimum y?"
+
+   Only lines on the LOWER ENVELOPE can ever be the minimum.
+   Lines fully above others are useless and get discarded.
+
+   Add lines (sorted by slope) → maintain the hull with a stack.
+   Query → binary search (or a moving pointer if x is monotonic).
+</pre>
+        </div>
+
+        <h2>Interactive: Lower Envelope of Lines</h2>
+        <p>Several lines are drawn. The thick <span style="color:#6366f1;font-weight:600;">blue</span> path is the lower envelope (the minimum at each x). Drag the slider to move the query point — the <span style="color:#d97706;font-weight:600;">amber dot</span> sits on whichever line is currently lowest.</p>
+        <div class="viz-container">
+            <canvas id="cv" width="780" height="340"></canvas>
+            <div class="viz-controls" style="margin-top:12px;">
+                <span style="font-size:0.82em;font-weight:600;color:#475569;">query x</span>
+                <span id="qval" style="font-family:'JetBrains Mono',monospace;color:#6366f1;font-weight:700;"></span>
+            </div>
+            <input type="range" class="qslider" id="qSlider" min="0" max="100" value="35" oninput="draw()">
+            <div id="vizLog" style="margin-top:10px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Code: Convex Hull Trick (min, monotonic)</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// Minimize. Add lines with DECREASING slope; query increasing x.</span>
+<span class="keyword">struct</span> CHT {
+    vector&lt;<span class="keyword">long long</span>&gt; m, b;   <span class="comment">// line i: y = m[i]*x + b[i]</span>
+    <span class="keyword">int</span> ptr = <span class="number">0</span>;
+
+    <span class="keyword">bool</span> bad(<span class="keyword">int</span> l1, <span class="keyword">int</span> l2, <span class="keyword">int</span> l3) {
+        <span class="comment">// l2 is useless if its intersection with l1 is past l3's</span>
+        <span class="keyword">return</span> (__int128)(b[l3]-b[l1])*(m[l1]-m[l2])
+            &lt;= (__int128)(b[l2]-b[l1])*(m[l1]-m[l3]);
+    }
+    <span class="keyword">void</span> add(<span class="keyword">long long</span> slope, <span class="keyword">long long</span> intercept) {
+        m.push_back(slope); b.push_back(intercept);
+        <span class="keyword">while</span> (m.size() &gt;= <span class="number">3</span> &amp;&amp; bad(m.size()-<span class="number">3</span>, m.size()-<span class="number">2</span>, m.size()-<span class="number">1</span>)) {
+            m.erase(m.end()-<span class="number">2</span>); b.erase(b.end()-<span class="number">2</span>);
+        }
+    }
+    <span class="keyword">long long</span> query(<span class="keyword">long long</span> x) {   <span class="comment">// x non-decreasing</span>
+        <span class="keyword">if</span> (ptr &gt;= (<span class="keyword">int</span>)m.size()) ptr = m.size()-<span class="number">1</span>;
+        <span class="keyword">while</span> (ptr + <span class="number">1</span> &lt; (<span class="keyword">int</span>)m.size() &amp;&amp;
+               m[ptr+<span class="number">1</span>]*x + b[ptr+<span class="number">1</span>] &lt;= m[ptr]*x + b[ptr]) ptr++;
+        <span class="keyword">return</span> m[ptr]*x + b[ptr];
+    }
+};</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">class</span> CHT {
+    <span class="keyword">long</span>[] m = <span class="keyword">new long</span>[N]; <span class="keyword">long</span>[] b = <span class="keyword">new long</span>[N];
+    <span class="keyword">int</span> size = <span class="number">0</span>, ptr = <span class="number">0</span>;
+
+    <span class="keyword">boolean</span> bad(<span class="keyword">int</span> l1, <span class="keyword">int</span> l2, <span class="keyword">int</span> l3) {
+        <span class="keyword">return</span> (<span class="keyword">double</span>)(b[l3]-b[l1])*(m[l1]-m[l2])
+            &lt;= (<span class="keyword">double</span>)(b[l2]-b[l1])*(m[l1]-m[l3]);
+    }
+    <span class="keyword">void</span> add(<span class="keyword">long</span> slope, <span class="keyword">long</span> intercept) {
+        m[size] = slope; b[size] = intercept; size++;
+        <span class="keyword">while</span> (size &gt;= <span class="number">3</span> &amp;&amp; bad(size-<span class="number">3</span>, size-<span class="number">2</span>, size-<span class="number">1</span>)) {
+            m[size-<span class="number">2</span>] = m[size-<span class="number">1</span>]; b[size-<span class="number">2</span>] = b[size-<span class="number">1</span>]; size--;
+        }
+    }
+    <span class="keyword">long</span> query(<span class="keyword">long</span> x) {
+        <span class="keyword">if</span> (ptr &gt;= size) ptr = size - <span class="number">1</span>;
+        <span class="keyword">while</span> (ptr + <span class="number">1</span> &lt; size &amp;&amp; m[ptr+<span class="number">1</span>]*x + b[ptr+<span class="number">1</span>] &lt;= m[ptr]*x + b[ptr]) ptr++;
+        <span class="keyword">return</span> m[ptr]*x + b[ptr];
+    }
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">class</span> CHT:
+    <span class="keyword">def</span> __init__(self):
+        self.m = []; self.b = []; self.ptr = <span class="number">0</span>
+
+    <span class="keyword">def</span> _bad(self, l1, l2, l3):
+        <span class="keyword">return</span> ((self.b[l3]-self.b[l1])*(self.m[l1]-self.m[l2])
+                &lt;= (self.b[l2]-self.b[l1])*(self.m[l1]-self.m[l3]))
+
+    <span class="keyword">def</span> add(self, slope, intercept):    <span class="comment"># slopes decreasing</span>
+        self.m.append(slope); self.b.append(intercept)
+        <span class="keyword">while</span> len(self.m) &gt;= <span class="number">3</span> <span class="keyword">and</span> self._bad(-<span class="number">3</span>, -<span class="number">2</span>, -<span class="number">1</span>):
+            self.m.pop(-<span class="number">2</span>); self.b.pop(-<span class="number">2</span>)
+
+    <span class="keyword">def</span> query(self, x):                  <span class="comment"># x non-decreasing</span>
+        <span class="keyword">if</span> self.ptr &gt;= len(self.m): self.ptr = len(self.m) - <span class="number">1</span>
+        <span class="keyword">while</span> (self.ptr + <span class="number">1</span> &lt; len(self.m) <span class="keyword">and</span>
+               self.m[self.ptr+<span class="number">1</span>]*x + self.b[self.ptr+<span class="number">1</span>]
+               &lt;= self.m[self.ptr]*x + self.b[self.ptr]):
+            self.ptr += <span class="number">1</span>
+        <span class="keyword">return</span> self.m[self.ptr]*x + self.b[self.ptr]</pre>
+            </div>
+        </div>
+
+        <h2>Li Chao Tree (the flexible cousin)</h2>
+        <div class="note">
+            <ul>
+                <li>A segment tree over the x-range where each node stores the line that's best at its midpoint.</li>
+                <li>Handles lines added in <strong>any order</strong> and arbitrary query points — O(log range) each.</li>
+                <li>Easier to reason about than the stack CHT when slopes aren't monotonic.</li>
+            </ul>
+        </div>
+
+        <h2>When DP Becomes CHT</h2>
+        <div class="visual">
+<pre>
+   Look for transitions like:
+       dp[i] = min over j  ( dp[j] + cost(j, i) )
+   where cost factors into  (something_j) · (something_i) + ...
+
+   Rewrite as a line:  y = m·x + b   with
+       m = function of j,  b = dp[j] + const,  x = function of i.
+   Then "min over j" = "min over lines at x" → CHT.
+   Drops O(n²) DP to O(n log n) or O(n).
+</pre>
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Min vs max:</strong> for maximum, flip the comparisons (upper envelope) or negate slopes/intercepts.<br><br>
+            <strong>2. Monotonicity assumptions:</strong> the pointer-based query needs sorted slopes AND non-decreasing x — otherwise use binary search or Li Chao.<br><br>
+            <strong>3. Overflow in the "bad" test:</strong> the cross-multiplication can overflow — use __int128 or doubles carefully.<br><br>
+            <strong>4. Duplicate slopes:</strong> keep only the lower intercept among equal slopes.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+        // lines y = m x + b  (we minimize). Use a few with varied slopes.
+        const lines = [
+            { m: -1.6, b: 95, color: '#ef4444' },
+            { m: -0.6, b: 60, color: '#f59e0b' },
+            { m: 0.2, b: 35, color: '#10b981' },
+            { m: 1.1, b: 18, color: '#a855f7' },
+        ];
+        const X0 = 0, X1 = 100; // logical x range
+        const pad = 30;
+
+        function toPx(x, y) {
+            const px = pad + (x - X0) / (X1 - X0) * (cv.width - 2 * pad);
+            const py = cv.height - pad - (y / 120) * (cv.height - 2 * pad);
+            return [px, py];
+        }
+
+        function minAt(x) {
+            let best = Infinity, bi = -1;
+            lines.forEach((L, i) => { const y = L.m * x + L.b; if (y < best) { best = y; bi = i; } });
+            return { y: best, i: bi };
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            // axes
+            ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+            const [ax0, ay0] = toPx(X0, 0), [ax1] = toPx(X1, 0);
+            ctx.beginPath(); ctx.moveTo(ax0, ay0); ctx.lineTo(ax1, ay0); ctx.stroke();
+            // individual lines
+            lines.forEach(L => {
+                ctx.strokeStyle = L.color; ctx.globalAlpha = 0.5; ctx.lineWidth = 1.5;
+                const [x0, y0] = toPx(X0, L.m * X0 + L.b), [x1, y1] = toPx(X1, L.m * X1 + L.b);
+                ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+            });
+            ctx.globalAlpha = 1;
+            // lower envelope
+            ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 4;
+            ctx.beginPath();
+            for (let x = X0; x <= X1; x += 1) {
+                const { y } = minAt(x);
+                const [px, py] = toPx(x, y);
+                if (x === X0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            // query
+            const q = +document.getElementById('qSlider').value;
+            const { y, i } = minAt(q);
+            const [qx, qy] = toPx(q, y);
+            ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(qx, qy, 7, 0, 7); ctx.fill();
+            ctx.strokeStyle = '#f59e0b'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(qx, ay0); ctx.lineTo(qx, qy); ctx.stroke(); ctx.setLineDash([]);
+            document.getElementById('qval').textContent = q;
+            const L = lines[i];
+            document.getElementById('vizLog').innerHTML = `<span style="color:#475569;">At x = ${q}, the lowest line is <b style="color:${L.color};">y = ${L.m}x + ${L.b}</b> → min value = <b style="color:#6366f1;">${y.toFixed(1)}</b>. CHT finds this in O(log n) without checking all ${lines.length} lines.</span>`;
+        }
+        draw();
+    </script>
+</body>
+</html>

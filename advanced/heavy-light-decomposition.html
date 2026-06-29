@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heavy-Light Decomposition - Advanced Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        svg { width: 100%; height: 360px; display: block; }
+        .edge-light { stroke: #cbd5e1; stroke-width: 1.6; }
+        .edge-heavy { stroke: #6366f1; stroke-width: 4; }
+        .edge-path { stroke: #f59e0b; stroke-width: 5; }
+        .node-c { fill: white; stroke: #cbd5e1; stroke-width: 2; cursor: pointer; transition: all 0.2s ease; }
+        .node-c.sel { fill: #fef3c7; stroke: #f59e0b; stroke-width: 3; }
+        .node-c.path { fill: #fed7aa; stroke: #f59e0b; }
+        .node-t { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; fill: #1e293b; text-anchor: middle; pointer-events: none; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Heavy-Light Decomposition</h1>
+        <p>Turns <strong>path queries on a tree</strong> into a handful of <strong>range queries on an array</strong>. Break the tree into "heavy" chains; any root-to-node path crosses at most <code>O(log n)</code> chains, so a segment tree over the chains answers path queries in <code>O(log²n)</code>.</p>
+
+        <h2>Heavy vs Light Edges</h2>
+        <div class="visual">
+<pre>
+   For each node, its HEAVY child = the child with the
+   largest subtree. That edge is "heavy"; all others "light".
+
+   Key fact: any path from the root DOWN to a leaf crosses
+   at most O(log n) LIGHT edges — because each light edge
+   at least HALVES the subtree size as you go down.
+
+   Heavy edges form chains → lay each chain contiguously in
+   an array → segment tree handles each chain segment.
+</pre>
+        </div>
+
+        <h2>Interactive: Path Between Two Nodes</h2>
+        <p>Thick <span style="color:#6366f1;font-weight:600;">blue</span> edges are heavy chains. Click two nodes — the <span style="color:#d97706;font-weight:600;">amber</span> path between them is shown, and we count how many separate chain segments it decomposes into (each becomes one segment-tree query).</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <button class="viz-btn" onclick="resetSel()">Clear Selection</button>
+                <span id="sel" style="font-size:0.82em; color:#64748b; margin-left:auto; font-family:'JetBrains Mono',monospace;"></span>
+            </div>
+            <svg id="svg" viewBox="0 0 760 360"></svg>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;">Click two nodes to see the path decomposition.</div>
+        </div>
+
+        <h2>Code: HLD Skeleton</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="keyword">int</span> par[N], dep[N], sz[N], heavy[N], head[N], pos[N], cur = <span class="number">0</span>;
+vector&lt;<span class="keyword">int</span>&gt; adj[N];
+
+<span class="keyword">int</span> dfsSize(<span class="keyword">int</span> u, <span class="keyword">int</span> p) {
+    sz[u] = <span class="number">1</span>; heavy[u] = -<span class="number">1</span>;
+    <span class="keyword">int</span> mx = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != p) {
+        par[v] = u; dep[v] = dep[u] + <span class="number">1</span>;
+        <span class="keyword">int</span> s = dfsSize(v, u); sz[u] += s;
+        <span class="keyword">if</span> (s &gt; mx) { mx = s; heavy[u] = v; } <span class="comment">// biggest child</span>
+    }
+    <span class="keyword">return</span> sz[u];
+}
+<span class="keyword">void</span> decompose(<span class="keyword">int</span> u, <span class="keyword">int</span> h) {
+    head[u] = h; pos[u] = cur++;          <span class="comment">// position in base array</span>
+    <span class="keyword">if</span> (heavy[u] != -<span class="number">1</span>) decompose(heavy[u], h);  <span class="comment">// extend chain</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != par[u] &amp;&amp; v != heavy[u])
+        decompose(v, v);                  <span class="comment">// new chain</span>
+}
+<span class="comment">// path query u..v: jump chains by head, query segtree on [pos..]</span>
+<span class="keyword">long long</span> queryPath(<span class="keyword">int</span> u, <span class="keyword">int</span> v) {
+    <span class="keyword">long long</span> res = <span class="number">0</span>;
+    <span class="keyword">while</span> (head[u] != head[v]) {
+        <span class="keyword">if</span> (dep[head[u]] &lt; dep[head[v]]) swap(u, v);
+        res += segQuery(pos[head[u]], pos[u]);
+        u = par[head[u]];
+    }
+    <span class="keyword">if</span> (dep[u] &gt; dep[v]) swap(u, v);
+    res += segQuery(pos[u], pos[v]);       <span class="comment">// same chain</span>
+    <span class="keyword">return</span> res;
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">int</span>[] par, dep, sz, heavy, head, pos;
+<span class="keyword">int</span> cur = <span class="number">0</span>;
+List&lt;Integer&gt;[] adj;
+
+<span class="keyword">int</span> dfsSize(<span class="keyword">int</span> u, <span class="keyword">int</span> p) {
+    sz[u] = <span class="number">1</span>; heavy[u] = -<span class="number">1</span>; <span class="keyword">int</span> mx = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != p) {
+        par[v] = u; dep[v] = dep[u] + <span class="number">1</span>;
+        <span class="keyword">int</span> s = dfsSize(v, u); sz[u] += s;
+        <span class="keyword">if</span> (s &gt; mx) { mx = s; heavy[u] = v; }
+    }
+    <span class="keyword">return</span> sz[u];
+}
+<span class="keyword">void</span> decompose(<span class="keyword">int</span> u, <span class="keyword">int</span> h) {
+    head[u] = h; pos[u] = cur++;
+    <span class="keyword">if</span> (heavy[u] != -<span class="number">1</span>) decompose(heavy[u], h);
+    <span class="keyword">for</span> (<span class="keyword">int</span> v : adj[u]) <span class="keyword">if</span> (v != par[u] &amp;&amp; v != heavy[u]) decompose(v, v);
+}
+<span class="comment">// queryPath jumps via head[] just like the C++ version</span></pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">import</span> sys
+sys.setrecursionlimit(<span class="number">300000</span>)
+
+<span class="keyword">def</span> dfs_size(u, p):
+    sz[u] = <span class="number">1</span>; heavy[u] = -<span class="number">1</span>; mx = <span class="number">0</span>
+    <span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:
+        <span class="keyword">if</span> v != p:
+            par[v] = u; dep[v] = dep[u] + <span class="number">1</span>
+            s = dfs_size(v, u); sz[u] += s
+            <span class="keyword">if</span> s &gt; mx: mx = s; heavy[u] = v
+    <span class="keyword">return</span> sz[u]
+
+<span class="keyword">def</span> decompose(u, h):
+    <span class="keyword">global</span> cur
+    head[u] = h; pos[u] = cur; cur += <span class="number">1</span>
+    <span class="keyword">if</span> heavy[u] != -<span class="number">1</span>: decompose(heavy[u], h)
+    <span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:
+        <span class="keyword">if</span> v != par[u] <span class="keyword">and</span> v != heavy[u]:
+            decompose(v, v)
+
+<span class="keyword">def</span> query_path(u, v):
+    res = <span class="number">0</span>
+    <span class="keyword">while</span> head[u] != head[v]:
+        <span class="keyword">if</span> dep[head[u]] &lt; dep[head[v]]: u, v = v, u
+        res += seg_query(pos[head[u]], pos[u])
+        u = par[head[u]]
+    <span class="keyword">if</span> dep[u] &gt; dep[v]: u, v = v, u
+    res += seg_query(pos[u], pos[v])
+    <span class="keyword">return</span> res</pre>
+            </div>
+        </div>
+
+        <h2>What HLD Answers</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Path sum / max / min</strong> between any two nodes, with point or range updates.</li>
+                <li><strong>Subtree queries</strong> too (subtrees are contiguous in the same Euler order).</li>
+                <li>Combine with a segment tree (sum/max), or with lazy propagation for path updates.</li>
+                <li>Per query: <code>O(log²n)</code> (O(log n) chains × O(log n) segtree).</li>
+            </ul>
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Edge vs node values:</strong> for edge weights, store each edge at its child node and skip the LCA in the same-chain query.<br><br>
+            <strong>2. Recursion depth:</strong> a chain (or a stick-shaped tree) can be deep — raise the recursion limit / use iterative DFS.<br><br>
+            <strong>3. Heavy child choice:</strong> it's the child with the largest <em>subtree size</em>, not the largest weight.<br><br>
+            <strong>4. Chain jump direction:</strong> always lift the node whose chain <em>head is deeper</em> first.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Fixed tree (0 = root). children list.
+        const children = { 0: [1, 2], 1: [3, 4], 2: [5, 6], 3: [7], 4: [], 5: [8, 9], 6: [], 7: [], 8: [], 9: [10], 10: [] };
+        const par = {}, dep = {}, sz = {}, heavy = {}, head = {};
+        const adj = {};
+        Object.keys(children).forEach(k => { adj[k] = children[k].map(Number); });
+        par[0] = -1; dep[0] = 0;
+        (function dfs(u) {
+            sz[u] = 1; let mx = 0; heavy[u] = -1;
+            for (const v of adj[u]) { par[v] = u; dep[v] = dep[u] + 1; dfs(v); sz[u] += sz[v]; if (sz[v] > mx) { mx = sz[v]; heavy[u] = v; } }
+        })(0);
+        (function decompose(u, h) { head[u] = h; if (heavy[u] !== -1) decompose(heavy[u], h); for (const v of adj[u]) if (v !== heavy[u]) decompose(v, v); })(0, 0);
+
+        // layout positions (manual-ish by depth)
+        const pos = {
+            0: [380, 30], 1: [220, 100], 2: [540, 100],
+            3: [140, 175], 4: [300, 175], 5: [470, 175], 6: [620, 175],
+            7: [140, 250], 8: [420, 250], 9: [540, 250], 10: [540, 320]
+        };
+
+        let sel = [];
+
+        function pathDecomp(u, v) {
+            // returns list of node-segments (each a chain piece) and the full node set
+            const segs = [], nodes = new Set();
+            let a = u, b = v;
+            while (head[a] !== head[b]) {
+                if (dep[head[a]] < dep[head[b]]) { const t = a; a = b; b = t; }
+                // segment from a up to head[a]
+                let x = a; const seg = [];
+                while (true) { seg.push(x); nodes.add(x); if (x === head[a]) break; x = par[x]; }
+                segs.push(seg);
+                a = par[head[a]];
+            }
+            // same chain now
+            if (dep[a] > dep[b]) { const t = a; a = b; b = t; }
+            let x = b; const seg = [];
+            while (true) { seg.push(x); nodes.add(x); if (x === a) break; x = par[x]; }
+            segs.push(seg);
+            return { segs, nodes };
+        }
+
+        function render() {
+            let pathNodes = new Set(), pathEdges = new Set(), segCount = 0;
+            if (sel.length === 2) {
+                const { segs, nodes } = pathDecomp(sel[0], sel[1]);
+                pathNodes = nodes; segCount = segs.length;
+                // collect path edges (child-parent pairs among path nodes consecutive)
+                nodes.forEach(n => { if (par[n] !== -1 && nodes.has(par[n])) pathEdges.add(n + '-' + par[n]); });
+            }
+            let svg = '';
+            // edges
+            for (let u = 0; u <= 10; u++) {
+                for (const v of adj[u]) {
+                    const isHeavy = heavy[u] === v;
+                    const onPath = pathEdges.has(v + '-' + u);
+                    const cls = onPath ? 'edge-path' : (isHeavy ? 'edge-heavy' : 'edge-light');
+                    svg += `<line class="${cls}" x1="${pos[u][0]}" y1="${pos[u][1]}" x2="${pos[v][0]}" y2="${pos[v][1]}"></line>`;
+                }
+            }
+            // nodes
+            for (let u = 0; u <= 10; u++) {
+                let cls = 'node-c';
+                if (sel.includes(u)) cls += ' sel';
+                else if (pathNodes.has(u)) cls += ' path';
+                svg += `<circle class="${cls}" cx="${pos[u][0]}" cy="${pos[u][1]}" r="17" onclick="pick(${u})"></circle>`;
+                svg += `<text class="node-t" x="${pos[u][0]}" y="${pos[u][1] + 4}">${u}</text>`;
+            }
+            document.getElementById('svg').innerHTML = svg;
+            document.getElementById('sel').textContent = sel.length ? `selected: ${sel.join(', ')}` : '';
+            if (sel.length === 2) {
+                document.getElementById('vizLog').innerHTML = `<span style="color:#475569;">Path ${sel[0]} ↔ ${sel[1]} decomposes into <b style="color:#f59e0b;">${segCount}</b> chain segment(s) → ${segCount} segment-tree quer${segCount === 1 ? 'y' : 'ies'} (O(log n) of them in general).</span>`;
+            } else if (sel.length === 1) {
+                document.getElementById('vizLog').innerHTML = `<span style="color:#475569;">Node ${sel[0]} selected. Pick one more.</span>`;
+            } else {
+                document.getElementById('vizLog').innerHTML = `<span style="color:#475569;">Click two nodes to see the path decomposition.</span>`;
+            }
+        }
+        function pick(u) { if (sel.includes(u)) return; if (sel.length === 2) sel = []; sel.push(u); render(); }
+        function resetSel() { sel = []; render(); }
+        render();
+    </script>
+</body>
+</html>
