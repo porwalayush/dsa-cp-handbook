@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disjoint Set Union (DSU) - Data Structures Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.8em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        svg { width: 100%; height: 280px; display: block; }
+        .d-edge { stroke: #cbd5e1; stroke-width: 2; }
+        .d-node { stroke-width: 2; cursor: pointer; transition: all 0.2s ease; }
+        .d-t { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-anchor: middle; pointer-events: none; }
+        @media (max-width: 600px) { h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Disjoint Set Union (DSU)</h1>
+        <p>Also called <strong>Union-Find</strong>. It tracks a collection of disjoint groups and answers two questions blazingly fast: "are x and y in the same group?" and "merge the groups of x and y." With two optimizations, each op is effectively <code>O(α(n)) ≈ O(1)</code>.</p>
+
+        <h2>The Forest Idea</h2>
+        <div class="visual">
+<pre>
+   Each element points to a PARENT. The root of a tree is the
+   group's representative. Two elements are in the same group
+   iff they share the same root.
+
+   find(x)      — follow parents to the root
+   union(x, y)  — attach one root under the other
+
+   Two optimizations make it near-constant:
+   • PATH COMPRESSION — find() flattens the path to the root
+   • UNION BY RANK/SIZE — attach the smaller tree under the bigger
+</pre>
+        </div>
+
+        <h2>Interactive: Union-Find</h2>
+        <p>Click two nodes, then <strong>Union</strong> them (the trees merge — smaller under larger). <strong>Find</strong> shows a node's root. <strong>Connected?</strong> checks if two share a root. Node colors group by component.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <button class="viz-btn" onclick="act('union')">🔗 Union</button>
+                <button class="viz-btn" onclick="act('connected')">? Connected</button>
+                <button class="viz-btn" onclick="act('find')">🔎 Find root</button>
+                <button class="viz-btn" onclick="clearSel()">Clear</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+                <span id="comps" style="font-size:0.78em; color:#64748b; margin-left:auto; font-family:'JetBrains Mono',monospace;"></span>
+            </div>
+            <svg id="svg" viewBox="0 0 760 280"></svg>
+            <div id="vizLog" style="margin-top:8px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;">Click two nodes, then Union / Connected. (8 nodes start separate.)</div>
+        </div>
+
+        <h2>Code: DSU with Both Optimizations</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="keyword">struct</span> DSU {
+    vector&lt;<span class="keyword">int</span>&gt; parent, sz;
+    DSU(<span class="keyword">int</span> n) : parent(n), sz(n, <span class="number">1</span>) {
+        iota(parent.begin(), parent.end(), <span class="number">0</span>);  <span class="comment">// each its own root</span>
+    }
+    <span class="keyword">int</span> find(<span class="keyword">int</span> x) {
+        <span class="keyword">if</span> (parent[x] != x)
+            parent[x] = find(parent[x]);   <span class="comment">// PATH COMPRESSION</span>
+        <span class="keyword">return</span> parent[x];
+    }
+    <span class="keyword">bool</span> unite(<span class="keyword">int</span> a, <span class="keyword">int</span> b) {
+        a = find(a); b = find(b);
+        <span class="keyword">if</span> (a == b) <span class="keyword">return</span> <span class="keyword">false</span>;          <span class="comment">// already together</span>
+        <span class="keyword">if</span> (sz[a] &lt; sz[b]) swap(a, b);      <span class="comment">// UNION BY SIZE</span>
+        parent[b] = a; sz[a] += sz[b];
+        <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+    <span class="keyword">bool</span> connected(<span class="keyword">int</span> a, <span class="keyword">int</span> b) { <span class="keyword">return</span> find(a) == find(b); }
+};</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="keyword">class</span> DSU {
+    <span class="keyword">int</span>[] parent, size;
+    DSU(<span class="keyword">int</span> n) {
+        parent = <span class="keyword">new int</span>[n]; size = <span class="keyword">new int</span>[n];
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) { parent[i] = i; size[i] = <span class="number">1</span>; }
+    }
+    <span class="keyword">int</span> find(<span class="keyword">int</span> x) {
+        <span class="keyword">if</span> (parent[x] != x) parent[x] = find(parent[x]); <span class="comment">// compress</span>
+        <span class="keyword">return</span> parent[x];
+    }
+    <span class="keyword">boolean</span> unite(<span class="keyword">int</span> a, <span class="keyword">int</span> b) {
+        a = find(a); b = find(b);
+        <span class="keyword">if</span> (a == b) <span class="keyword">return false</span>;
+        <span class="keyword">if</span> (size[a] &lt; size[b]) { <span class="keyword">int</span> t = a; a = b; b = t; }
+        parent[b] = a; size[a] += size[b];
+        <span class="keyword">return true</span>;
+    }
+    <span class="keyword">boolean</span> connected(<span class="keyword">int</span> a, <span class="keyword">int</span> b) { <span class="keyword">return</span> find(a) == find(b); }
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="keyword">class</span> DSU:
+    <span class="keyword">def</span> __init__(self, n):
+        self.parent = list(range(n))
+        self.size = [<span class="number">1</span>] * n
+
+    <span class="keyword">def</span> find(self, x):
+        <span class="keyword">while</span> self.parent[x] != x:
+            self.parent[x] = self.parent[self.parent[x]]  <span class="comment"># path halving</span>
+            x = self.parent[x]
+        <span class="keyword">return</span> x
+
+    <span class="keyword">def</span> union(self, a, b):
+        a, b = self.find(a), self.find(b)
+        <span class="keyword">if</span> a == b:
+            <span class="keyword">return</span> <span class="keyword">False</span>
+        <span class="keyword">if</span> self.size[a] &lt; self.size[b]:
+            a, b = b, a            <span class="comment"># union by size</span>
+        self.parent[b] = a
+        self.size[a] += self.size[b]
+        <span class="keyword">return</span> <span class="keyword">True</span>
+
+    <span class="keyword">def</span> connected(self, a, b):
+        <span class="keyword">return</span> self.find(a) == self.find(b)</pre>
+            </div>
+        </div>
+
+        <h2>Why It's Nearly O(1)</h2>
+        <div class="note">
+            <ul>
+                <li><strong>Path compression</strong> flattens trees during <code>find</code>, so future finds are short.</li>
+                <li><strong>Union by size/rank</strong> keeps trees shallow by attaching the smaller under the larger.</li>
+                <li>Together: <code>O(α(n))</code> amortized, where α is the inverse Ackermann function — ≤ 4 for any n you'll ever see.</li>
+            </ul>
+        </div>
+
+        <h2>Where DSU Shines</h2>
+        <div class="step-box">
+            <strong>Kruskal's MST</strong> — union edges in increasing weight, skip cycles.<br><br>
+            <strong>Connected components</strong> — count groups, check connectivity.<br><br>
+            <strong>Cycle detection</strong> in an undirected graph.<br><br>
+            <strong>Offline queries</strong> — process unions in a chosen order.<br><br>
+            <strong>DSU on tree, DSU with rollback</strong> — advanced variants.
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Comparing raw indices:</strong> always compare <code>find(a) == find(b)</code>, not <code>a == b</code> or parents directly.<br><br>
+            <strong>2. Skipping an optimization:</strong> path compression alone is O(log n) amortized; pair it with union-by-size for near-O(1).<br><br>
+            <strong>3. Rollback needs no compression:</strong> "DSU with rollback" must use union-by-rank only (compression can't be undone cheaply).<br><br>
+            <strong>4. Extra data per set:</strong> store aggregates (size, count) on the <em>root</em> and update during union.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const N = 8;
+        let parent, size, sel = [];
+        const basePos = {};
+        for (let i = 0; i < N; i++) basePos[i] = [70 + i * 90, 60];
+
+        const palette = ['#6366f1', '#a855f7', '#0d9488', '#d97706', '#dc2626', '#2563eb', '#db2777', '#059669'];
+
+        function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+        function union(a, b) {
+            let ra = find(a), rb = find(b);
+            if (ra === rb) return false;
+            if (size[ra] < size[rb]) [ra, rb] = [rb, ra];
+            parent[rb] = ra; size[ra] += size[rb];
+            return true;
+        }
+
+        function layout() {
+            // group nodes by root; place each component as a small star (root on top)
+            const comps = {};
+            for (let i = 0; i < N; i++) { const r = find(i); (comps[r] ||= []).push(i); }
+            const pos = {};
+            let colX = 60;
+            const roots = Object.keys(comps).map(Number);
+            const bandW = 760 / roots.length;
+            roots.forEach((r, ci) => {
+                const members = comps[r];
+                const cx = ci * bandW + bandW / 2;
+                // root at top center
+                pos[r] = [cx, 60];
+                const others = members.filter(m => m !== r);
+                others.forEach((m, k) => {
+                    const spread = others.length === 1 ? 0 : (k - (others.length - 1) / 2);
+                    pos[m] = [cx + spread * 52, 170];
+                });
+            });
+            return { pos, comps };
+        }
+
+        function render(msg, color) {
+            const { pos, comps } = layout();
+            const compOf = {}; Object.keys(comps).forEach((r, ci) => comps[r].forEach(m => compOf[m] = ci));
+            let svg = '';
+            // edges child -> parent
+            for (let i = 0; i < N; i++) {
+                if (parent[i] !== i) {
+                    const a = pos[i], b = pos[parent[i]];
+                    if (a && b) svg += `<line class="d-edge" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"></line>`;
+                }
+            }
+            for (let i = 0; i < N; i++) {
+                const p = pos[i]; if (!p) continue;
+                const col = palette[compOf[i] % palette.length];
+                const isRoot = find(i) === i;
+                let stroke = col, fill = sel.includes(i) ? '#fef3c7' : (isRoot ? col : 'white');
+                let tcol = sel.includes(i) ? '#92400e' : (isRoot ? 'white' : col);
+                if (sel.includes(i)) stroke = '#f59e0b';
+                svg += `<circle class="d-node" cx="${p[0]}" cy="${p[1]}" r="18" fill="${fill}" stroke="${stroke}" onclick="pick(${i})"></circle>`;
+                svg += `<text class="d-t" x="${p[0]}" y="${p[1] + 4}" fill="${tcol}">${i}</text>`;
+            }
+            document.getElementById('svg').innerHTML = svg;
+            const numComps = new Set(Array.from({ length: N }, (_, i) => find(i))).size;
+            document.getElementById('comps').textContent = `components: ${numComps}`;
+            document.getElementById('vizLog').innerHTML = `<span style="color:${color || '#475569'};">${msg}</span>`;
+        }
+
+        function pick(i) { if (sel.includes(i)) return; if (sel.length === 2) sel = []; sel.push(i); render(`Selected ${sel.join(' and ')}.`, '#475569'); }
+        function clearSel() { sel = []; render('Selection cleared.', '#475569'); }
+
+        function act(kind) {
+            if (kind === 'find') {
+                if (sel.length < 1) { render('Pick a node first.', '#dc2626'); return; }
+                const x = sel[0];
+                render(`find(${x}) = ${find(x)} (the root / representative of its component).`, '#6366f1');
+                return;
+            }
+            if (sel.length !== 2) { render('Pick exactly two nodes first.', '#dc2626'); return; }
+            const [a, b] = sel;
+            if (kind === 'union') {
+                const did = union(a, b);
+                sel = [];
+                render(did ? `union(${a}, ${b}): merged their components (smaller tree under larger root).` : `union(${a}, ${b}): already in the same component — nothing to do.`, did ? '#059669' : '#d97706');
+            } else if (kind === 'connected') {
+                const yes = find(a) === find(b);
+                render(`connected(${a}, ${b})? ${yes ? 'YES — same root ✓' : 'NO — different roots'}.`, yes ? '#059669' : '#dc2626');
+            }
+        }
+        function resetViz() {
+            parent = Array.from({ length: N }, (_, i) => i);
+            size = new Array(N).fill(1);
+            sel = [];
+            render('8 separate singletons. Union nodes to build components.', '#475569');
+        }
+        resetViz();
+    </script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arrays &amp; Hashing - Data Structures Visualized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; min-height: 100vh; color: #1e293b; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: #6366f1; text-decoration: none; font-size: 0.9em; font-weight: 500; margin-bottom: 32px; padding: 6px 12px; border-radius: 8px; transition: background 0.15s ease; }
+        .back-link:hover { background: #eef2ff; }
+        h1 { font-size: 2.4em; font-weight: 800; color: #0f172a; margin-bottom: 12px; letter-spacing: -0.03em; line-height: 1.2; }
+        h2 { font-size: 1.35em; font-weight: 700; color: #0f172a; margin: 40px 0 16px; letter-spacing: -0.02em; }
+        h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 10px; }
+        p, li { line-height: 1.8; color: #475569; margin-bottom: 10px; font-size: 0.95em; }
+        ul, ol { padding-left: 20px; margin-bottom: 15px; }
+        strong { color: #1e293b; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.85em; color: #6366f1; }
+        .visual { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .visual pre { color: #334155; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; display: inline-block; text-align: left; line-height: 1.7; }
+        .code-container { margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .code-tabs { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 8px; }
+        .code-tab { padding: 10px 18px; cursor: pointer; border: none; background: transparent; color: #64748b; font-size: 0.85em; font-weight: 500; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s ease; }
+        .code-tab:hover { color: #6366f1; }
+        .code-tab.active { color: #6366f1; border-bottom-color: #6366f1; background: white; }
+        .code-content { display: none; background: white; padding: 24px; overflow-x: auto; }
+        .code-content.active { display: block; }
+        .code-content pre { color: #1e293b; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; line-height: 1.75; }
+        .keyword { color: #7c3aed; } .type { color: #2563eb; } .string { color: #16a34a; }
+        .comment { color: #94a3b8; font-style: italic; } .number { color: #2563eb; }
+        .note { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; margin: 20px 0; border-radius: 0 12px 12px 0; }
+        .note ul { margin-bottom: 0; } .note li:last-child { margin-bottom: 0; }
+        .step-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .step-box strong { color: #6366f1; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare > div { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .compare h3 { color: #6366f1; margin-bottom: 10px; margin-top: 0; }
+        .viz-container { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin: 20px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .viz-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .viz-btn { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; color: #475569; font-size: 0.82em; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
+        .viz-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .viz-btn.target { background: #6366f1; color: white; border-color: #6366f1; }
+        .arr { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin: 16px 0; }
+        .cell { width: 46px; height: 52px; border-radius: 9px; border: 2px solid #e2e8f0; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; transition: all 0.3s ease; }
+        .cell .v { font-size: 0.88em; font-weight: 700; color: #1e293b; }
+        .cell .i { font-size: 0.54em; color: #94a3b8; }
+        .cell.win { border-color: #6366f1; background: #eef2ff; }
+        .cell.hit { border-color: #059669; background: #d1fae5; }
+        .pre { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin: 8px 0; }
+        .pcell { min-width: 40px; height: 38px; border-radius: 7px; border: 1px dashed #cbd5e1; background: #f8fafc; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.74em; font-weight: 600; color: #64748b; }
+        .pcell.mark { border-color: #f59e0b; border-style: solid; background: #fef3c7; color: #92400e; }
+        @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } h1 { font-size: 1.8em; } .container { padding: 20px 16px 60px; } .cell { width: 36px; height: 44px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to All Topics</a>
+        <h1>Arrays &amp; Hashing</h1>
+        <p>The bread and butter of problem solving. <strong>Prefix sums</strong> answer range queries in O(1), and <strong>hash maps</strong> turn "have I seen this before?" into an O(1) lookup — together they crack a huge share of array problems.</p>
+
+        <h2>Prefix Sums</h2>
+        <div class="visual">
+<pre>
+   a      :  3   1   4   1   5   9
+   prefix : 0  3   4   8   9  14  23     (prefix[i] = a[0..i-1])
+
+   sum of a[l..r]  =  prefix[r+1] - prefix[l]
+   e.g. a[1..3] = prefix[4] - prefix[1] = 9 - 3 = 6   (1+4+1)
+
+   Build once in O(n) → every range sum is O(1).
+</pre>
+        </div>
+
+        <h2>Interactive: Subarray Sum = Target (with a hash map)</h2>
+        <p>Classic trick: as we sweep, keep prefix sums in a hash map. At each index, if <code>prefix − target</code> was seen before, we found a subarray summing to the target. The <span style="color:#6366f1;font-weight:600;">blue</span> window is the matched subarray.</p>
+        <div class="viz-container">
+            <div class="viz-controls">
+                <span style="font-size:0.82em;font-weight:600;color:#475569;">target</span>
+                <button class="viz-btn target" onclick="setTarget(7)">7</button>
+                <button class="viz-btn" onclick="setTarget(12)">12</button>
+                <button class="viz-btn" onclick="setTarget(3)">3</button>
+                <button class="viz-btn" id="playBtn" onclick="play()">▶ Run</button>
+                <button class="viz-btn" id="stepBtn" onclick="stepOnce()">Step →</button>
+                <button class="viz-btn" onclick="resetViz()">Reset</button>
+            </div>
+            <div class="arr" id="arr"></div>
+            <div style="text-align:center;font-size:0.66em;color:#94a3b8;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">running prefix sum</div>
+            <div class="pre" id="pre"></div>
+            <div id="vizLog" style="margin-top:10px; padding:12px; background:#f8fafc; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.78em; color:#475569; min-height:42px;"></div>
+        </div>
+
+        <h2>Code: Prefix Sums &amp; Subarray-Sum Hash</h2>
+        <div class="code-container">
+            <div class="code-tabs">
+                <button class="code-tab active" onclick="showCode(this, 'cpp1')">C++</button>
+                <button class="code-tab" onclick="showCode(this, 'java1')">Java</button>
+                <button class="code-tab" onclick="showCode(this, 'py1')">Python</button>
+            </div>
+            <div id="cpp1" class="code-content active">
+<pre><span class="comment">// Prefix sums: O(n) build, O(1) range sum</span>
+vector&lt;<span class="keyword">long long</span>&gt; pre(n + <span class="number">1</span>, <span class="number">0</span>);
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) pre[i+<span class="number">1</span>] = pre[i] + a[i];
+<span class="keyword">auto</span> rangeSum = [&amp;](<span class="keyword">int</span> l, <span class="keyword">int</span> r) { <span class="keyword">return</span> pre[r+<span class="number">1</span>] - pre[l]; };
+
+<span class="comment">// Count subarrays summing to k, using a hash map</span>
+<span class="keyword">int</span> subarraySum(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">int</span> k) {
+    unordered_map&lt;<span class="keyword">long long</span>,<span class="keyword">int</span>&gt; seen{{<span class="number">0</span>, <span class="number">1</span>}};
+    <span class="keyword">long long</span> sum = <span class="number">0</span>; <span class="keyword">int</span> count = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : a) {
+        sum += x;
+        count += seen[sum - k];   <span class="comment">// prefix(j) = sum - k seen?</span>
+        seen[sum]++;
+    }
+    <span class="keyword">return</span> count;
+}
+
+<span class="comment">// Two-sum: value -> index</span>
+vector&lt;<span class="keyword">int</span>&gt; twoSum(vector&lt;<span class="keyword">int</span>&gt;&amp; a, <span class="keyword">int</span> target) {
+    unordered_map&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt; idx;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; a.size(); i++) {
+        <span class="keyword">if</span> (idx.count(target - a[i])) <span class="keyword">return</span> {idx[target - a[i]], i};
+        idx[a[i]] = i;
+    }
+    <span class="keyword">return</span> {};
+}</pre>
+            </div>
+            <div id="java1" class="code-content">
+<pre><span class="comment">// Prefix sums</span>
+<span class="keyword">long</span>[] pre = <span class="keyword">new long</span>[n + <span class="number">1</span>];
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; i++) pre[i+<span class="number">1</span>] = pre[i] + a[i];
+<span class="comment">// range sum [l,r] = pre[r+1] - pre[l]</span>
+
+<span class="comment">// Count subarrays summing to k</span>
+<span class="keyword">int</span> subarraySum(<span class="keyword">int</span>[] a, <span class="keyword">int</span> k) {
+    Map&lt;Long,Integer&gt; seen = <span class="keyword">new</span> HashMap&lt;&gt;();
+    seen.put(<span class="number">0L</span>, <span class="number">1</span>);
+    <span class="keyword">long</span> sum = <span class="number">0</span>; <span class="keyword">int</span> count = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> x : a) {
+        sum += x;
+        count += seen.getOrDefault(sum - k, <span class="number">0</span>);
+        seen.merge(sum, <span class="number">1</span>, Integer::sum);
+    }
+    <span class="keyword">return</span> count;
+}</pre>
+            </div>
+            <div id="py1" class="code-content">
+<pre><span class="comment"># Prefix sums</span>
+<span class="keyword">from</span> itertools <span class="keyword">import</span> accumulate
+pre = [<span class="number">0</span>] + list(accumulate(a))
+<span class="comment"># range sum [l, r] = pre[r+1] - pre[l]</span>
+
+<span class="comment"># Count subarrays summing to k</span>
+<span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict
+<span class="keyword">def</span> subarray_sum(a, k):
+    seen = defaultdict(int); seen[<span class="number">0</span>] = <span class="number">1</span>
+    total = count = <span class="number">0</span>
+    <span class="keyword">for</span> x <span class="keyword">in</span> a:
+        total += x
+        count += seen[total - k]   <span class="comment"># prefix == total - k seen?</span>
+        seen[total] += <span class="number">1</span>
+    <span class="keyword">return</span> count
+
+<span class="comment"># Two-sum</span>
+<span class="keyword">def</span> two_sum(a, target):
+    idx = {}
+    <span class="keyword">for</span> i, x <span class="keyword">in</span> enumerate(a):
+        <span class="keyword">if</span> target - x <span class="keyword">in</span> idx:
+            <span class="keyword">return</span> [idx[target - x], i]
+        idx[x] = i</pre>
+            </div>
+        </div>
+
+        <h2>The Core Patterns</h2>
+        <div class="compare">
+            <div>
+                <h3>Prefix / Difference</h3>
+                <ul>
+                    <li>Range sum in O(1)</li>
+                    <li>Difference array for range updates</li>
+                    <li>2D prefix sums for submatrices</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Hashing</h3>
+                <ul>
+                    <li>Seen-before checks in O(1)</li>
+                    <li>Frequency / counting maps</li>
+                    <li>Grouping (anagrams, buckets)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>The Difference Array (range updates)</h2>
+        <div class="note">
+            <ul>
+                <li>To add <code>v</code> to all of <code>a[l..r]</code> many times, record <code>diff[l] += v; diff[r+1] -= v</code>.</li>
+                <li>A single prefix sum of <code>diff</code> at the end applies every update — O(1) per update, O(n) to finalize.</li>
+                <li>The mirror image of prefix sums: prefix answers queries, difference applies updates.</li>
+            </ul>
+        </div>
+
+        <h2>Go-To Problems</h2>
+        <div class="step-box">
+            <strong>Two Sum / group anagrams</strong> — hash map lookups.<br><br>
+            <strong>Subarray sum = k</strong> — prefix sums in a map.<br><br>
+            <strong>Range sum queries</strong> (immutable) — prefix array.<br><br>
+            <strong>Range add, query later</strong> — difference array.<br><br>
+            <strong>First duplicate / missing number</strong> — set or in-place hashing.
+        </div>
+
+        <h2>Common Pitfalls</h2>
+        <div class="step-box">
+            <strong>1. Prefix off-by-one:</strong> with <code>pre[0]=0</code>, range <code>[l,r]</code> is <code>pre[r+1]−pre[l]</code> — get the +1 right.<br><br>
+            <strong>2. Seed the map with {0:1}:</strong> for subarray-sum-k, the empty prefix must count.<br><br>
+            <strong>3. Overflow:</strong> prefix sums of large arrays need 64-bit.<br><br>
+            <strong>4. Hash worst case:</strong> adversarial keys can make hashing O(n) — use a randomized hash for anti-hack safety.
+        </div>
+    </div>
+
+    <script>
+        function showCode(btn, id) {
+            const c = btn.closest('.code-container');
+            c.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            c.querySelectorAll('.code-content').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        const a = [3, 1, 4, 1, 5, 2];
+        let target = 7, frames = [], idx = 0, timer = null;
+
+        function setTarget(t) {
+            target = t;
+            document.querySelectorAll('.viz-controls .viz-btn').forEach(b => { if (['7','12','3'].includes(b.textContent)) b.classList.toggle('target', +b.textContent === t); });
+            resetViz();
+        }
+
+        function buildFrames() {
+            const f = [];
+            const seen = { 0: -1 }; // prefix value -> last index where it occurred (-1 = before array)
+            let sum = 0, found = false;
+            f.push({ i: -1, sum: 0, win: null, msg: `Looking for a subarray summing to ${target}. Seed prefix 0 (empty).`, pre: [0] });
+            const preArr = [0];
+            for (let i = 0; i < a.length && !found; i++) {
+                sum += a[i];
+                preArr.push(sum);
+                const need = sum - target;
+                if (need in seen) {
+                    const start = seen[need] + 1;
+                    f.push({ i, sum, win: [start, i], msg: `prefix=${sum}, need ${need} seen at index ${seen[need]} → subarray a[${start}..${i}] sums to ${target}! ✅`, pre: preArr.slice(), mark: sum });
+                    found = true;
+                } else {
+                    f.push({ i, sum, win: null, msg: `i=${i}: prefix=${sum}. Is ${need} a seen prefix? No → store prefix ${sum}, continue.`, pre: preArr.slice(), mark: sum });
+                }
+                if (!(sum in seen)) seen[sum] = i;
+            }
+            if (!found) f.push({ i: a.length, sum, win: null, msg: `No subarray sums to ${target}.`, pre: preArr.slice() });
+            return f;
+        }
+
+        function render(fr) {
+            let html = '';
+            a.forEach((v, i) => {
+                let cls = 'cell';
+                if (fr.win && i >= fr.win[0] && i <= fr.win[1]) cls += ' hit';
+                else if (fr.i === i) cls += ' win';
+                html += `<div class="${cls}"><span class="v">${v}</span><span class="i">${i}</span></div>`;
+            });
+            document.getElementById('arr').innerHTML = html;
+            let ph = '';
+            (fr.pre || [0]).forEach((p, i) => {
+                ph += `<div class="pcell ${fr.mark === p && i === (fr.pre.length - 1) ? 'mark' : ''}">${p}</div>`;
+            });
+            document.getElementById('pre').innerHTML = ph;
+            const ok = fr.msg.includes('✅'), no = fr.msg.startsWith('No subarray');
+            document.getElementById('vizLog').innerHTML = `<span style="color:${ok ? '#059669' : no ? '#dc2626' : '#475569'};">${fr.msg}</span>`;
+        }
+
+        function resetViz() {
+            clearInterval(timer); timer = null;
+            frames = buildFrames(); idx = 0;
+            document.getElementById('playBtn').textContent = '▶ Run';
+            document.getElementById('stepBtn').disabled = false;
+            render(frames[0]);
+        }
+        function stepOnce() {
+            if (idx >= frames.length - 1) return;
+            idx++; render(frames[idx]);
+            if (idx >= frames.length - 1) document.getElementById('stepBtn').disabled = true;
+        }
+        function play() {
+            const btn = document.getElementById('playBtn');
+            if (timer) { clearInterval(timer); timer = null; btn.textContent = '▶ Run'; document.getElementById('stepBtn').disabled = false; return; }
+            btn.textContent = '⏸ Pause';
+            document.getElementById('stepBtn').disabled = true;
+            timer = setInterval(() => {
+                if (idx >= frames.length - 1) { clearInterval(timer); timer = null; btn.textContent = '▶ Run'; return; }
+                stepOnce();
+            }, 850);
+        }
+        resetViz();
+    </script>
+</body>
+</html>
